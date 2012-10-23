@@ -21,6 +21,7 @@ Original Perl code by Stijn Deweirdt
 __author__ = 'ageorges'
 __date__ = 'May 9, 2012'
 
+import re
 import logging
 import os
 
@@ -36,6 +37,8 @@ def mount_points(mount_type):
     @return: tuple of two dictionaries
         - with string keys representing mounted devices and values the mount points
         - with string keys representing mount points and values the mounted devices
+
+    #FIXME: Deprecated: replaced by the vsc.filesystems.posix or vsc.filesystems.gpfs modules.
     """
     source = '/proc/mounts'
     reg_mount = re.compile(r"^(?P<dev>\S+)\s+(?P<mntpt>\S+)\s+%s" % (mount_type))
@@ -59,6 +62,8 @@ def match_mount_point_with_path(mount_points, path):
     """See which mount point is used for a given path.
 
     @type mount_points: dictionary with the mount points as keys and devices as values
+
+    #FIXME: Deprecated: replaced by the vsc.filesystems.posix or vsc.filesystems.gpfs modules.
     """
 
     # normalise the path
