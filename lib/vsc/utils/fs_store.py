@@ -9,7 +9,8 @@
 # This is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation v2.
-'''Functions to help storing information somewhere in the file system.
+##
+"""Functions to help storing information somewhere in the file system.
 
 An example use of this is storing cached information in the user's
 home directories to avoid running expensive scripts to obtain it.
@@ -17,7 +18,7 @@ home directories to avoid running expensive scripts to obtain it.
 @author Andy Georges
 
 Created Apr 4, 2012
-'''
+"""
 import cPickle
 import os
 import pwd
@@ -29,6 +30,7 @@ import subprocess
 import vsc.fancylogger as fancylogger
 
 from vsc.exceptions import FileCopyError, FileMoveError, FileStoreError, UserStorageError
+from vsc.filesystem.gpfs import GpfsOperations
 
 
 logger = fancylogger.getLogger(__name__)
@@ -36,7 +38,7 @@ logger = fancylogger.getLogger(__name__)
 USER_STORAGE_HOME = '/user/homegengar/'
 
 def move_to_user_home(vsc_user_id, src, dest):
-    '''Copy a file to the home directory of a VSC user.
+    """Copy a file to the home directory of a VSC user.
 
     @type vsc_user_id: username of the user on the VSC
     @type src: absolute path to the source file
@@ -46,7 +48,7 @@ def move_to_user_home(vsc_user_id, src, dest):
 
     @deprecated: Replaced by the move_to_user_home_as_root function. This should
                  no longer be used.
-    '''
+    """
     try:
         os.chown(src, pwd.getpwnam(vsc_user_id)[2], pwd.getpwnam(vsc_user_id)[3])  # restrict access
         cmd = "sudo -u %s chmod 700 %s &> /dev/null" % (vsc_user_id, dest)  # make sure destination is writable if it's there
@@ -68,14 +70,14 @@ def move_to_user_home(vsc_user_id, src, dest):
 
 
 def move_to_user_home_as_root(vsc_user_id, src, dest):
-    '''Copy a file to the home directory of a VSC user.
+    """Copy a file to the home directory of a VSC user.
 
     @type vsc_user_id: username of the user on the VSC
     @type src: absolute path to the source file
     @type dest: absolute path to the destination file
 
     @raise FileMoveError: if the file cannot be moved to the user's home dir.
-    '''
+    """
     try:
         vsc_user_uid = pwd.getpwnam(vsc_user_id)[2]
         vsc_user_gid = pwd.getpwnam(vsc_user_id)[3]
@@ -90,14 +92,14 @@ def move_to_user_home_as_root(vsc_user_id, src, dest):
 
 
 def copy_from_user_home(vsc_user_id, src, dest):
-    '''Copy a file out of a VSC user's home directory.
+    """Copy a file out of a VSC user's home directory.
 
     @type vsc_user_id: username of the user on the VSC
     @type src: absolute path to the source file
     @type dest: absolute path to the destination file
 
     @raise FileCopyError: if the file cannot be copied
-    '''
+    """
     try:
         cmd = "sudo -u %s cp %s %s" % (vsc_user_id, src, dest)
         subprocess.call(cmd, shell=True)
@@ -107,7 +109,7 @@ def copy_from_user_home(vsc_user_id, src, dest):
 
 
 def store_pickle_data_at_user(vsc_user_id, path, data):
-    '''Store the pickled data to a file.
+    """Store the pickled data to a file.
 
     @type vsc_user_id: username of the user on the VSC.
     @type path: the path to the file, relative to the vsc_user_id's home directory
@@ -116,7 +118,7 @@ def store_pickle_data_at_user(vsc_user_id, path, data):
     @raise UserStorageError: when we cannot gain access to the user's home directory.
     @raise FileStoreError: a FileStoreError in case of an error putting the data in place.
     @raise FileMoveError: when we cannot move the data to the user's home directory.
-    '''
+    """
     try:
         home = pwd.getpwnam(vsc_user_id)[5]
     except Exception, err:
@@ -153,7 +155,7 @@ def store_pickle_data_at_user(vsc_user_id, path, data):
 
 
 def read_pickled_data_from_user(self, vsc_user_id, path):
-    '''Unpickle and read the data from the stored pickled file cache.
+    """Unpickle and read the data from the stored pickled file cache.
 
     @type vsc_user_id: username of the user of the VSC
     @type path: the path to the file, relative to the user's home directory
@@ -162,7 +164,7 @@ def read_pickled_data_from_user(self, vsc_user_id, path):
 
     @raise UserStorageError: when we cannot gain access to the user's home directory.
     @raise FileStoreError: when we cannot get the data
-    '''
+    """
     try:
         home = pwd.getpwnam(vsc_user_id)[5]
     except Exception, err:
