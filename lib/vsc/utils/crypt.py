@@ -1,5 +1,16 @@
-#!/usr/bin/python
-
+#!/usr/bin/env python
+##
+#
+# Copyright 2010-2012 Ghent University
+# Copyright 2010-2012 Stijn De Weirdt
+#
+# This file is part of the tools originally by the HPC team of
+# Ghent University (http://ugent.be/hpc).
+#
+# This is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation v2.
+##
 """
 Borrowed code from http://code.activestate.com/recipes/576980/
 -- adapted for logging support

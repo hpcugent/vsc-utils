@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 ##
 #
+# Copyright 2012 Ghent University
 # Copyright 2012 Andy Georges
 # Copyright 2012 Stijn De Weirdt
 #
@@ -10,6 +11,7 @@
 # This is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation v2.
+##
 """Various types of pickle files that can be used to store non-component specific information.
 
 - TimestampPickle: stores a simple timestamp in a pickled fashion.

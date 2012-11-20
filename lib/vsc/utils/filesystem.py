@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 ##
 #
+# Copyright 2012 Ghent University
 # Copyright 2012 Andy Georges
 #
 # This file is part of the tools originally by the HPC team of
@@ -9,6 +10,7 @@
 # This is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation v2.
+##
 """
 This file contains the tools for automated administration w.r.t. the VSC
 Original Perl code by Stijn Deweirdt

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 ##
 #
+# Copyright 2012 Ghent University
 # Copyright 2012 Andy Georges
 #
 # This file is part of the tools originally by the HPC team of
@@ -14,10 +15,6 @@
 
 An example use of this is storing cached information in the user's
 home directories to avoid running expensive scripts to obtain it.
-
-@author Andy Georges
-
-Created Apr 4, 2012
 """
 import cPickle
 import os

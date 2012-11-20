@@ -1,13 +1,21 @@
 #!/usr/bin/env python
-'''Several lockfile strategies for VSC tools that will be 
+##
+#
+# Copyright 2012 Ghent University
+# Copyright 2012 Andy Georges
+#
+# This file is part of the tools originally by the HPC team of
+# Ghent University (http://ugent.be/hpc).
+#
+# This is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation v2.
+##
+'''Several lockfile strategies for VSC tools that will be
 running.
 
 Implementation based on the PIDLockFile of http://pypi.python.org/pypi/lockfile.
 The above is available for Python 2.4, if a diff is applied.
-
-Created Mar 26, 2012
-
-@author Andy Georges
 '''
 import errno
 import os
@@ -53,7 +61,7 @@ class TimestampedPidLockfile(LockBase, object):
         return False
 
     def acquire(self):
-        '''Obtains the lock, storing its own PID and the timestamp 
+        '''Obtains the lock, storing its own PID and the timestamp
         at which the lock was obtained in the lockfile.
 
         Raises a LockFailed exception when the lock cannot be obtained.
