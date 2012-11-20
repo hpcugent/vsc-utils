@@ -22,17 +22,17 @@ http://code.google.com/p/boto/issues/detail?id=172
 """
 try:
     from hashlib import sha256 as sha256
-    
+
     if sys.version[:3] == "2.4":
         # we are using an hmac that expects a .new() method.
         class Faker:
             def __init__(self, which):
                 self.which = which
                 self.digest_size = self.which().digest_size
-            
+
             def new(self, *args, **kwargs):
                 return self.which(*args, **kwargs)
-        
+
         sha256 = Faker(sha256)
 
 except Exception,err:
@@ -51,10 +51,10 @@ except Exception, err:
 from vsc.log import initLog
 
 
-    
+
 class Crypticle(object):
     """Authenticated encryption class
-    
+
     Encryption algorithm: AES-CBC
     Signing algorithm: HMAC-SHA256
     """
@@ -65,7 +65,7 @@ class Crypticle(object):
 
     def __init__(self, key_string=None, key_size=192):
         self.log=initLog(name=self.__class__.__name__)
-        
+
         if key_string:
             self.keys = self.extract_keys(key_string, key_size)
             self.key_size = key_size
@@ -79,7 +79,7 @@ class Crypticle(object):
             key = key_string.decode("base64")
         except Exception, err:
             self.log.error("base64 decoding failed")
-            
+
         if not len(key) == key_size / 8 + self.SIG_SIZE:
             self.log.error("invalid key")
         return key[:-self.SIG_SIZE], key[-self.SIG_SIZE:]
@@ -118,7 +118,7 @@ class Crypticle(object):
         # simple integrity check to verify that we got meaningful data
         if not data.startswith(self.PICKLE_PAD):
             self.log.error("unexpected header")
-            
+
         return pickler.loads(data[len(self.PICKLE_PAD):])
 
 
@@ -133,7 +133,7 @@ if __name__ == "__main__":
     assert data == crypt.loads(safe)
     enctxt=safe.encode("base64")
     print "encrypted data:\n%s"%enctxt
-    
-    
-    
+
+
+
 
