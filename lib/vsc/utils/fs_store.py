@@ -24,7 +24,7 @@ import shutil
 import stat
 import subprocess
 
-import vsc.fancylogger as fancylogger
+from vsc import fancylogger
 
 from vsc.exceptions import FileCopyError, FileMoveError, FileStoreError, UserStorageError
 from vsc.filesystem.gpfs import GpfsOperations

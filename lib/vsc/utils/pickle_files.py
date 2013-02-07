@@ -24,7 +24,7 @@ import cPickle as pickle
 import os
 import stat
 
-import vsc.fancylogger as fancylogger
+from vsc import fancylogger
 
 
 class TimestampPickle(object):

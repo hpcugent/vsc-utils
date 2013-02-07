@@ -27,7 +27,7 @@ import re
 import logging
 import os
 
-import vsc.fancylogger as fancylogger
+from vsc import fancylogger
 
 logger = fancylogger.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
