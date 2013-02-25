@@ -1,22 +1,26 @@
 #!/usr/bin/env python
+# -*- coding: latin-1 -*-
 ##
+# Copyright 2009-2013 Ghent University
 #
-# Copyright 2012 Ghent University
-# Copyright 2012 Andy Georges
+# This file is part of vsc-utils,
+# originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
+# with support of Ghent University (http://ugent.be/hpc),
+# the Flemish Supercomputer Centre (VSC) (https://vscentrum.be/nl/en),
+# the Hercules foundation (http://www.herculesstichting.be/in_English)
+# and the Department of Economy, Science and Innovation (EWI) (http://www.ewi-vlaanderen.be/en).
 #
-# This file is part of the tools originally by the HPC team of
-# Ghent University (http://ugent.be/hpc).
+# All rights reserved.
 #
-# This is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation v2.
 ##
-'''Several lockfile strategies for VSC tools that will be
-running.
+"""
+Several lockfile strategies for VSC tools that will be running.
 
 Implementation based on the PIDLockFile of http://pypi.python.org/pypi/lockfile.
 The above is available for Python 2.4, if a diff is applied.
-'''
+
+@author: Andy Georges (Ghent University)
+"""
 import errno
 import os
 import signal
