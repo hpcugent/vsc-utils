@@ -32,7 +32,6 @@ import tempfile
 from vsc import fancylogger
 
 from vsc.exceptions import FileCopyError, FileMoveError, FileStoreError, UserStorageError
-from vsc.filesystem.gpfs import GpfsOperations
 
 
 logger = fancylogger.getLogger(__name__)
