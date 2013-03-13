@@ -154,7 +154,7 @@ def store_pickle_data_at_user(vsc_user_id, dest, data):
     """Store the pickled data to a file.
 
     @type vsc_user_id: username of the user on the VSC.
-    @type dest: the absolute path to the file, relative to the vsc_user_id's home directory
+    @type dest: the absolute path to the file
     @type data: something that can be pickled
 
     @raise UserStorageError: when we cannot gain access to the user's home directory.
