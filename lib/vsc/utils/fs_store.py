@@ -227,7 +227,8 @@ def store_pickle_data_at_user(vsc_user_id, dest, data):
     """
 
     try:
-        (tmpfile, desttmp) = tempfile.mkstemp(suffix='pickle')
+        (tmphandle, desttmp) = tempfile.mkstemp(suffix='.pickle')
+        tmpfile = os.fdopen(tmphandle, 'w')
         cPickle.dump(data, tmpfile)
         tmpfile.close()
     except Exception, err:
@@ -236,7 +237,7 @@ def store_pickle_data_at_user(vsc_user_id, dest, data):
 
     logger.info('moving file %s to vsc_user_id %s in file %s' % (desttmp, vsc_user_id, dest))
     move_to_user_as_root(vsc_user_id, desttmp, dest)
-    os.unlink(desttmp)
+    # the move above cleaned up (hence the name move)
 
 
 def read_pickled_data_from_user(self, vsc_user_id, path):
