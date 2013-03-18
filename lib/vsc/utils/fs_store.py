@@ -31,12 +31,76 @@ import tempfile
 
 from vsc import fancylogger
 
-from vsc.exceptions import FileCopyError, FileMoveError, FileStoreError, UserStorageError
+from vsc.filesystem.gpfs import GpfsOperations
 
 
 logger = fancylogger.getLogger(__name__)
 
 USER_STORAGE_HOME = '/user/homegengar/'
+
+
+class FsStoreError(Exception):
+    """Base class for VSC related exceptions."""
+    def __init__(self):
+        Exception.__init__(self)
+
+
+class FileStoreError(FsStoreError):
+    """When something goes wrong when storing data on the file system."""
+
+    def __init__(self, path, err=None):
+        """Initializer.
+
+        @type path: string indicating the path to the file which was accessed.
+        @type err: the original exception.
+        """
+        FsStoreError.__init__(self)
+        self.path = path
+        self.err = err
+
+
+class FileMoveError(FsStoreError):
+    """When moving a file fails for some reason."""
+
+    def __init__(self, src, dest, err=None):
+        """Initializer.
+
+        @type src: string indicating the path to the source file.
+        @type dest: string indicating the path to the destination file.
+        @type err: the original exception, if any.
+        """
+        FsStoreError.__init__(self)
+        self.src = src
+        self.dest = dest
+        self.err = err
+
+
+class FileCopyError(FsStoreError):
+    """When copying a file for some reason."""
+
+    def __init__(self, src, dest, err=None):
+        """Initializer.
+
+        @type src: string indicating the path to the source file.
+        @type dest: string indicating the path to the destination file.
+        @type err: the original exception, if any.
+        """
+        FsStoreError.__init__(self)
+        self.src = src
+        self.dest = dest
+        self.err = err
+
+
+class UserStorageError(FsStoreError):
+    """When something goed wrong accessing a user's storage."""
+
+    def __init__(self, err=None):
+        """Initializer.
+
+        @type err: the original exception, if any.
+        """
+        FsStoreError.__init__(self)
+        self.err = err
 
 
 def move_to_user_home(vsc_user_id, src, dest):
