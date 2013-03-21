@@ -27,6 +27,7 @@ import re
 import shutil
 import stat
 import subprocess
+import tempfile
 
 from vsc import fancylogger
 
@@ -137,11 +138,25 @@ def move_to_user_home(vsc_user_id, src, dest):
 def move_to_user_home_as_root(vsc_user_id, src, dest):
     """Copy a file to the home directory of a VSC user.
 
+    @deprecated: please use the newer move_to_user_as_root, which does the same.
+
     @type vsc_user_id: username of the user on the VSC
     @type src: absolute path to the source file
     @type dest: absolute path to the destination file
 
     @raise FileMoveError: if the file cannot be moved to the user's home dir.
+    """
+    move_to_user_as_root(vsc_user_id, src, dest)
+
+
+def move_to_user_as_root(vsc_user_id, src, dest):
+    """Copy a file to a location on some accesible filesystem of a VSC user.
+
+    @type vsc_user_id: username of the user on the VSC
+    @type src: absolute path to the source file
+    @type dest: absolute path to the destination file
+
+    @raise FileMoveError: if the file cannot be moved.
     """
     try:
         vsc_user_uid = pwd.getpwnam(vsc_user_id)[2]
@@ -173,11 +188,11 @@ def copy_from_user_home(vsc_user_id, src, dest):
         raise FileCopyError(src, dest, err)
 
 
-def store_pickle_data_at_user(vsc_user_id, path, data):
+def store_pickle_data_at_user_home(vsc_user_id, relative_path, data):
     """Store the pickled data to a file.
 
     @type vsc_user_id: username of the user on the VSC.
-    @type path: the path to the file, relative to the vsc_user_id's home directory
+    @type relative_path: the path to the file, relative to the vsc_user_id's home directory
     @type data: something that can be pickled
 
     @raise UserStorageError: when we cannot gain access to the user's home directory.
@@ -195,28 +210,34 @@ def store_pickle_data_at_user(vsc_user_id, path, data):
         logger.error('home dir %s for vsc_user_id %s not found' % (home, vsc_user_id))
         raise UserStorageError("home dir %s got vsc_user_id was not found %s" % (home, vsc_user_id))
 
-    dest = os.path.join("%s" % (home), "%s" % (path))
-    tmpdir = "/tmp"
-    desttmp = os.path.join(tmpdir, "%s%s.tmp" % (vsc_user_id, path))
-    if not os.path.exists(desttmp):
-        try:
-            f = open(desttmp, 'w')
-            f.write('')
-            f.close()
-        except Exception, err:
-            logger.error("failed to write to temporary file %s" % (desttmp))
-            raise FileStoreError(desttmp, err)
+    dest = os.path.join("%s" % (home), "%s" % (relative_path))
+    store_pickle_data_at_user(vsc_user_id, dest, data)
+
+
+def store_pickle_data_at_user(vsc_user_id, dest, data):
+    """Store the pickled data to a file.
+
+    @type vsc_user_id: username of the user on the VSC.
+    @type dest: the absolute path to the file
+    @type data: something that can be pickled
+
+    @raise UserStorageError: when we cannot gain access to the user's home directory.
+    @raise FileStoreError: a FileStoreError in case of an error putting the data in place.
+    @raise FileMoveError: when we cannot move the data to the user's home directory.
+    """
 
     try:
-        f = open(desttmp, 'w')
-        cPickle.dump(data, f)
-        f.close()
+        (tmphandle, desttmp) = tempfile.mkstemp(suffix='.pickle')
+        tmpfile = os.fdopen(tmphandle, 'w')
+        cPickle.dump(data, tmpfile)
+        tmpfile.close()
     except Exception, err:
         logger.error("failed to to pickle information to file %s" % (desttmp))
         raise FileStoreError(desttmp, err)
 
-    logger.info('moving file %s to vsc_user_id %s home dir in file %s' % (desttmp, vsc_user_id, dest))
-    move_to_user_home_as_root(vsc_user_id, desttmp, dest)
+    logger.info('moving file %s to vsc_user_id %s in file %s' % (desttmp, vsc_user_id, dest))
+    move_to_user_as_root(vsc_user_id, desttmp, dest)
+    # the move above cleaned up (hence the name move)
 
 
 def read_pickled_data_from_user(self, vsc_user_id, path):
