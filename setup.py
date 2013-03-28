@@ -47,7 +47,8 @@ PACKAGE = {
     'scripts': [],
     'install_requires': [
         'vsc-base >= 0.90',
-        ],
+        'vsc-packages-lockfile >= 0.9.1',
+    ],
 }
 
 if __name__ == '__main__':
