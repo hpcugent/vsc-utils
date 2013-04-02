@@ -31,7 +31,7 @@ Module for high-availability functionality.
 from netifaces import interfaces, ifaddresses, AF_INET
 
 
-def check_high_availabity_host(host_ip):
+def proceed_on_ha_service(host_ip):
     """Verifies that we are actually executing on the expected host.
 
     @type host: string
