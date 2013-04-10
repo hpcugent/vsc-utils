@@ -19,13 +19,13 @@ vsc-utils base distribution setup.py
 @author: Stijn De Weirdt (Ghent University)
 @author: Andy Georges (Ghent University)
 """
-import shared_setup
-from shared_setup import ag, jt, sdw
+import vsc.install.shared_setup as shared_setup
+from vsc.install.shared_setup import ag, sdw
 
 
 def remove_bdist_rpm_source_file():
     """List of files to remove from the (source) RPM."""
-    return ['lib/vsc/__init__.py']
+    return ['lib/vsc/__init__.py', 'lib/vsc/utils/__init__.py']
 
 
 shared_setup.remove_extra_bdist_rpm_files = remove_bdist_rpm_source_file
@@ -34,20 +34,19 @@ shared_setup.SHARED_TARGET.update({
     'download_url': 'https://github.ugent.be/hpcugent/vsc-utils'
 })
 
-
 PACKAGE = {
     'name': 'vsc-utils',
     'version': '0.94',
     'author': [ag, sdw],
     'maintainer': [ag, sdw],
-    'install_requires': ['lockfile >= 0.9.1'],
     'packages': ['vsc', 'vsc.utils'],
     'namespace_packages': ['vsc', 'vsc.utils'],
     'provides': ['python-vsc-packages-utils = 0.11'],
     'scripts': [],
     'install_requires': [
         'vsc-base >= 0.90',
-        ],
+        'vsc-packages-lockfile >= 0.9.1',
+    ],
 }
 
 if __name__ == '__main__':
