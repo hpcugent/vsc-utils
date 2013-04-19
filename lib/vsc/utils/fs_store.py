@@ -188,29 +188,22 @@ def copy_from_user_home(vsc_user_id, src, dest):
         raise FileCopyError(src, dest, err)
 
 
-def store_pickle_data_at_user_home(vsc_user_id, relative_path, data):
+def store_pickle_data_at_user_home(vsc_user_id, path, data):
     """Store the pickled data to a file.
 
     @type vsc_user_id: username of the user on the VSC.
-    @type relative_path: the path to the file, relative to the vsc_user_id's home directory
+    @type path: the absolute path to the file, in the users home directory
     @type data: something that can be pickled
 
     @raise UserStorageError: when we cannot gain access to the user's home directory.
     @raise FileStoreError: a FileStoreError in case of an error putting the data in place.
     @raise FileMoveError: when we cannot move the data to the user's home directory.
     """
-    try:
-        home = pwd.getpwnam(vsc_user_id)[5]
-    except Exception, err:
-        logger.error('cannot obtain home directory: vsc_user_id %s inactive' % (vsc_user_id))
-        raise UserStorageError(err)
+    dest = __get_home_mount(path)
+    if not os.path.isdir(os.path.dirname(dest)):
+        logger.error('home dir %s for vsc_user_id %s not found' % (os.path.dirname(dest), vsc_user_id))
+        raise UserStorageError("home dir %s got vsc_user_id was not found %s" % (dest, vsc_user_id))
 
-    home = __get_home_mount(home)
-    if not os.path.isdir(home):
-        logger.error('home dir %s for vsc_user_id %s not found' % (home, vsc_user_id))
-        raise UserStorageError("home dir %s got vsc_user_id was not found %s" % (home, vsc_user_id))
-
-    dest = os.path.join("%s" % (home), "%s" % (relative_path))
     store_pickle_data_at_user(vsc_user_id, dest, data)
 
 
