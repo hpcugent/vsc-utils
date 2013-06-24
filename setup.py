@@ -36,7 +36,7 @@ shared_setup.SHARED_TARGET.update({
 
 PACKAGE = {
     'name': 'vsc-utils',
-    'version': '1.2',
+    'version': '1.3',
     'author': [ag, sdw],
     'maintainer': [ag, sdw],
     'packages': ['vsc', 'vsc.utils'],
@@ -47,6 +47,7 @@ PACKAGE = {
         'vsc-base >= 0.90',
         'lockfile >= 0.9.1',
         'netifaces',
+        'jsonpickle',
     ],
 }
 
