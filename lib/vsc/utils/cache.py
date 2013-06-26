@@ -78,18 +78,19 @@ class FileCache(object):
         try:
             f = open(self.filename, 'rb')
             try:
-                g = gzip.GzipFile(mode='rb', fileobj=f)
-                s = g.read()
-                self.shelf = jsonpickle.decode(s)
-                g.close()
-            except IOError, err:
-                try:
-                    f.seek(0)
-                    self.shelf = pickle.load(f)
-                except pickle.UnpicklingError, err:
-                    self.log.raiseException("Problem loading pickle data from %s" % (self.filename))
-                except (OSError, IOError):
-                    self.log.raiseException("Could not load pickle data from %s" % (self.filename))
+                try:  # Python 2.4 support
+                    g = gzip.GzipFile(mode='rb', fileobj=f)
+                    s = g.read()
+                    self.shelf = jsonpickle.decode(s)
+                    g.close()
+                except IOError, err:
+                    try:
+                        f.seek(0)
+                        self.shelf = pickle.load(f)
+                    except pickle.UnpicklingError, err:
+                        self.log.raiseException("Problem loading pickle data from %s" % (self.filename))
+                    except (OSError, IOError):
+                        self.log.raiseException("Could not load pickle data from %s" % (self.filename))
             finally:
                 f.close()
         except (OSError, IOError), err:
