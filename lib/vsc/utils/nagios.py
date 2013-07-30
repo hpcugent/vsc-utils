@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-##
+# #
 # Copyright 2012-2013 Ghent University
 #
 # This file is part of vsc-base,
@@ -24,7 +24,7 @@
 #
 # You should have received a copy of the GNU Library General Public License
 # along with vsc-base. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
 This module provides functionality to cache and report results of script executions that can readily be
 interpreted by nagios/icinga.
@@ -120,7 +120,7 @@ class NagiosReporter(object):
 
         self.nagios_username = nagios_username
 
-        self.log = fancylogger.getLogger(self.__class__.__name__)
+        self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
 
     def report_and_exit(self):
         """Unzips the cache file and reads the JSON data back in, prints the data and exits accordingly.
