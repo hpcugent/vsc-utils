@@ -1,5 +1,5 @@
 #!/usr/bin.env python
-##
+# #
 #
 # Copyright 2012-2013 Ghent University
 #
@@ -24,7 +24,7 @@
 #
 # You should have received a copy of the GNU Library General Public License
 # along with vsc-base. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
 Caching utilities.
 
@@ -71,7 +71,7 @@ class FileCache(object):
         @param filename: (absolute) path to the cache file.
         """
 
-        self.log = fancylogger.getLogger(self.__class__.__name__)
+        self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
         self.filename = filename
         self.retain_old = retain_old
 
