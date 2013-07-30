@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: latin-1 -*-
-##
+# #
 # Copyright 2009-2013 Ghent University
 #
 # This file is part of vsc-utils,
@@ -12,7 +12,7 @@
 #
 # All rights reserved.
 #
-##
+# #
 """
 vsc-utils base distribution setup.py
 
@@ -36,7 +36,7 @@ shared_setup.SHARED_TARGET.update({
 
 PACKAGE = {
     'name': 'vsc-utils',
-    'version': '1.3.1',
+    'version': '1.3.2',
     'author': [ag, sdw],
     'maintainer': [ag, sdw],
     'packages': ['vsc', 'vsc.utils'],
