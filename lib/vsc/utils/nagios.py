@@ -43,6 +43,7 @@ interpreted by nagios/icinga.
 
 import os
 import pwd
+import re
 import stat
 import sys
 import time
@@ -213,6 +214,8 @@ class NagiosResult(object):
     Nagios checks, please refer to
     U{http://docs.icinga.org/latest/en/perfdata.html}
     """
+    RESERVED_WORDS = ['message']
+    NAME_REG = re.compile(r'^(?P<name>.*?)(?:_(?P<option>warning|critical))?$')
 
     def __init__(self, message, **kwargs):
         """Class constructor.  Takes a message and an optional
@@ -229,36 +232,30 @@ class NagiosResult(object):
         and "_warning" for marking the respective thresholds.
         """
         self.__dict__ = kwargs
+        self._processed_dict = None
         self.message = message
+
+    def _process_data(self):
+        """Convert the self.__dict__ in list of dictionaries with value/ok/warning/critical"""
+        self._processed_dict = dict()
+
+        for key, value in self.__dict__.iteritems():
+            if key in self.RESERVED_WORDS or key.startswith('_'):
+                continue
+            processed_key = self.NAME_REG.search(key).groupdict()
+            t_name = processed_key.get('name')
+            t_key = processed_key.get('option', 'value') or 'value'
+            f = self._processed_dict.setdefault(t_name, dict())
+            f[t_key] = value
 
     def __str__(self):
         """Turns the result object into a string suitable for being
-        printed by an Icinga check"""
-        s = self.message
-
-        d = dict()
-
-        for key, value in self.__dict__.iteritems():
-            if key == 'message':
-                continue
-            if key.endswith('_critical'):
-                l = key[:-len('_critical')]
-                f = d.get(l, dict())
-                f['critical'] = value
-                d[l] = f
-            elif key.endswith('_warning'):
-                l = key[:-len('_warning')]
-                f = d.get(l, dict())
-                f['warning'] = value
-                d[l] = f
-            else:
-                f = d.get(key, dict())
-                f['value'] = value
-                d[key] = f
-
-        if not d:
+        printed by an Icinga check."""
+        self._process_data()
+        if not self._processed_dict:
             return self.message
+
         perf = ["%s=%s;%s;%s;" % (k, v.get('value', ''), v.get('warning', ''), v.get('critical', ''))
-                for k, v in d.iteritems()]
+                for k, v in self._processed_dict.iteritems()]
 
         return "%s | %s" % (self.message, ' '.join(perf))
