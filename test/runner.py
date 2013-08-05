@@ -7,13 +7,14 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 import test.cache as tc
 import test.nagios as tn
 import test.nagios_results as tr
+import test.nagios_simple as ts
 import unittest
 
 
 from vsc.utils import fancylogger
 fancylogger.logToScreen(enable=False)
 
-suite = unittest.TestSuite([x.suite() for  x in (tc, tn, tr)])
+suite = unittest.TestSuite([x.suite() for  x in (tc, tn, tr, ts)])
 
 try:
     import xmlrunner
