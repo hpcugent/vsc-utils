@@ -93,6 +93,14 @@ def critical_exit(message):
     _real_exit(message, NAGIOS_EXIT_CRITICAL)
 
 
+def nagios_exit(state, message):
+    """Print message according to state: supported OK,WARNING,CRITICAL and UNKNOWN"""
+    for x in [NAGIOS_EXIT_OK, NAGIOS_EXIT_WARNING, NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_UNKNOWN]:
+        if state == x[1]:
+            # this exits, no break or return needed
+            _real_exit(message, x)
+
+
 class NagiosReporter(object):
     """Reporting class for Nagios/Icinga reports.
 
