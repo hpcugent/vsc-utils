@@ -134,7 +134,7 @@ class TestNagios(TestCase):
         sys.stdout = old_stdout
         self.assertEqual(err.code, NAGIOS_EXIT_UNKNOWN[0],
                          "Too old caches lead to unknown status")
-        self.assertTrue(line.startswith("%s test_cache pickled file too old (timestamp =" %
+        self.assertTrue(line.startswith("%s test_cache gzipped JSON file too old (timestamp =" %
                                         (NAGIOS_EXIT_UNKNOWN[1])))
 
         os.unlink(filename)
