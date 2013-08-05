@@ -47,10 +47,10 @@ import stat
 import sys
 import time
 
-from vsc import fancylogger
+from vsc.utils.fancylogger import getLogger
 from vsc.utils.cache import FileCache
 
-log = fancylogger.getLogger(__name__)
+log = getLogger(__name__)
 
 NAGIOS_EXIT_OK = (0, 'OK')
 NAGIOS_EXIT_WARNING = (1, 'WARNING')
@@ -120,7 +120,7 @@ class NagiosReporter(object):
 
         self.nagios_username = nagios_username
 
-        self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
+        self.log = getLogger(self.__class__.__name__, fname=False)
 
     def report_and_exit(self):
         """Unzips the cache file and reads the JSON data back in, prints the data and exits accordingly.
