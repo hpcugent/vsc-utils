@@ -41,6 +41,7 @@ interpreted by nagios/icinga.
 @author: Luis Fernando Muñoz Mejías (Ghent University)
 """
 
+import operator
 import os
 import pwd
 import re
@@ -259,3 +260,77 @@ class NagiosResult(object):
                 for k, v in self._processed_dict.iteritems()]
 
         return "%s | %s" % (self.message, ' '.join(perf))
+
+
+class SimpleNagios(NagiosResult):
+    """Class to allow easy interaction with the above Nagios-related code
+    2 main supported cases:
+        a. SimpleNagios().ok("All fine")
+        will produce
+        OK - All fine and exit with NAGIOS_EXIT_OK
+    
+        b. SimpleNagios('test a', a=2,a_critical=1)
+        will produce 
+        CRITICAL test a | a=2;;1; and exit with NAGIOS_EXIT_CRITICAL
+    
+    Main differences with NagiosResult:
+    - __init__: named arguments only
+    - reserved words as kwargs: 
+        message: a message
+        ok, warning, unknown, critical: these are functions
+    """
+
+    USE_HEADER = True
+    RESERVED_WORDS = ['message', 'ok', 'warning', 'critical', 'unknown']
+    EVAL_OPERATOR = operator.ge
+
+    def __init__(self, **kwargs):
+        """Initialise message and perfdata"""
+        self.__dict__ = {}
+        self.message = None
+
+        self._update_kwargs(kwargs)
+        if self.message:
+            self._eval_and_exit()
+
+    def _update_kwargs(self, kwargs):
+        """Parse and filter any parsed args"""
+        message = kwargs.pop('message', '')
+
+        if message:
+            self.message = message
+
+        self.__dict__.update(kwargs)
+
+        return message
+
+    def ok(self, msg):
+        ok_exit(msg)
+
+    def warning(self, msg):
+        warning_exit(msg)
+
+    def critical(self, msg):
+        critical_exit(msg)
+
+    def unknown(self, msg):
+        unknown_exit(msg)
+
+    def _eval_and_exit(self, **kwargs):
+        """Based on provided performance data, exit with proper message and exitcode"""
+        if kwargs:
+            self._update_kwargs(kwargs)
+
+        self._process_data()
+
+        warn = True in [self.EVAL_OPERATOR(v['value'], v['warning'])
+                for v in self._processed_dict.values() if 'warning' in v]
+        crit = True in [self.EVAL_OPERATOR(v['value'], v['critical'])
+                for v in self._processed_dict.values() if 'critical' in v]
+
+        if crit:
+            self.critical(self)
+        elif warn:
+            self.warning(self)
+        else:
+            self.ok(self)
