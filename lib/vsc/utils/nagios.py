@@ -257,7 +257,7 @@ class NagiosResult(object):
             return self.message
 
         perf = ["%s=%s;%s;%s;" % (k, v.get('value', ''), v.get('warning', ''), v.get('critical', ''))
-                for k, v in self._processed_dict.iteritems()]
+                for k, v in sorted(self._processed_dict.iteritems())]
 
         return "%s | %s" % (self.message, ' '.join(perf))
 
