@@ -46,32 +46,37 @@ from vsc.utils.nagios import NAGIOS_EXIT_WARNING, NAGIOS_EXIT_UNKNOWN
 class TestSimpleNagios(TestCase):
     """Test for the SimpleNagios class."""
 
+    def setUp(self):
+        """redirect stdout"""
+        self.old_stdout = sys.stdout
+        self.buffo = StringIO.StringIO()
+        sys.stdout = self.buffo
+
+    def tearDown(self):
+        """Restore stdout"""
+        self.buffo.close()
+        sys.stdout = self.old_stdout
+
     def _basic_test_single_instance(self, kwargs, message, nagios_exit):
         """Basic test"""
-        # redirect stdout
-        old_stdout = sys.stdout
-        buffo = StringIO.StringIO()
-        sys.stdout = buffo
+
+        self.buffo.seek(0)
+        self.buffo.truncate(0)
 
         try:
             SimpleNagios(**kwargs)
         except SystemExit, e:
             pass
-        bo = buffo.getvalue().rstrip()
-
-        # restore stdout
-        buffo.close()
-        sys.stdout = old_stdout
+        bo = self.buffo.getvalue().rstrip()
 
         self.assertEqual(bo, message)
         self.assertEqual(e.code, nagios_exit[0])
 
     def _basic_test_single_instance_and_exit(self, fn, msg, message, nagios_exit):
         """Basic test"""
-        # redirect stdout
-        old_stdout = sys.stdout
-        buffo = StringIO.StringIO()
-        sys.stdout = buffo
+
+        self.buffo.seek(0)
+        self.buffo.truncate(0)
 
         n = SimpleNagios()
         f = getattr(n, fn)
@@ -79,11 +84,7 @@ class TestSimpleNagios(TestCase):
             f(msg)
         except SystemExit, e:
             pass
-        bo = buffo.getvalue().rstrip()
-
-        # restore stdout
-        buffo.close()
-        sys.stdout = old_stdout
+        bo = self.buffo.getvalue().rstrip()
 
         self.assertEqual(bo, message)
         self.assertEqual(e.code, nagios_exit[0])
