@@ -96,13 +96,17 @@ def critical_exit(message):
 
 
 def nagios_exit(state, message):
-    """Print message according to state: supported OK,WARNING,CRITICAL and UNKNOWN"""
+    """Print message according to state: supported states:
+        - defined nagios constants NAGIOS_EXIT_
+        - string: OK,WARNING,CRITICAL and UNKNOWN
+        - integer: 0,1,2,3
+    """
     nagios_states = [NAGIOS_EXIT_OK, NAGIOS_EXIT_WARNING, NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_UNKNOWN]
     for x in nagios_states:
-        if state == x or state == x[1]:
+        if state == x or state == x[0]  or state == x[1]:
             # this exits, no break or return needed
             _real_exit(message, x)
-    log.raiseException('Unsupported state %s. Has to be one of %s' % (state, ','.join(x[1] for x in nagios_states)))
+    log.raiseException('Unsupported state %s.' % (state))
 
 class NagiosReporter(object):
     """Reporting class for Nagios/Icinga reports.
