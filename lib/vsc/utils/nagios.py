@@ -295,20 +295,10 @@ class SimpleNagios(NagiosResult):
         self.__dict__ = {}
         self.message = None
 
-        self._update_kwargs(kwargs)
-        if self.message:
-            self._eval_and_exit()
-
-    def _update_kwargs(self, kwargs):
-        """Parse and filter any parsed args"""
-        message = kwargs.pop('message', '')
-
-        if message:
-            self.message = message
-
         self.__dict__.update(kwargs)
 
-        return message
+        if self.message:
+            self._eval_and_exit()
 
     def ok(self, msg):
         ok_exit(msg)
@@ -324,8 +314,7 @@ class SimpleNagios(NagiosResult):
 
     def _eval_and_exit(self, **kwargs):
         """Based on provided performance data, exit with proper message and exitcode"""
-        if kwargs:
-            self._update_kwargs(kwargs)
+        self.__dict__.update(kwargs)
 
         processed_dict = self._process_data()
 
