@@ -220,7 +220,7 @@ class NagiosResult(object):
     Nagios checks, please refer to
     U{http://docs.icinga.org/latest/en/perfdata.html}
     """
-    RESERVED_WORDS = ['message']
+    RESERVED_WORDS = set(['message'])
     NAME_REG = re.compile(r'^(?P<name>.*?)(?:_(?P<option>warning|critical))?$')
 
     def __init__(self, message, **kwargs):
@@ -238,12 +238,11 @@ class NagiosResult(object):
         and "_warning" for marking the respective thresholds.
         """
         self.__dict__ = kwargs
-        self._processed_dict = None
         self.message = message
 
     def _process_data(self):
         """Convert the self.__dict__ in list of dictionaries with value/ok/warning/critical"""
-        self._processed_dict = dict()
+        processed_dict = dict()
 
         for key, value in self.__dict__.iteritems():
             if key in self.RESERVED_WORDS or key.startswith('_'):
@@ -251,18 +250,20 @@ class NagiosResult(object):
             processed_key = self.NAME_REG.search(key).groupdict()
             t_name = processed_key.get('name')
             t_key = processed_key.get('option', 'value') or 'value'
-            f = self._processed_dict.setdefault(t_name, dict())
+            f = processed_dict.setdefault(t_name, dict())
             f[t_key] = value
+
+        return processed_dict
 
     def __str__(self):
         """Turns the result object into a string suitable for being
         printed by an Icinga check."""
-        self._process_data()
-        if not self._processed_dict:
+        processed_dict = self._process_data()
+        if not processed_dict:
             return self.message
 
         perf = ["%s=%s;%s;%s;" % (k, v.get('value', ''), v.get('warning', ''), v.get('critical', ''))
-                for k, v in sorted(self._processed_dict.iteritems())]
+                for k, v in sorted(processed_dict.iteritems())]
 
         return "%s | %s" % (self.message, ' '.join(perf))
 
@@ -286,7 +287,7 @@ class SimpleNagios(NagiosResult):
     """
 
     USE_HEADER = True
-    RESERVED_WORDS = ['message', 'ok', 'warning', 'critical', 'unknown']
+    RESERVED_WORDS = set(['message', 'ok', 'warning', 'critical', 'unknown'])
     EVAL_OPERATOR = operator.ge
 
     def __init__(self, **kwargs):
@@ -326,12 +327,12 @@ class SimpleNagios(NagiosResult):
         if kwargs:
             self._update_kwargs(kwargs)
 
-        self._process_data()
+        processed_dict = self._process_data()
 
         warn = True in [self.EVAL_OPERATOR(v['value'], v['warning'])
-                for v in self._processed_dict.values() if 'warning' in v]
+                for v in processed_dict.values() if 'warning' in v]
         crit = True in [self.EVAL_OPERATOR(v['value'], v['critical'])
-                for v in self._processed_dict.values() if 'critical' in v]
+                for v in processed_dict.values() if 'critical' in v]
 
         if crit:
             self.critical(self)
