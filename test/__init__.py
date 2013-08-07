@@ -1,5 +1,5 @@
-#!/usr/bin/env python
 ##
+#
 # Copyright 2012-2013 Ghent University
 #
 # This file is part of vsc-utils,
@@ -25,25 +25,7 @@
 # along with vsc-utils. If not, see <http://www.gnu.org/licenses/>.
 ##
 """
-Module for high-availability functionality.
+@author: Toon Willems (Ghent University)
 """
-
-from netifaces import interfaces, ifaddresses, AF_INET
-
-
-def proceed_on_ha_service(host_ip):
-    """Verifies that we are actually executing on the expected host.
-
-    @type host: string
-
-    @param host: IP address of the high-availability host (the failover alias)
-
-    @returns: True if we are on the correct host, False if not.
-    """
-
-    machine_addresses = []
-    for iface_name in interfaces():
-        addresses = [i['addr'] for i in ifaddresses(iface_name).setdefault(AF_INET, [{'addr': None}]) if i['addr']]
-        machine_addresses.extend(addresses)
-
-    return host_ip in machine_addresses
+import pkg_resources
+pkg_resources.declare_namespace(__name__)
