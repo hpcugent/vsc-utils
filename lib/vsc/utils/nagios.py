@@ -95,6 +95,11 @@ def critical_exit(message):
     _real_exit(message, NAGIOS_EXIT_CRITICAL)
 
 
+def real_exit(exit_code, message):
+    """A public function, with aruments in the same order as NagiosReporter.cache"""
+    _real_exit(message, exit_code)
+
+
 class NagiosReporter(object):
     """Reporting class for Nagios/Icinga reports.
 
@@ -274,30 +279,38 @@ class SimpleNagios(NagiosResult):
     """
 
     USE_HEADER = True
-    RESERVED_WORDS = set(['message', 'ok', 'warning', 'critical', 'unknown'])
+    RESERVED_WORDS = set(['message', 'ok', 'warning', 'critical', 'unknown', '_exit'])
     EVAL_OPERATOR = operator.ge
 
     def __init__(self, **kwargs):
         """Initialise message and perfdata"""
         self.__dict__ = {}
-        self.message = None
+        self.message = None  # the message
+        self._exit = None  # the filename of the cache file, will use cache instead of real_exit
 
         self.__dict__.update(kwargs)
+
+        if self._exit:
+            # make a NagiosReporter instance that can be used for caching
+            cache = NagiosReporter('no header', self._exit, 0)
+            self._exit = cache.cache
+        else:
+            self._exit = real_exit
 
         if self.message:
             self._eval_and_exit()
 
     def ok(self, msg):
-        ok_exit(msg)
+        self._exit(NAGIOS_EXIT_OK, msg)
 
     def warning(self, msg):
-        warning_exit(msg)
+        self._exit(NAGIOS_EXIT_WARNING, msg)
 
     def critical(self, msg):
-        critical_exit(msg)
+        self._exit(NAGIOS_EXIT_CRITICAL, msg)
 
     def unknown(self, msg):
-        unknown_exit(msg)
+        self._exit(NAGIOS_EXIT_UNKNOWN, msg)
 
     def _eval_and_exit(self, **kwargs):
         """Based on provided performance data, exit with proper message and exitcode"""
