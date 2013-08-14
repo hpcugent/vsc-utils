@@ -276,6 +276,7 @@ class SimpleNagios(NagiosResult):
     - reserved words as kwargs: 
         message: a message
         ok, warning, unknown, critical: these are functions
+        _exit: a filename, if it is set, exit will use NagsioReporter.cache to this file instead of real_exit
     """
 
     USE_HEADER = True
