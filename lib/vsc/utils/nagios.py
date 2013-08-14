@@ -95,6 +95,11 @@ def critical_exit(message):
     _real_exit(message, NAGIOS_EXIT_CRITICAL)
 
 
+def real_exit(exit_code, message):
+    """A public function, with arguments in the same order as NagiosReporter.cache"""
+    _real_exit(message, exit_code)
+
+
 class NagiosReporter(object):
     """Reporting class for Nagios/Icinga reports.
 
@@ -271,33 +276,50 @@ class SimpleNagios(NagiosResult):
     - reserved words as kwargs: 
         message: a message
         ok, warning, unknown, critical: these are functions
+        _cache: a filename, if it is set, exit will use NagsioReporter.cache to this file instead of real_exit
+        _cache_user: a user that will become owner of the cachefile
     """
 
     USE_HEADER = True
-    RESERVED_WORDS = set(['message', 'ok', 'warning', 'critical', 'unknown'])
+    RESERVED_WORDS = set('message', 'ok', 'warning', 'critical', 'unknown',
+                         '_exit', '_cache', '_cache_user')
     EVAL_OPERATOR = operator.ge
 
     def __init__(self, **kwargs):
         """Initialise message and perfdata"""
         self.__dict__ = {}
-        self.message = None
+        self.message = None  # the message
+        self._cache = None  # the filename of the cache file, will use cache instead of real_exit
+        self._cache_user = None
+        self._exit = None
 
         self.__dict__.update(kwargs)
+
+        if self._cache:
+            # make a NagiosReporter instance that can be used for caching
+            if self._cache_user:
+                cache = NagiosReporter('no header', self._cache, 0, nagios_username=self._cache_user)
+            else:
+                cache = NagiosReporter('no header', self._cache, 0)
+            self._exit = cache.cache
+        else:
+            # default exit with real_exit
+            self._exit = real_exit
 
         if self.message:
             self._eval_and_exit()
 
     def ok(self, msg):
-        ok_exit(msg)
+        self._exit(NAGIOS_EXIT_OK, msg)
 
     def warning(self, msg):
-        warning_exit(msg)
+        self._exit(NAGIOS_EXIT_WARNING, msg)
 
     def critical(self, msg):
-        critical_exit(msg)
+        self._exit(NAGIOS_EXIT_CRITICAL, msg)
 
     def unknown(self, msg):
-        unknown_exit(msg)
+        self._exit(NAGIOS_EXIT_UNKNOWN, msg)
 
     def _eval_and_exit(self, **kwargs):
         """Based on provided performance data, exit with proper message and exitcode"""
