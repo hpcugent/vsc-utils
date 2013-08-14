@@ -96,7 +96,7 @@ def critical_exit(message):
 
 
 def real_exit(exit_code, message):
-    """A public function, with aruments in the same order as NagiosReporter.cache"""
+    """A public function, with arguments in the same order as NagiosReporter.cache"""
     _real_exit(message, exit_code)
 
 
@@ -276,30 +276,34 @@ class SimpleNagios(NagiosResult):
     - reserved words as kwargs: 
         message: a message
         ok, warning, unknown, critical: these are functions
-        _exit: a filename, if it is set, exit will use NagsioReporter.cache to this file instead of real_exit
-              (also a tuple, the the first element is the filename, the second element the user; esp used for testing)
+        _cache: a filename, if it is set, exit will use NagsioReporter.cache to this file instead of real_exit
+        _cache_user: a user that will become owner of the cachefile
     """
 
     USE_HEADER = True
-    RESERVED_WORDS = set(['message', 'ok', 'warning', 'critical', 'unknown', '_exit'])
+    RESERVED_WORDS = set('message', 'ok', 'warning', 'critical', 'unknown',
+                         '_exit', '_cache', '_cache_user')
     EVAL_OPERATOR = operator.ge
 
     def __init__(self, **kwargs):
         """Initialise message and perfdata"""
         self.__dict__ = {}
         self.message = None  # the message
-        self._exit = None  # the filename of the cache file, will use cache instead of real_exit
+        self._cache = None  # the filename of the cache file, will use cache instead of real_exit
+        self._cache_user = None
+        self._exit = None
 
         self.__dict__.update(kwargs)
 
-        if self._exit:
+        if self._cache:
             # make a NagiosReporter instance that can be used for caching
-            if isinstance(self._exit, basestring):
-                cache = NagiosReporter('no header', self._exit, 0)
+            if self._cache_user:
+                cache = NagiosReporter('no header', self._cache, 0, nagios_username=self._cache_user)
             else:
-                cache = NagiosReporter('no header', self._exit[0], 0, nagios_username=self._exit[1])
+                cache = NagiosReporter('no header', self._cache, 0)
             self._exit = cache.cache
         else:
+            # default exit with real_exit
             self._exit = real_exit
 
         if self.message:
