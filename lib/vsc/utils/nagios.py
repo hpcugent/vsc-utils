@@ -277,6 +277,7 @@ class SimpleNagios(NagiosResult):
         message: a message
         ok, warning, unknown, critical: these are functions
         _exit: a filename, if it is set, exit will use NagsioReporter.cache to this file instead of real_exit
+              (also a tuple, the the first element is the filename, the second element the user; esp used for testing)
     """
 
     USE_HEADER = True
@@ -293,7 +294,10 @@ class SimpleNagios(NagiosResult):
 
         if self._exit:
             # make a NagiosReporter instance that can be used for caching
-            cache = NagiosReporter('no header', self._exit, 0)
+            if isinstance(self._exit, basestring):
+                cache = NagiosReporter('no header', self._exit, 0)
+            else:
+                cache = NagiosReporter('no header', self._exit[0], 0, nagios_username=self._exit[1])
             self._exit = cache.cache
         else:
             self._exit = real_exit

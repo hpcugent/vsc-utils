@@ -40,8 +40,8 @@ import sys
 from unittest import TestCase, TestLoader, main
 
 from vsc.utils.nagios import SimpleNagios, NAGIOS_EXIT_OK, NAGIOS_EXIT_CRITICAL
-from vsc.utils.nagios import NAGIOS_EXIT_WARNING, NAGIOS_EXIT_UNKNOWN
-
+from vsc.utils.nagios import NAGIOS_EXIT_WARNING, NAGIOS_EXIT_UNKNOWN, NagiosReporter
+from pwd import getpwuid
 
 class TestSimpleNagios(TestCase):
     """Test for the SimpleNagios class."""
@@ -51,6 +51,8 @@ class TestSimpleNagios(TestCase):
         self.old_stdout = sys.stdout
         self.buffo = StringIO.StringIO()
         sys.stdout = self.buffo
+        user = getpwuid(os.getuid())
+        self.nagios_user = user.pw_name
 
     def tearDown(self):
         """Restore stdout"""
@@ -130,6 +132,32 @@ class TestSimpleNagios(TestCase):
         self._basic_test_single_instance_and_exit('warning', 'hello', 'WARNING hello', NAGIOS_EXIT_WARNING)
         self._basic_test_single_instance_and_exit('critical', 'hello', 'CRITICAL hello', NAGIOS_EXIT_CRITICAL)
         self._basic_test_single_instance_and_exit('unknown', 'hello', 'UNKNOWN hello', NAGIOS_EXIT_UNKNOWN)
+
+    def test_cache(self):
+        """Test the caching"""
+        (handle, filename) = tempfile.mkstemp()
+        os.unlink(filename)
+
+        n = SimpleNagios(_exit=(filename, self.nagios_user))
+        message = "mywarning"
+        n.warning(message)
+        os.close(handle)
+
+        self.buffo.seek(0)
+        self.buffo.truncate(0)
+
+        try:
+            reporter_test = NagiosReporter('test_cache', filename, -1, self.nagios_user)
+            reporter_test.report_and_exit()
+        except SystemExit, e:
+            pass
+        bo = self.buffo.getvalue().rstrip()
+
+        self.assertEqual(bo, "WARNING %s" % message)
+        self.assertEqual(e.code, NAGIOS_EXIT_WARNING[0])
+
+        os.unlink(filename)
+
 
 
 def suite():
