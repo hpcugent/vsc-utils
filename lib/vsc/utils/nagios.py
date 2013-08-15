@@ -281,8 +281,8 @@ class SimpleNagios(NagiosResult):
     """
 
     USE_HEADER = True
-    RESERVED_WORDS = set('message', 'ok', 'warning', 'critical', 'unknown',
-                         '_exit', '_cache', '_cache_user')
+    RESERVED_WORDS = set(['message', 'ok', 'warning', 'critical', 'unknown',
+                         '_exit', '_cache', '_cache_user'])
     EVAL_OPERATOR = operator.ge
 
     def __init__(self, **kwargs):
