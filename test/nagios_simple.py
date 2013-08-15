@@ -138,7 +138,7 @@ class TestSimpleNagios(TestCase):
         (handle, filename) = tempfile.mkstemp()
         os.unlink(filename)
 
-        n = SimpleNagios(_exit=(filename, self.nagios_user))
+        n = SimpleNagios(_cache=filename, _cache_user=self.nagios_user)
         message = "mywarning"
         n.warning(message)
         os.close(handle)
