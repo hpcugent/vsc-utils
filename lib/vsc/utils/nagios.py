@@ -282,16 +282,19 @@ class SimpleNagios(NagiosResult):
 
     USE_HEADER = True
     RESERVED_WORDS = set(['message', 'ok', 'warning', 'critical', 'unknown',
-                         '_exit', '_cache', '_cache_user'])
+                         '_exit', '_cache', '_cache_user', '_final', '_final_state'])
     EVAL_OPERATOR = operator.ge
 
     def __init__(self, **kwargs):
         """Initialise message and perfdata"""
         self.__dict__ = {}
         self.message = None  # the message
+
         self._cache = None  # the filename of the cache file, will use cache instead of real_exit
         self._cache_user = None
-        self._exit = None
+
+        self._final = None
+        self._final_state = None
 
         self.__dict__.update(kwargs)
 
@@ -301,13 +304,21 @@ class SimpleNagios(NagiosResult):
                 cache = NagiosReporter('no header', self._cache, 0, nagios_username=self._cache_user)
             else:
                 cache = NagiosReporter('no header', self._cache, 0)
-            self._exit = cache.cache
+            self._final = cache.cache
         else:
             # default exit with real_exit
-            self._exit = real_exit
+            self._final = real_exit
 
         if self.message:
             self._eval_and_exit()
+
+    def _exit(self, nagios_exitcode, msg):
+        """Save the last state before performing actual exit. 
+            In case of caching, this allows to eg generate log message without rereading the cache file.
+            In case of regular exit, this code is not/cannot be used.
+        """
+        self._final_state = (nagios_exitcode, msg)
+        self._final(nagios_exitcode, msg)
 
     def ok(self, msg):
         self._exit(NAGIOS_EXIT_OK, msg)
