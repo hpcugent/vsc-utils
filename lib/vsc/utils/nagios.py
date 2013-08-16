@@ -321,8 +321,8 @@ class SimpleNagios(NagiosResult):
     def unknown(self, msg):
         self._exit(NAGIOS_EXIT_UNKNOWN, msg)
 
-    def _eval_and_exit(self, **kwargs):
-        """Based on provided performance data, exit with proper message and exitcode"""
+    def _eval(self, **kwargs):
+        """Evaluate the overal warning and critical level"""
         self.__dict__.update(kwargs)
 
         processed_dict = self._process_data()
@@ -331,6 +331,12 @@ class SimpleNagios(NagiosResult):
                 for v in processed_dict.values() if 'warning' in v]
         crit = True in [self.EVAL_OPERATOR(v['value'], v['critical'])
                 for v in processed_dict.values() if 'critical' in v]
+
+        return warn, crit
+
+    def _eval_and_exit(self, **kwargs):
+        """Based on provided performance data, exit with proper message and exitcode"""
+        warn, crit = self._eval(**kwargs)
 
         if crit:
             self.critical(self)
