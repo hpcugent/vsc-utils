@@ -143,7 +143,7 @@ class NagiosReporter(object):
         (timestamp, ((nagios_exit_code, nagios_exit_string), nagios_message)) = nagios_cache.load('nagios')
         nagios_cache.close()
 
-        if self.threshold < 0 or time.time() - timestamp < self.threshold:
+        if self.threshold <= 0 or time.time() - timestamp < self.threshold:
             self.log.info("Nagios check cache file %s contents delivered: %s" % (self.filename, nagios_message))
             print "%s %s" % (nagios_exit_string, nagios_message)
             sys.exit(nagios_exit_code)
@@ -266,14 +266,14 @@ class SimpleNagios(NagiosResult):
         a. SimpleNagios().ok("All fine")
         will produce
         OK - All fine and exit with NAGIOS_EXIT_OK
-    
+
         b. SimpleNagios('test a', a=2,a_critical=1)
-        will produce 
+        will produce
         CRITICAL test a | a=2;;1; and exit with NAGIOS_EXIT_CRITICAL
-    
+
     Main differences with NagiosResult:
     - __init__: named arguments only
-    - reserved words as kwargs: 
+    - reserved words as kwargs:
         message: a message
         ok, warning, unknown, critical: these are functions
         _cache: a filename, if it is set, exit will use NagsioReporter.cache to this file instead of real_exit
@@ -282,7 +282,7 @@ class SimpleNagios(NagiosResult):
 
     USE_HEADER = True
     RESERVED_WORDS = set(['message', 'ok', 'warning', 'critical', 'unknown',
-                         '_exit', '_cache', '_cache_user', '_final', '_final_state'])
+                         '_exit', '_cache', '_cache_user', '_final', '_final_state', '_report', '_threshold'])
     EVAL_OPERATOR = operator.ge
 
     def __init__(self, **kwargs):
@@ -296,15 +296,21 @@ class SimpleNagios(NagiosResult):
         self._final = None
         self._final_state = None
 
+        self._threshold = 0
+        self._report_and_exit = False
+
         self.__dict__.update(kwargs)
 
         if self._cache:
             # make a NagiosReporter instance that can be used for caching
             if self._cache_user:
-                cache = NagiosReporter('no header', self._cache, 0, nagios_username=self._cache_user)
+                cache = NagiosReporter('no header', self._cache, self._threshold, nagios_username=self._cache_user)
             else:
-                cache = NagiosReporter('no header', self._cache, 0)
-            self._final = cache.cache
+                cache = NagiosReporter('no header', self._cache, self._threshold)
+            if self._report_and_exit:
+                cache.report_and_exit()
+            else:
+                self._final = cache.cache
         else:
             # default exit with real_exit
             self._final = real_exit
@@ -313,7 +319,7 @@ class SimpleNagios(NagiosResult):
             self._eval_and_exit()
 
     def _exit(self, nagios_exitcode, msg):
-        """Save the last state before performing actual exit. 
+        """Save the last state before performing actual exit.
             In case of caching, this allows to eg generate log message without rereading the cache file.
             In case of regular exit, this code is not/cannot be used.
         """
