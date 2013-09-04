@@ -314,7 +314,6 @@ class SimpleNagios(NagiosResult):
             # default exit with real_exit
             self._final = real_exit
 
-
         if self.message:
             self._eval_and_exit()
 
