@@ -297,6 +297,7 @@ class SimpleNagios(NagiosResult):
         self._final_state = None
 
         self._threshold = 0
+        self._report_and_exit = False
 
         self.__dict__.update(kwargs)
 
@@ -306,8 +307,8 @@ class SimpleNagios(NagiosResult):
                 cache = NagiosReporter('no header', self._cache, self._threshold, nagios_username=self._cache_user)
             else:
                 cache = NagiosReporter('no header', self._cache, self._threshold)
-            if self._report:
-                self._final = cache.report_and_exit
+            if self._report_and_exit:
+                cache.report_and_exit()
             else:
                 self._final = cache.cache
         else:
