@@ -60,8 +60,10 @@ def _merge_options(options):
 
     for (k, v) in DEFAULT_OPTIONS.items():
         if k in options:
-            v_ = v[:3] + (options[k],) + v[4:]
+            v_ = v[:3] + (options[3],) + v[4:]
             options[k] = v_
+        else:
+            options[k] = v
 
 
 class ExtendedSimpleOptions(SimpleOptions):
