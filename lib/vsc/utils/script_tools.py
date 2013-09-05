@@ -36,6 +36,8 @@ This module provides functions to run at the beginning and end of commonly used 
 import os
 import sys
 
+from copy import deepcopy
+
 from vsc.utils.availability import proceed_on_ha_service
 from vsc.utils.generaloption import simple_options, SimpleOptions
 from vsc.utils.lock import lock_or_bork, release_or_bork, LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE
@@ -58,12 +60,15 @@ DEFAULT_OPTIONS = {
 def _merge_options(options):
     """Merge the given set of options with the default options, updating default values where needed."""
 
+    opts = deepcopy(options)
     for (k, v) in DEFAULT_OPTIONS.items():
-        if k in options:
+        if k in opts:
             v_ = v[:3] + (options[3],) + v[4:]
-            options[k] = v_
+            opts[k] = v_
         else:
-            options[k] = v
+            opts[k] = v
+
+    return opts
 
 
 class ExtendedSimpleOptions(SimpleOptions):
