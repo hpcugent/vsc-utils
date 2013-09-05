@@ -39,6 +39,7 @@ import sys
 from copy import deepcopy
 
 from vsc.utils.availability import proceed_on_ha_service
+from vsc.utils.fancylogger import getLogger
 from vsc.utils.generaloption import simple_options, SimpleOptions
 from vsc.utils.lock import lock_or_bork, release_or_bork, LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE
 from vsc.utils.nagios import SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE
@@ -51,6 +52,7 @@ DEFAULT_OPTIONS = {
                                   os.path.join(NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE % (sys.argv[0],))),
         'nagios_check_interval_threshold': ('threshold of nagios checks timing out', None, 'store', 0),
         'ha': ('high-availability master IP address', None, 'store', None),
+        'locking': ('protect this script by a file-based lock', None, 'store_true', False),
         'locking_filename': ('file that will serve as a lock', None, 'store',
                              os.path.join(LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE % (sys.argv[0],))),
         'dry-run': ('do not make any updates whatsoever', None, 'store_true', False),
@@ -81,6 +83,8 @@ class ExtendedSimpleOptions(SimpleOptions):
         self.nagios_reporter = None
         self.lockfile = None
 
+        self.log = getLogger(self.__class__.__name__)
+
     def prologue(self, options):
         """Checks the options given for settings and takes appropriate action.
 
@@ -99,24 +103,23 @@ class ExtendedSimpleOptions(SimpleOptions):
 
         # check for HA host
         if opts.options.ha and not proceed_on_ha_service(opts.options.ha):
-            logger.warning("Not running on the target host in the HA setup. Stopping.")
+            self.log.warning("Not running on the target host in the HA setup. Stopping.")
             self.nagios_reporter.ok("Not running on the HA master.")
 
-        if opts.options.locking_filename:
+        if opts.options.locking:
             self.lockfile = TimestampedPidLockfile(opts.options.locking_filename)
             lock_or_bork(self.lockfile, self.nagios_reporter)
 
         self.__dict__.update(opts)
 
-
     def epilogue(self, nagios_message, nagios_thresholds={}):
         """Run at the end of a script, quitting gracefully if possible."""
 
-        if self.lockfile:
+        if self.options.locking:
             release_or_bork(self.lockfile, self.nagios_reporter)
 
-        nagios_threshold['message'] = nagios_message
-        self.nagios_reporter._eval_and_exit(**nagios_threshold)
+        nagios_thresholds['message'] = nagios_message
+        self.nagios_reporter._eval_and_exit(**nagios_thresholds)
 
 
 
