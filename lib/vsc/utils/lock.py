@@ -18,6 +18,9 @@ from vsc.utils.fancylogger import getLogger
 
 logger = getLogger('vsc.utils.lock')
 
+LOCKFILE_DIR = '/var/run'
+LOCKFILE_FILENAME_TEMPLATE = "%s.lock"
+
 
 def lock_or_bork(lockfile, nagios_reporter):
     """Take the lock on the given lockfile.
@@ -55,10 +58,10 @@ def release_or_bork(lockfile, nagios_reporter):
 
     try:
         lockfile.release()
-    except NotLocked, err:
+    except NotLocked, _:
         logger.critical('Lock release failed: was not locked.')
         nagios_reporter.critical("Lock release failed on %s" % (lockfile.path,))
-    except NotMyLock, err:
+    except NotMyLock, _:
         logger.error('Lock release failed: not my lock')
         nagios_reporter.critical("Lock release failed on %s" % (lockfile.path,))
 
