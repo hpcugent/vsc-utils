@@ -63,7 +63,7 @@ def _merge_options(options):
     opts = deepcopy(options)
     for (k, v) in DEFAULT_OPTIONS.items():
         if k in opts:
-            v_ = v[:3] + (opts[k][3],) + v[4:]
+            v_ = v[:3] + (opts[k],) + v[4:]
             opts[k] = v_
         else:
             opts[k] = v
