@@ -41,7 +41,6 @@ def lock_or_bork(lockfile, simple_nagios):
     except LockFileReadError, _:
         logger.critical("Unable to obtain lock: could not read previous lock file %s" % (lockfile.path,))
         simple_nagios.critical("failed to read lockfile %s" % (lockfile.path,))
-        sys.exit(1)
 
 
 def release_or_bork(lockfile, simple_nagios):
