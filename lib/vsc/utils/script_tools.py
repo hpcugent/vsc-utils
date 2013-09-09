@@ -111,7 +111,8 @@ class ExtendedSimpleOptions(SimpleOptions):
         opts = simple_options(options_)
 
         # bail if nagios report is requested
-        self.nagios_reporter = SimpleNagios(_cache=opts.options.nagios_check_filename, _report_and_exit=opts.options.nagios_report)
+        self.nagios_reporter = SimpleNagios(_cache=opts.options.nagios_check_filename,
+                                            _report_and_exit=opts.options.nagios_report)
 
         # check for HA host
         if opts.options.ha and not proceed_on_ha_service(opts.options.ha):
