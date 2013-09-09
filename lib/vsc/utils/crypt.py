@@ -22,7 +22,11 @@ Borrowed code from http://code.activestate.com/recipes/576980/
 
 # PyCrypto-based authenticated symetric encryption
 import cPickle as pickle
-import os,hmac,sys
+import hmac
+import os
+import sys
+
+from vsc.utils import fancylogger
 
 ## tested with hashlib-20081119 under 2.4
 try:
@@ -54,17 +58,11 @@ except Exception,err:
     print "Problem with Faker under 2.4: %s"%err
     sys.exit(1)
 
-
-
 try:
     from Crypto.Cipher import AES
 except Exception, err:
     print "Can't load Cipher from python-crypto: %s"%err
     sys.exit(1)
-
-
-from vsc.log import initLog
-
 
 
 class Crypticle(object):
@@ -79,7 +77,7 @@ class Crypticle(object):
     SIG_SIZE = hashlib.sha256().digest_size
 
     def __init__(self, key_string=None, key_size=192):
-        self.log=initLog(name=self.__class__.__name__)
+        self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
 
         if key_string:
             self.keys = self.extract_keys(key_string, key_size)
@@ -139,14 +137,14 @@ class Crypticle(object):
 
 if __name__ == "__main__":
     # usage example
-    c=Crypticle()
+    c = Crypticle()
     key = c.generate_key_string()
     print "key: %s"%key
     data = {"dict": "full", "of": "secrets"}
     crypt = Crypticle(key)
     safe = crypt.dumps(data)
     assert data == crypt.loads(safe)
-    enctxt=safe.encode("base64")
+    enctxt = safe.encode("base64")
     print "encrypted data:\n%s"%enctxt
 
 
