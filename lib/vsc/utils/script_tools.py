@@ -116,7 +116,7 @@ class ExtendedSimpleOptions(SimpleOptions):
 
         # check for HA host
         if opts.options.ha and not proceed_on_ha_service(opts.options.ha):
-            self.log.warning("Not running on the target host in the HA setup. Stopping.")
+            self.log.warning("Not running on the target host %s in the HA setup. Stopping." % (opts.options.ha,))
             self.nagios_reporter.ok("Not running on the HA master.")
 
         if opts.options.locking:
