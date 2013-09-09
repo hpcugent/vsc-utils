@@ -39,22 +39,31 @@ import sys
 from copy import deepcopy
 
 from vsc.utils.availability import proceed_on_ha_service
-from vsc.utils.fancylogger import getLogger
-from vsc.utils.generaloption import simple_options, SimpleOptions
+from vsc.utils.generaloption import simple_options, SimpleOption
 from vsc.utils.lock import lock_or_bork, release_or_bork, LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE
 from vsc.utils.nagios import SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE
 from vsc.utils.timestamp_pid_lockfile import TimestampedPidLockfile
 
 
+def _script_name(full_name):
+    """Return the script name without .py extension if any. This assumes that the script name does not contain a
+    dot in case of lacking an extension.
+    """
+    (name, _) = os.path.splitext(full_name)
+    return name
+
+
 DEFAULT_OPTIONS = {
         'nagios_report': ('print out nagios information', None, 'store_true', False, 'n'),
         'nagios_check_filename': ('filename of where the nagios check data is stored', str, 'store',
-                                  os.path.join(NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE % (sys.argv[0],))),
+                                  os.path.join(NAGIOS_CACHE_DIR,
+                                               NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
         'nagios_check_interval_threshold': ('threshold of nagios checks timing out', None, 'store', 0),
         'ha': ('high-availability master IP address', None, 'store', None),
         'locking': ('protect this script by a file-based lock', None, 'store_true', False),
         'locking_filename': ('file that will serve as a lock', None, 'store',
-                             os.path.join(LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE % (sys.argv[0],))),
+                             os.path.join(LOCKFILE_DIR,
+                                          LOCKFILE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
         'dry-run': ('do not make any updates whatsoever', None, 'store_true', False),
 }
 
@@ -78,7 +87,7 @@ def _merge_options(options):
     return opts
 
 
-class ExtendedSimpleOptions(SimpleOptions):
+class ExtendedSimpleOption(SimpleOption):
     """
     Extends the SimpleOption class to allow other checks to occur at script prologue and epilogue.
 
@@ -92,7 +101,7 @@ class ExtendedSimpleOptions(SimpleOptions):
     def __init__(self):
         """Initialise"""
 
-        super(ExtendedSimpleOptions, self).__init__()
+        super(ExtendedSimpleOption, self).__init__()
 
         self.nagios_reporter = None
         self.lockfile = None
