@@ -22,11 +22,11 @@ LOCKFILE_DIR = '/var/run'
 LOCKFILE_FILENAME_TEMPLATE = "%s.lock"
 
 
-def lock_or_bork(lockfile, nagios_reporter):
+def lock_or_bork(lockfile, simple_nagios):
     """Take the lock on the given lockfile.
 
     @type lockfile: A LockFile instance
-    @type nagios_reporter: SimpleNagios instance
+    @type simple_nagios: SimpleNagios instance
 
     If the lock cannot be obtained:
         - log a critical error
@@ -37,18 +37,18 @@ def lock_or_bork(lockfile, nagios_reporter):
         lockfile.acquire()
     except LockFailed, _:
         logger.critical('Unable to obtain lock: lock failed')
-        nagios_reporter.critical("failed to take lock on %s" % (lockfile.path,))
+        simple_nagios.critical("failed to take lock on %s" % (lockfile.path,))
     except LockFileReadError, _:
         logger.critical("Unable to obtain lock: could not read previous lock file %s" % (lockfile.path,))
-        nagios_reporter.critical("failed to read lockfile %s" % (lockfile.path,))
+        simple_nagios.critical("failed to read lockfile %s" % (lockfile.path,))
         sys.exit(1)
 
 
-def release_or_bork(lockfile, nagios_reporter):
+def release_or_bork(lockfile, simple_nagios):
     """ Release the lock on the given lockfile.
 
     @type lockfile: A LockFile instance
-    @type nagios_reporter: SimpleNagios instance
+    @type simple_nagios: SimpleNagios instance
 
     If the lock cannot be released:
         - log a critcal error
@@ -60,9 +60,9 @@ def release_or_bork(lockfile, nagios_reporter):
         lockfile.release()
     except NotLocked, _:
         logger.critical('Lock release failed: was not locked.')
-        nagios_reporter.critical("Lock release failed on %s" % (lockfile.path,))
+        simple_nagios.critical("Lock release failed on %s" % (lockfile.path,))
     except NotMyLock, _:
         logger.error('Lock release failed: not my lock')
-        nagios_reporter.critical("Lock release failed on %s" % (lockfile.path,))
+        simple_nagios.critical("Lock release failed on %s" % (lockfile.path,))
 
 
