@@ -13,7 +13,7 @@
 """Utilities for locks."""
 import sys
 
-from lockfile import LockFailed, NotLocked, NotMyLock, LockFileReadError
+from lockfile import LockFailed, NotLocked, NotMyLock, LockError
 from vsc.utils.fancylogger import getLogger
 
 logger = getLogger('vsc.utils.lock')
@@ -38,7 +38,7 @@ def lock_or_bork(lockfile, simple_nagios):
     except LockFailed, _:
         logger.critical('Unable to obtain lock: lock failed')
         simple_nagios.critical("failed to take lock on %s" % (lockfile.path,))
-    except LockFileReadError, _:
+    except LockError, _:
         logger.critical("Unable to obtain lock: could not read previous lock file %s" % (lockfile.path,))
         simple_nagios.critical("failed to read lockfile %s" % (lockfile.path,))
 
