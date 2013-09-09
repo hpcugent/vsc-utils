@@ -39,7 +39,7 @@ import sys
 from copy import deepcopy
 
 from vsc.utils.availability import proceed_on_ha_service
-from vsc.utils.generaloption import simple_options, SimpleOption
+from vsc.utils.generaloption import simple_option, SimpleOption
 from vsc.utils.lock import lock_or_bork, release_or_bork, LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE
 from vsc.utils.nagios import SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE
 from vsc.utils.timestamp_pid_lockfile import TimestampedPidLockfile
