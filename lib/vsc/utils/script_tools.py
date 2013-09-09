@@ -79,6 +79,15 @@ def _merge_options(options):
 
 
 class ExtendedSimpleOptions(SimpleOptions):
+    """
+    Extends the SimpleOption class to allow other checks to occur at script prologue and epilogue.
+
+    - nagios reporting
+    - checking if running on the designated HA host
+    - locking on a file
+
+    The prologue should be called at the start of the script; the epilogue at the end.
+    """
 
     def __init__(self):
         """Initialise"""
@@ -88,16 +97,14 @@ class ExtendedSimpleOptions(SimpleOptions):
         self.nagios_reporter = None
         self.lockfile = None
 
-        self.log = getLogger(self.__class__.__name__)
-
     def prologue(self, options):
         """Checks the options given for settings and takes appropriate action.
 
+        See _merge_options for the format.
+
         - if nagios_report is set, creates a SimpleNagios instance and prints the report.
         - if ha is set, checks if running on the correct host, set the appropriate nagios message and bail if not.
-        - if locking_filename is set, take a lock.
-
-        Returns an extended version of the options that should be passed to the epilogue function.
+        - if locking_filename is set, take a lock. If the lock fails, bork and set the nagios exit accordingly.
         """
 
         options_ = _merge_options(options)
