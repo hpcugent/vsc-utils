@@ -133,11 +133,3 @@ class ExtendedSimpleOptions(SimpleOptions):
 
         nagios_thresholds['message'] = nagios_message
         self.nagios_reporter._eval_and_exit(**nagios_thresholds)
-
-
-
-
-
-
-
-
