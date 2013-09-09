@@ -44,7 +44,7 @@ PACKAGE = {
     'provides': ['python-vsc-packages-utils = 0.11'],
     'scripts': [],
     'install_requires': [
-        'vsc-base >= 1.6',
+        'vsc-base >= 1.6.2',
         'lockfile >= 0.9.1',
         'netifaces',
         'jsonpickle',
