@@ -60,7 +60,12 @@ DEFAULT_OPTIONS = {
 
 
 def _merge_options(options):
-    """Merge the given set of options with the default options, updating default values where needed."""
+    """Merge the given set of options with the default options, updating default values where needed.
+
+    @type options: dict. keys should be strings, values are multi-typed.
+                       value is a simple scalar if the key represents an update to DEFAULT_OPTIONS\
+                       value is a SimpleOption tuple otherwise
+    """
 
     opts = deepcopy(options)
     for (k, v) in DEFAULT_OPTIONS.items():
