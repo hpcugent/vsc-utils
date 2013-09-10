@@ -98,15 +98,16 @@ class ExtendedSimpleOption(SimpleOption):
     The prologue should be called at the start of the script; the epilogue at the end.
     """
 
-    def __init__(self):
+    def __init__(self, options):
         """Initialise"""
 
-        super(ExtendedSimpleOption, self).__init__()
+        options_ = _merge_options(options)
+        super(ExtendedSimpleOption, self).__init__(options_)
 
         self.nagios_reporter = None
         self.lockfile = None
 
-    def prologue(self, options):
+    def prologue(self):
         """Checks the options given for settings and takes appropriate action.
 
         See _merge_options for the format.
@@ -116,23 +117,18 @@ class ExtendedSimpleOption(SimpleOption):
         - if locking_filename is set, take a lock. If the lock fails, bork and set the nagios exit accordingly.
         """
 
-        options_ = _merge_options(options)
-        opts = simple_option(options_)
-
         # bail if nagios report is requested
-        self.nagios_reporter = SimpleNagios(_cache=opts.options.nagios_check_filename,
-                                            _report_and_exit=opts.options.nagios_report)
+        self.nagios_reporter = SimpleNagios(_cache=self.options.nagios_check_filename,
+                                            _report_and_exit=self.options.nagios_report)
 
         # check for HA host
-        if opts.options.ha and not proceed_on_ha_service(opts.options.ha):
-            self.log.warning("Not running on the target host %s in the HA setup. Stopping." % (opts.options.ha,))
+        if self.options.ha and not proceed_on_ha_service(self.options.ha):
+            self.log.warning("Not running on the target host %s in the HA setup. Stopping." % (self.options.ha,))
             self.nagios_reporter.ok("Not running on the HA master.")
 
-        if opts.options.locking:
-            self.lockfile = TimestampedPidLockfile(opts.options.locking_filename)
+        if self.options.locking:
+            self.lockfile = TimestampedPidLockfile(self.options.locking_filename)
             lock_or_bork(self.lockfile, self.nagios_reporter)
-
-        self.__dict__.update(opts.__dict__)
 
     def epilogue(self, nagios_message, nagios_thresholds={}):
         """Run at the end of a script, quitting gracefully if possible."""
