@@ -50,7 +50,7 @@ def _script_name(full_name):
     dot in case of lacking an extension.
     """
     (name, _) = os.path.splitext(full_name)
-    return name
+    return os.path.basename(name)
 
 
 DEFAULT_OPTIONS = {
