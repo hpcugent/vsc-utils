@@ -117,7 +117,7 @@ class ExtendedSimpleOption(SimpleOption):
         """
 
         options_ = _merge_options(options)
-        opts = simple_options(options_)
+        opts = simple_option(options_)
 
         # bail if nagios report is requested
         self.nagios_reporter = SimpleNagios(_cache=opts.options.nagios_check_filename,
@@ -132,7 +132,7 @@ class ExtendedSimpleOption(SimpleOption):
             self.lockfile = TimestampedPidLockfile(opts.options.locking_filename)
             lock_or_bork(self.lockfile, self.nagios_reporter)
 
-        self.__dict__.update(opts)
+        self.__dict__.update(opts.__dict__)
 
     def epilogue(self, nagios_message, nagios_thresholds={}):
         """Run at the end of a script, quitting gracefully if possible."""
