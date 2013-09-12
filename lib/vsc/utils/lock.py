@@ -18,7 +18,7 @@ from vsc.utils.fancylogger import getLogger
 
 logger = getLogger('vsc.utils.lock')
 
-LOCKFILE_DIR = '/var/run'
+LOCKFILE_DIR = '/var/lock'
 LOCKFILE_FILENAME_TEMPLATE = "%s.lock"
 
 
