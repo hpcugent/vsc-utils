@@ -60,7 +60,7 @@ DEFAULT_OPTIONS = {
                                                NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
         'nagios_check_interval_threshold': ('threshold of nagios checks timing out', None, 'store', 0),
         'ha': ('high-availability master IP address', None, 'store', None),
-        'locking': ('protect this script by a file-based lock', None, 'store_true', False),
+        'disable_locking': ('do NOT protect this script by a file-based lock', None, 'store_true', False),
         'locking_filename': ('file that will serve as a lock', None, 'store',
                              os.path.join(LOCKFILE_DIR,
                                           LOCKFILE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
@@ -132,7 +132,7 @@ class ExtendedSimpleOption(SimpleOption):
             self.log.warning("Not running on the target host %s in the HA setup. Stopping." % (self.options.ha,))
             self.nagios_reporter.ok("Not running on the HA master.")
 
-        if self.options.locking:
+        if not self.options.disable_locking:
             self.lockfile = TimestampedPidLockfile(self.options.locking_filename)
             lock_or_bork(self.lockfile, self.nagios_reporter)
 
