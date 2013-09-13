@@ -98,14 +98,20 @@ class ExtendedSimpleOption(SimpleOption):
     The prologue should be called at the start of the script; the epilogue at the end.
     """
 
-    def __init__(self, options):
-        """Initialise"""
+    def __init__(self, options, run_prologue=True):
+        """Initialise.
+
+        If run_prologue is True (default), we immediately execute the prologue.
+        """
 
         options_ = _merge_options(options)
         super(ExtendedSimpleOption, self).__init__(options_)
 
         self.nagios_reporter = None
         self.lockfile = None
+
+        if run_prologue:
+            self.prologue()
 
     def prologue(self):
         """Checks the options given for settings and takes appropriate action.
@@ -130,6 +136,8 @@ class ExtendedSimpleOption(SimpleOption):
             self.lockfile = TimestampedPidLockfile(self.options.locking_filename)
             lock_or_bork(self.lockfile, self.nagios_reporter)
 
+        self.log.info("%s has started" % (_script_name(sys.argv[0])))
+
     def epilogue(self, nagios_message, nagios_thresholds={}):
         """Run at the end of a script, quitting gracefully if possible."""
 
@@ -138,3 +146,4 @@ class ExtendedSimpleOption(SimpleOption):
 
         nagios_thresholds['message'] = nagios_message
         self.nagios_reporter._eval_and_exit(**nagios_thresholds)
+        self.log.info("%s has finished" % (_script_name(sys.argv[0])))  # may not be reached
