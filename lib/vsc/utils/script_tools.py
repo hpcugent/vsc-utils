@@ -54,17 +54,17 @@ def _script_name(full_name):
 
 
 DEFAULT_OPTIONS = {
-        'disable_locking': ('do NOT protect this script by a file-based lock', None, 'store_true', False),
+        'disable-locking': ('do NOT protect this script by a file-based lock', None, 'store_true', False),
         'dry-run': ('do not make any updates whatsoever', None, 'store_true', False),
         'ha': ('high-availability master IP address', None, 'store', None),
-        'locking_filename': ('file that will serve as a lock', None, 'store',
+        'locking-filename': ('file that will serve as a lock', None, 'store',
                              os.path.join(LOCKFILE_DIR,
                                           LOCKFILE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
-        'nagios_report': ('print out nagios information', None, 'store_true', False, 'n'),
-        'nagios_check_filename': ('filename of where the nagios check data is stored', str, 'store',
+        'nagios-report': ('print out nagios information', None, 'store_true', False, 'n'),
+        'nagios-check-filename': ('filename of where the nagios check data is stored', str, 'store',
                                   os.path.join(NAGIOS_CACHE_DIR,
                                                NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
-        'nagios_check_interval_threshold': ('threshold of nagios checks timing out', None, 'store', 0),
+        'nagios-check-interval-threshold': ('threshold of nagios checks timing out', None, 'store', 0),
 }
 
 
