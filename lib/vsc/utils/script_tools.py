@@ -142,7 +142,6 @@ class ExtendedSimpleOption(SimpleOption):
         if self.options.locking and not self.options.dry_run:
             release_or_bork(self.lockfile, self.nagios_reporter)
 
-
     def epilogue(self, nagios_message, nagios_thresholds={}):
         """Run at the end of a script, quitting gracefully if possible."""
 
@@ -152,19 +151,19 @@ class ExtendedSimpleOption(SimpleOption):
         self.nagios_reporter._eval_and_exit(**nagios_thresholds)
         self.log.info("%s has finished" % (_script_name(sys.argv[0])))  # may not be reached
 
-    def epilogue_ok(self, nagios_message):
+    def ok(self, nagios_message):
         """Run at the end of a script and force an OK exit."""
         self._epilogue()
-        self.nagios_reporter.ok(nagios_message)
+        super(ExtendedSimpleOption, self).ok(nagios_message)
 
-    def epilogue_warning(self, nagios_message):
+    def warning(self, nagios_message):
         """Run at the end of a script and force a Warning exit."""
         self._epilogue()
-        self.nagios_reporter.warning(nagios_message)
+        super(ExtendedSimpleOption, self).warning(nagios_message)
 
-    def epilogue_critical(self, nagios_message):
+    def critical(self, nagios_message):
         """Run at the end of a script and force a Critical exit"""
         self._epilogue()
-        self.nagios_reporter.critical(nagios_message)
+        super(ExtendedSimpleOption, self).critical(nagios_message)
 
 
