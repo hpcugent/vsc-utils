@@ -328,7 +328,6 @@ class SimpleNagios(NagiosResult):
         """
         self._final_state = (nagios_exitcode, msg)
         self._final(nagios_exitcode, msg)
-        sys.exit(nagios_exitcode)
 
     def ok(self, msg):
         self._exit(NAGIOS_EXIT_OK, msg)
