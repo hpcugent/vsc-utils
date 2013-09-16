@@ -132,14 +132,14 @@ class ExtendedSimpleOption(SimpleOption):
             self.log.warning("Not running on the target host %s in the HA setup. Stopping." % (self.options.ha,))
             self.nagios_reporter.ok("Not running on the HA master.")
 
-        if not self.options.disable_locking:
+        if not self.options.disable_locking and not self.options.dry_run:
             self.lockfile = TimestampedPidLockfile(self.options.locking_filename)
             lock_or_bork(self.lockfile, self.nagios_reporter)
 
         self.log.info("%s has started" % (_script_name(sys.argv[0])))
 
     def _epilogue(self):
-        if self.options.locking and not self.options.dry_run:
+        if not self.options.disable_locking and not self.options.dry_run:
             release_or_bork(self.lockfile, self.nagios_reporter)
 
     def epilogue(self, nagios_message, nagios_thresholds={}):
