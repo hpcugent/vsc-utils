@@ -54,17 +54,17 @@ def _script_name(full_name):
 
 
 DEFAULT_OPTIONS = {
+        'disable_locking': ('do NOT protect this script by a file-based lock', None, 'store_true', False),
+        'dry-run': ('do not make any updates whatsoever', None, 'store_true', False),
+        'ha': ('high-availability master IP address', None, 'store', None),
+        'locking_filename': ('file that will serve as a lock', None, 'store',
+                             os.path.join(LOCKFILE_DIR,
+                                          LOCKFILE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
         'nagios_report': ('print out nagios information', None, 'store_true', False, 'n'),
         'nagios_check_filename': ('filename of where the nagios check data is stored', str, 'store',
                                   os.path.join(NAGIOS_CACHE_DIR,
                                                NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
         'nagios_check_interval_threshold': ('threshold of nagios checks timing out', None, 'store', 0),
-        'ha': ('high-availability master IP address', None, 'store', None),
-        'disable_locking': ('do NOT protect this script by a file-based lock', None, 'store_true', False),
-        'locking_filename': ('file that will serve as a lock', None, 'store',
-                             os.path.join(LOCKFILE_DIR,
-                                          LOCKFILE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
-        'dry-run': ('do not make any updates whatsoever', None, 'store_true', False),
 }
 
 
@@ -138,12 +138,33 @@ class ExtendedSimpleOption(SimpleOption):
 
         self.log.info("%s has started" % (_script_name(sys.argv[0])))
 
+    def _epilogue(self):
+        if self.options.locking and not self.options.dry_run:
+            release_or_bork(self.lockfile, self.nagios_reporter)
+
+
     def epilogue(self, nagios_message, nagios_thresholds={}):
         """Run at the end of a script, quitting gracefully if possible."""
 
-        if self.options.locking:
-            release_or_bork(self.lockfile, self.nagios_reporter)
+        self._epilogue()
 
         nagios_thresholds['message'] = nagios_message
         self.nagios_reporter._eval_and_exit(**nagios_thresholds)
         self.log.info("%s has finished" % (_script_name(sys.argv[0])))  # may not be reached
+
+    def epilogue_ok(self, nagios_message):
+        """Run at the end of a script and force an OK exit."""
+        self._epilogue()
+        self.nagios_reporter.ok(nagios_message)
+
+    def epilogue_warning(self, nagios_message):
+        """Run at the end of a script and force a Warning exit."""
+        self._epilogue()
+        self.nagios_reporter.warning(nagios_message)
+
+    def epilogue_critical(self, nagios_message):
+        """Run at the end of a script and force a Critical exit"""
+        self._epilogue()
+        self.nagios_reporter.critical(nagios_message)
+
+
