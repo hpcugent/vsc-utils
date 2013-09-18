@@ -154,16 +154,16 @@ class ExtendedSimpleOption(SimpleOption):
     def ok(self, nagios_message):
         """Run at the end of a script and force an OK exit."""
         self._epilogue()
-        super(ExtendedSimpleOption, self).ok(nagios_message)
+        self.nagios_reporter.ok(nagios_message)
 
     def warning(self, nagios_message):
         """Run at the end of a script and force a Warning exit."""
         self._epilogue()
-        super(ExtendedSimpleOption, self).warning(nagios_message)
+        self.nagios_reporter.warning(nagios_message)
 
     def critical(self, nagios_message):
         """Run at the end of a script and force a Critical exit"""
         self._epilogue()
-        super(ExtendedSimpleOption, self).critical(nagios_message)
+        self.nagios_reporter.critical(nagios_message)
 
 
