@@ -54,6 +54,9 @@ from vsc.utils.cache import FileCache
 
 log = getLogger(__name__)
 
+NAGIOS_CACHE_DIR = '/var/cache'
+NAGIOS_CACHE_FILENAME_TEMPLATE = '%s.nagios.json.gz'
+
 NAGIOS_EXIT_OK = (0, 'OK')
 NAGIOS_EXIT_WARNING = (1, 'WARNING')
 NAGIOS_EXIT_CRITICAL = (2, 'CRITICAL')

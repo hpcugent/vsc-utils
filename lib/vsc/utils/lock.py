@@ -13,15 +13,21 @@
 """Utilities for locks."""
 import sys
 
-from lockfile import LockFailed, NotLocked, NotMyLock
+from lockfile import LockFailed, NotLocked, NotMyLock, LockError
 from vsc.utils.fancylogger import getLogger
-from vsc.utils.nagios import NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_WARNING, NagiosResult
+from vsc.utils.nagios import NAGIOS_EXIT_CRITICAL
 
 logger = getLogger('vsc.utils.lock')
 
+LOCKFILE_DIR = '/var/lock'
+LOCKFILE_FILENAME_TEMPLATE = "%s.lock"
 
-def lock_or_bork(lockfile, nagios_reporter):
+
+def lock_or_bork(lockfile, simple_nagios):
     """Take the lock on the given lockfile.
+
+    @type lockfile: A LockFile instance
+    @type simple_nagios: SimpleNagios instance
 
     If the lock cannot be obtained:
         - log a critical error
@@ -30,18 +36,21 @@ def lock_or_bork(lockfile, nagios_reporter):
     """
     try:
         lockfile.acquire()
-    except LockFailed, err:
+    except LockFailed, _:
         logger.critical('Unable to obtain lock: lock failed')
-        nagios_reporter.cache(NAGIOS_EXIT_CRITICAL, NagiosResult("script failed taking lock %s" % (lockfile.path)))
-        sys.exit(1)
-    except LockFileReadError, err:
-        logger.critical("Unable to obtain lock: could not read previous lock file %s" % (lockfile.path))
-        nagios_reporter.cache(NAGIOS_EXIT_CRITICAL, NagiosResult("script failed reading lockfile %s" % (lockfile.path)))
-        sys.exit(1)
+        simple_nagios.critical("failed to take lock on %s" % (lockfile.path,))
+        sys.exit(NAGIOS_EXIT_CRITICAL)
+    except LockError, _:
+        logger.critical("Unable to obtain lock: could not read previous lock file %s" % (lockfile.path,))
+        simple_nagios.critical("failed to read lockfile %s" % (lockfile.path,))
+        sys.exit(NAGIOS_EXIT_CRITICAL)
 
 
-def release_or_bork(lockfile, nagios_reporter, nagios_result):
+def release_or_bork(lockfile, simple_nagios):
     """ Release the lock on the given lockfile.
+
+    @type lockfile: A LockFile instance
+    @type simple_nagios: SimpleNagios instance
 
     If the lock cannot be released:
         - log a critcal error
@@ -51,13 +60,13 @@ def release_or_bork(lockfile, nagios_reporter, nagios_result):
 
     try:
         lockfile.release()
-    except NotLocked, err:
+    except NotLocked, _:
         logger.critical('Lock release failed: was not locked.')
-        nagios_reporter.cache(NAGIOS_EXIT_WARNING, nagios_result)
-        sys.exit(1)
-    except NotMyLock, err:
+        simple_nagios.critical("Lock release failed on %s" % (lockfile.path,))
+        sys.exit(NAGIOS_EXIT_CRITICAL)
+    except NotMyLock, _:
         logger.error('Lock release failed: not my lock')
-        nagios_reporter.cache(NAGIOS_EXIT_WARNING, nagios_result)
-        sys.exit(1)
+        simple_nagios.critical("Lock release failed on %s" % (lockfile.path,))
+        sys.exit(NAGIOS_EXIT_CRITICAL)
 
 
