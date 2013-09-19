@@ -102,6 +102,9 @@ class ExtendedSimpleOption(SimpleOption):
         """Initialise.
 
         If run_prologue is True (default), we immediately execute the prologue.
+
+        Note that if taking a lock is requested (default), and the lock cannot be
+        acquire for some reason, the program will exit,
         """
 
         options_ = _merge_options(options)
