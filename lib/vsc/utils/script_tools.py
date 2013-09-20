@@ -41,7 +41,7 @@ from copy import deepcopy
 from vsc.utils.availability import proceed_on_ha_service
 from vsc.utils.generaloption import simple_option, SimpleOption
 from vsc.utils.lock import lock_or_bork, release_or_bork, LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE
-from vsc.utils.nagios import SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE
+from vsc.utils.nagios import SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE, NAGIOS_EXIT_OK
 from vsc.utils.timestamp_pid_lockfile import TimestampedPidLockfile
 
 
@@ -134,6 +134,7 @@ class ExtendedSimpleOption(SimpleOption):
         if self.options.ha and not proceed_on_ha_service(self.options.ha):
             self.log.warning("Not running on the target host %s in the HA setup. Stopping." % (self.options.ha,))
             self.nagios_reporter.ok("Not running on the HA master.")
+            sys.exit(NAGIOS_EXIT_OK)
 
         if not self.options.disable_locking and not self.options.dry_run:
             self.lockfile = TimestampedPidLockfile(self.options.locking_filename)
