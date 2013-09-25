@@ -48,7 +48,7 @@ PACKAGE = {
         'lockfile >= 0.9.1',
         'netifaces',
         'jsonpickle',
-        'pycrypto',
+        'crypto',
     ],
 }
 
