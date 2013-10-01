@@ -138,7 +138,7 @@ class ExtendedSimpleOption(SimpleOption):
 
         if not self.options.disable_locking and not self.options.dry_run:
             self.lockfile = TimestampedPidLockfile(self.options.locking_filename,
-                                                   threshold=self.options.nagios_check_interval_threshold)
+                                                   threshold=self.options.nagios_check_interval_threshold * 2)
             lock_or_bork(self.lockfile, self.nagios_reporter)
 
         self.log.info("%s has started" % (_script_name(sys.argv[0])))
