@@ -54,17 +54,17 @@ def _script_name(full_name):
 
 
 DEFAULT_OPTIONS = {
-        'disable-locking': ('do NOT protect this script by a file-based lock', None, 'store_true', False),
-        'dry-run': ('do not make any updates whatsoever', None, 'store_true', False),
-        'ha': ('high-availability master IP address', None, 'store', None),
-        'locking-filename': ('file that will serve as a lock', None, 'store',
-                             os.path.join(LOCKFILE_DIR,
-                                          LOCKFILE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
-        'nagios-report': ('print out nagios information', None, 'store_true', False, 'n'),
-        'nagios-check-filename': ('filename of where the nagios check data is stored', str, 'store',
-                                  os.path.join(NAGIOS_CACHE_DIR,
-                                               NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
-        'nagios-check-interval-threshold': ('threshold of nagios checks timing out', None, 'store', 0),
+    'disable-locking': ('do NOT protect this script by a file-based lock', None, 'store_true', False),
+    'dry-run': ('do not make any updates whatsoever', None, 'store_true', False),
+    'ha': ('high-availability master IP address', None, 'store', None),
+    'locking-filename': ('file that will serve as a lock', None, 'store',
+                         os.path.join(LOCKFILE_DIR,
+                                      LOCKFILE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
+    'nagios-report': ('print out nagios information', None, 'store_true', False, 'n'),
+    'nagios-check-filename': ('filename of where the nagios check data is stored', 'string', 'store',
+                              os.path.join(NAGIOS_CACHE_DIR,
+                                           NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
+    'nagios-check-interval-threshold': ('threshold of nagios checks timing out', 'int', 'store', 0),
 }
 
 
@@ -137,7 +137,8 @@ class ExtendedSimpleOption(SimpleOption):
             sys.exit(NAGIOS_EXIT_OK)
 
         if not self.options.disable_locking and not self.options.dry_run:
-            self.lockfile = TimestampedPidLockfile(self.options.locking_filename)
+            self.lockfile = TimestampedPidLockfile(self.options.locking_filename,
+                                                   threshold=self.options.nagios_check_interval_threshold)
             lock_or_bork(self.lockfile, self.nagios_reporter)
 
         self.log.info("%s has started" % (_script_name(sys.argv[0])))
