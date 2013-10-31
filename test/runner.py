@@ -1,7 +1,10 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+# make sure what we're testing is first in the path
+sys.path.insert(0, os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'lib'))
+sys.path.insert(0, '')
+
 
 import test.cache as tc
 import test.nagios as tn

@@ -37,7 +37,7 @@ import gzip
 import jsonpickle
 import time
 
-from vsc import fancylogger
+from vsc.utils import fancylogger
 
 
 class FileCache(object):
