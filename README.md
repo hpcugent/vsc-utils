@@ -1,9 +1,9 @@
 # vsc-utils
 
 ### Build Status
-- Python 2.4 : [![Build Status](https://jenkins1.ugent.be/job/vsc-utils-python24/badge/icon)](https://jenkins1.ugent.be/job/vsc-base-python24/)
-- Python 2.6 : [![Build Status](https://jenkins1.ugent.be/job/vsc-utils-python26/badge/icon)](https://jenkins1.ugent.be/job/vsc-base-python26/)
-- Python 2.7 : [![Build Status](https://jenkins1.ugent.be/job/vsc-utils-python27/badge/icon)](https://jenkins1.ugent.be/job/vsc-base-python27/)
+- Python 2.4 : [![Build Status](https://jenkins1.ugent.be/job/vsc-utils-python24/badge/icon)](https://jenkins1.ugent.be/job/vsc-utils-python24/)
+- Python 2.6 : [![Build Status](https://jenkins1.ugent.be/job/vsc-utils-python26/badge/icon)](https://jenkins1.ugent.be/job/vsc-utils-python26/)
+- Python 2.7 : [![Build Status](https://jenkins1.ugent.be/job/vsc-utils-python27/badge/icon)](https://jenkins1.ugent.be/job/vsc-utils-python27/)
 
 Common tools used within our organization.
 These tools live in the vsc.utils namespace, toghether with the tools from
