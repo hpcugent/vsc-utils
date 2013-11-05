@@ -44,7 +44,9 @@ LIST_LEN = 30  # same as in paycheck
 def get_rand_data():
     """Returns a random dict with between 0 and LIST_LEN elements  and a random threshold"""
     length = random.randint(0, LIST_LEN)
-    data = {random.randint(0, sys.maxint): random.randint(0, sys.maxint) for x in xrange(length)}
+    data = {}
+    for x in xrange(length):
+        data[random.randint(0, sys.maxint)] =  random.randint(0, sys.maxint)
     threshold = random.randint(0, sys.maxint)
     return data, threshold
 
