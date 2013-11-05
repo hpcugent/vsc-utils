@@ -33,10 +33,11 @@ import os
 import tempfile
 import time
 import sys
+import random
+import string
 
 import StringIO
 
-from paycheck import with_checker, irange
 from unittest import TestCase, TestLoader
 
 from vsc.utils.nagios import NagiosReporter, NAGIOS_EXIT_OK, NAGIOS_EXIT_WARNING, NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_UNKNOWN
@@ -50,12 +51,14 @@ class TestNagios(TestCase):
         user = getpwuid(os.getuid())
         self.nagios_user = user.pw_name
 
-    @with_checker(irange(0, 3), str, irange(2, 10))
-    def test_cache(self, exit_code, message, threshold):
+    def test_cache(self):
         """Test the caching mechanism in the reporter."""
+        length = random.randint(1, 30)
+        exit_code = random.randint(0, 3)
+        threshold = random.randint(0, 10)
+
+        message = ''.join(random.choice(string.printable) for x in range(length))
         message = message.rstrip()
-        if message == '':
-            return
 
         (handle, filename) = tempfile.mkstemp()
         os.unlink(filename)
