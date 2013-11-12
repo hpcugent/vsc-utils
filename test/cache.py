@@ -33,17 +33,31 @@ import os
 import tempfile
 import time
 import sys
-from paycheck import with_checker, irange
-from unittest import TestCase, TestLoader, main
+import random
+from unittest import TestCase, TestLoader
 
 from vsc.utils.cache import FileCache
+
+LIST_LEN = 30  # same as in paycheck
+
+
+def get_rand_data():
+    """Returns a random dict with between 0 and LIST_LEN elements  and a random threshold"""
+    length = random.randint(0, LIST_LEN)
+    data = {}
+    for x in xrange(length):
+        data[random.randint(0, sys.maxint)] =  random.randint(0, sys.maxint)
+    threshold = random.randint(0, sys.maxint)
+    return data, threshold
 
 
 class TestCache(TestCase):
 
-    @with_checker({int: int}, irange(0, sys.maxint))
-    def test_contents(self, data, threshold):
+    def test_contents(self):
         """Check that the contents of the cache is what is expected prior to closing it."""
+        # test with random data
+        data, threshold = get_rand_data()
+
         # create a tempfilename
         (handle, filename) = tempfile.mkstemp(dir='/tmp')
         os.unlink(filename)
@@ -60,10 +74,10 @@ class TestCache(TestCase):
             self.assertTrue(value == data[key])
             self.assertTrue(ts <= now)
 
-
-    @with_checker({int: int}, irange(0, sys.maxint))
-    def test_save_and_load(self, data, threshold):
+    def test_save_and_load(self):
         """Check if the loaded data is the same as the saved data."""
+        # test with random data
+        data, threshold = get_rand_data()
 
         # create a tempfilename
         (handle, filename) = tempfile.mkstemp()
@@ -86,9 +100,7 @@ class TestCache(TestCase):
 
         os.unlink(filename)
 
+
 def suite():
     """ return all the tests"""
     return TestLoader().loadTestsFromTestCase(TestCache)
-
-if __name__ == '__main__':
-    main()

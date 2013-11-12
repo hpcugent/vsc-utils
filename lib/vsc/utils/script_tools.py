@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-# -*- encoding: utf-8 -*-
-# #
+##
 # Copyright 2012-2013 Ghent University
 #
 # This file is part of vsc-utils,
@@ -24,7 +22,7 @@
 #
 # You should have received a copy of the GNU Library General Public License
 # along with vsc-utils. If not, see <http://www.gnu.org/licenses/>.
-# #
+##
 """
 This module provides functions to run at the beginning and end of commonly used scripts
     - nagios checking and reporting if requested
@@ -39,7 +37,7 @@ import sys
 from copy import deepcopy
 
 from vsc.utils.availability import proceed_on_ha_service
-from vsc.utils.generaloption import simple_option, SimpleOption
+from vsc.utils.generaloption import SimpleOption
 from vsc.utils.lock import lock_or_bork, release_or_bork, LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE
 from vsc.utils.nagios import SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE, NAGIOS_EXIT_OK
 from vsc.utils.timestamp_pid_lockfile import TimestampedPidLockfile
@@ -170,5 +168,3 @@ class ExtendedSimpleOption(SimpleOption):
         """Run at the end of a script and force a Critical exit"""
         self._epilogue()
         self.nagios_reporter.critical(nagios_message)
-
-

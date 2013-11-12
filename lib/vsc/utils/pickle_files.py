@@ -1,7 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: latin-1 -*-
 ##
-# Copyright 2009-2013 Ghent University
+# Copyright 2012-2013 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -10,10 +8,23 @@
 # the Hercules foundation (http://www.herculesstichting.be/in_English)
 # and the Department of Economy, Science and Innovation (EWI) (http://www.ewi-vlaanderen.be/en).
 #
-# All rights reserved.
+# http://github.com/hpcugent/vsc-utils
 #
+# vsc-utils is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Library General Public License as
+# published by the Free Software Foundation, either version 2 of
+# the License, or (at your option) any later version.
+#
+# vsc-utils is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Library General Public License for more details.
+#
+# You should have received a copy of the GNU Library General Public License
+# along with vsc-utils. If not, see <http://www.gnu.org/licenses/>.
 ##
-"""Various types of pickle files that can be used to store non-component specific information.
+"""
+Various types of pickle files that can be used to store non-component specific information.
 
 - TimestampPickle: stores a simple timestamp in a pickled fashion.
 
@@ -28,7 +39,7 @@ import cPickle as pickle
 import os
 import stat
 
-from vsc import fancylogger
+from vsc.utils import fancylogger
 
 
 class TimestampPickle(object):
@@ -68,12 +79,12 @@ class TimestampPickle(object):
 
         try:
             pickle.dump(timestamp, open(self.filename, "wb"))
-        except Exception, _:
+        except Exception:
             self.log.exception("Failed to dump timestamp %s to pickle in filename %s" % (timestamp, self.filename))
             raise
 
         try:
             os.chmod(self.filename, stat.S_IRWXU)
-        except Exception, _:
+        except Exception:
             self.log.exception("Failed to set permissions on filename %s" % (self.filename))
             raise

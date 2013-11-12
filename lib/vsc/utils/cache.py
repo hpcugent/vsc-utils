@@ -1,5 +1,5 @@
 #!/usr/bin.env python
-# #
+##
 #
 # Copyright 2012-2013 Ghent University
 #
@@ -24,7 +24,7 @@
 #
 # You should have received a copy of the GNU Library General Public License
 # along with vsc-utils. If not, see <http://www.gnu.org/licenses/>.
-# #
+##
 """
 Caching utilities.
 
@@ -38,7 +38,7 @@ import gzip
 import jsonpickle
 import time
 
-from vsc import fancylogger
+from vsc.utils import fancylogger
 
 
 class FileCache(object):

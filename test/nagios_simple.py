@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-# -*- encoding: utf-8 -*-
-# #
+##
 #
 # Copyright 2012-2013 Ghent University
 #
@@ -25,7 +23,7 @@
 #
 # You should have received a copy of the GNU Library General Public License
 # along with vsc-utils. If not, see <http://www.gnu.org/licenses/>.
-# #
+##
 """
 Tests for the NagiosResult class in the vsc.utils.nagios module
 
@@ -33,15 +31,15 @@ Tests for the NagiosResult class in the vsc.utils.nagios module
 """
 import os
 import tempfile
-import time
 import StringIO
 import sys
 
-from unittest import TestCase, TestLoader, main
+from unittest import TestCase, TestLoader
 
 from vsc.utils.nagios import SimpleNagios, NAGIOS_EXIT_OK, NAGIOS_EXIT_CRITICAL
 from vsc.utils.nagios import NAGIOS_EXIT_WARNING, NAGIOS_EXIT_UNKNOWN, NagiosReporter
 from pwd import getpwuid
+
 
 class TestSimpleNagios(TestCase):
     """Test for the SimpleNagios class."""
@@ -94,11 +92,11 @@ class TestSimpleNagios(TestCase):
     def test_simple_single_instance(self):
         """Test what is generated when performance data is given, but not critical/warning"""
         kwargs = {
-                'message':'hello',
-                'value1':3,
-                'value1_warning':5,
-                'value1_critical':10,
-                }
+            'message': 'hello',
+            'value1': 3,
+            'value1_warning': 5,
+            'value1_critical': 10,
+        }
         self._basic_test_single_instance(kwargs, 'OK hello | value1=3;5;10;', NAGIOS_EXIT_OK)
         # greater or equal
         kwargs['value1'] = 5
@@ -115,13 +113,13 @@ class TestSimpleNagios(TestCase):
 
         # mixed
         kwargsmore = {
-                'value0':3,
-                'value0_warning':5,
-                'value0_critical':10,
-                'value2':7,
-                'value2_warning':5,
-                'value2_critical':10,
-                }
+            'value0': 3,
+            'value0_warning': 5,
+            'value0_critical': 10,
+            'value2': 7,
+            'value2_warning': 5,
+            'value2_critical': 10,
+        }
         kwargs.update(kwargsmore)
         self._basic_test_single_instance(kwargs, 'CRITICAL hello | value0=3;5;10; value1=15;5;10; value2=7;5;10;',
                                          NAGIOS_EXIT_CRITICAL)
@@ -159,11 +157,6 @@ class TestSimpleNagios(TestCase):
         os.unlink(filename)
 
 
-
 def suite():
     """ return all the tests"""
     return TestLoader().loadTestsFromTestCase(TestSimpleNagios)
-
-
-if __name__ == '__main__':
-    main()  # unittest.main

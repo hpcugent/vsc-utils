@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-# -*- encoding: utf-8 -*-
-# #
+# encoding: utf-8
+##
 #
 # Copyright 2012-2013 Ghent University
 #
@@ -25,18 +24,13 @@
 #
 # You should have received a copy of the GNU Library General Public License
 # along with vsc-utils. If not, see <http://www.gnu.org/licenses/>.
-# #
+##
 """
 Tests for the NagiosResult class in the vsc.utils.nagios module
 
 @author: Luis Fernando Muñoz Mejías (Ghent University)
 """
-import os
-import tempfile
-import time
-import sys
-
-from unittest import TestCase, TestLoader, main
+from unittest import TestCase, TestLoader
 
 from vsc.utils.nagios import NagiosResult
 
@@ -75,7 +69,3 @@ class TestNagiosResult(TestCase):
 def suite():
     """ return all the tests"""
     return TestLoader().loadTestsFromTestCase(TestNagiosResult)
-
-
-if __name__ == '__main__':
-    main()  # unittest.main

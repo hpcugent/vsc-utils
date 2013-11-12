@@ -26,6 +26,8 @@
 ##
 """
 Module for high-availability functionality.
+
+@author: Andy Georges (Ghent University)
 """
 
 from netifaces import interfaces, ifaddresses, AF_INET

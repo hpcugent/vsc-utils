@@ -1,5 +1,4 @@
 ##
-#
 # Copyright 2012-2013 Ghent University
 #
 # This file is part of vsc-utils,
@@ -25,7 +24,9 @@
 # along with vsc-utils. If not, see <http://www.gnu.org/licenses/>.
 ##
 """
-@author: Toon Willems (Ghent University)
+@author: Jens Timmerman (Ghent University)
 """
-import pkg_resources
-pkg_resources.declare_namespace(__name__)
+from pkgutil import extend_path
+
+# we're not the only ones in this namespace
+__path__ = extend_path(__path__, __name__)  #@ReservedAssignment

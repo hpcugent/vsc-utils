@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-# -*- encoding: utf-8 -*-
-# #
+# encoding: utf-8
+##
 # Copyright 2012-2013 Ghent University
 #
 # This file is part of vsc-utils,
@@ -24,7 +23,7 @@
 #
 # You should have received a copy of the GNU Library General Public License
 # along with vsc-utils. If not, see <http://www.gnu.org/licenses/>.
-# #
+##
 """
 This module provides functionality to cache and report results of script executions that can readily be
 interpreted by nagios/icinga.
@@ -348,9 +347,9 @@ class SimpleNagios(NagiosResult):
         processed_dict = self._process_data()
 
         warn = True in [self.EVAL_OPERATOR(v['value'], v['warning'])
-                for v in processed_dict.values() if 'warning' in v]
+                        for v in processed_dict.values() if 'warning' in v]
         crit = True in [self.EVAL_OPERATOR(v['value'], v['critical'])
-                for v in processed_dict.values() if 'critical' in v]
+                        for v in processed_dict.values() if 'critical' in v]
 
         return warn, crit
 
