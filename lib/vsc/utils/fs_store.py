@@ -32,6 +32,7 @@ import tempfile
 from vsc import fancylogger
 
 from vsc.filesystem.gpfs import GpfsOperations
+from vsc.utils.cache import FileCache
 
 
 logger = fancylogger.getLogger(__name__)
