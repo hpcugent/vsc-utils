@@ -31,7 +31,6 @@ import tempfile
 
 from vsc import fancylogger
 
-from vsc.filesystem.gpfs import GpfsOperations
 from vsc.utils.cache import FileCache
 
 
@@ -295,7 +294,7 @@ def __get_home_mount(home):
         return home
 
 
-def store_on_gpfs(user_name, path, showq_information, gpfs, login_mount_point, gpfs_mount_point, dry_run=False):
+def store_on_gpfs(user_name, path, key, information, gpfs, login_mount_point, gpfs_mount_point, filename, dry_run=False):
     """
     Store the given information in a cache file that resides in a user's directory.
 
@@ -309,9 +308,9 @@ def store_on_gpfs(user_name, path, showq_information, gpfs, login_mount_point, g
     """
 
     if user_name and user_name.startswith('vsc4'):
-        logger.debug("Storing showq information for user %s" % (user_name,))
-        logger.debug("queue information: %s" % (showq_information,))
-        logger.debug("path for storing queue information would be %s" % (path,))
+        logger.debug("Storing %s information for user %s" % (key, user_name,))
+        logger.debug("information: %s" % (information,))
+        logger.debug("path for storing information would be %s" % (path,))
 
         # FIXME: We need some better way to address this
         # Right now, we replace the nfs mount prefix which the symlink points to
@@ -332,15 +331,15 @@ def store_on_gpfs(user_name, path, showq_information, gpfs, login_mount_point, g
             new_path = path
 
         path_stat = os.stat(new_path)
-        filename = os.path.join(new_path, ".showq.json.gz")
+        filename = os.path.join(new_path, filename)
 
         if dry_run:
-            logger.info("Dry run: would update cache for at %s with %s" % (new_path, "%s" % (showq_information,)))
+            logger.info("Dry run: would update cache for at %s with %s" % (new_path, "%s" % (information,)))
             logger.info("Dry run: would chmod 640 %s" % (filename,))
             logger.info("Dry run: would chown %s to %s %s" % (filename, path_stat.st_uid, path_stat.st_gid))
         else:
             cache = FileCache(filename)
-            cache.update(key="showq", data=showq_information, threshold=0)
+            cache.update(key=key, data=information, threshold=0)
             cache.close()
 
             gpfs.ignorerealpathmismatch = True
