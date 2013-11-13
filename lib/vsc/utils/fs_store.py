@@ -293,3 +293,62 @@ def __get_home_mount(home):
     else:
         return home
 
+
+def store_on_gpfs(user_name, path, showq_information, gpfs, login_mount_point, gpfs_mount_point, dry_run=False):
+    """
+    Store the given information in a cache file that resides in a user's directory.
+
+    @type user_name: string
+    @type path: string, representing a directory
+    @type showq_information: a recursive dict structure
+    @type gpfs: GpfsOperations instance
+    @type login_mount_point: path representing the mount point of the storage location on the login nodes
+    @type gpfs_mount_point: path representing the mount point of the storage location when GPFS mounted
+    @type dry_run: boolean
+    """
+
+    if user_name and user_name.startswith('vsc4'):
+        logger.debug("Storing showq information for user %s" % (user_name,))
+        logger.debug("queue information: %s" % (showq_information,))
+        logger.debug("path for storing queue information would be %s" % (path,))
+
+        # FIXME: We need some better way to address this
+        # Right now, we replace the nfs mount prefix which the symlink points to
+        # with the gpfs mount point. this is a workaround until we resolve the
+        # symlink problem once we take new default scratch into production
+        if gpfs.is_symlink(path):
+            target = os.path.realpath(path)
+            logger.debug("path is a symlink, target is %s" % (target,))
+            logger.debug("login_mount_point is %s" % (login_mount_point,))
+            if target.startswith(login_mount_point):
+                new_path = target.replace(login_mount_point, gpfs_mount_point, 1)
+                logger.info("Found a symlinked path %s to the nfs mount point %s. Replaced with %s" %
+                            (path, login_mount_point, gpfs_mount_point))
+            else:
+                logger.warning("Unable to store quota information for %s on %s; symlink cannot be resolved properly"
+                                % (user_name, path))
+        else:
+            new_path = path
+
+        path_stat = os.stat(new_path)
+        filename = os.path.join(new_path, ".showq.json.gz")
+
+        if dry_run:
+            logger.info("Dry run: would update cache for at %s with %s" % (new_path, "%s" % (showq_information,)))
+            logger.info("Dry run: would chmod 640 %s" % (filename,))
+            logger.info("Dry run: would chown %s to %s %s" % (filename, path_stat.st_uid, path_stat.st_gid))
+        else:
+            cache = FileCache(filename)
+            cache.update(key="showq", data=showq_information, threshold=0)
+            cache.close()
+
+            gpfs.ignorerealpathmismatch = True
+            gpfs.chmod(0640, filename)
+            gpfs.chown(path_stat.st_uid, path_stat.st_uid, filename)
+            gpfs.ignorerealpathmismatch = False
+
+        logger.info("Stored user %s showq information at %s" % (user_name, filename))
+
+
+
+
