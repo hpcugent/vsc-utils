@@ -347,7 +347,7 @@ def store_on_gpfs(user_name, path, key, information, gpfs, login_mount_point, gp
             gpfs.chown(path_stat.st_uid, path_stat.st_uid, filename)
             gpfs.ignorerealpathmismatch = False
 
-        logger.info("Stored user %s showq information at %s" % (user_name, filename))
+        logger.info("Stored user %s %s information at %s" % (user_name, key, filename))
 
 
 
