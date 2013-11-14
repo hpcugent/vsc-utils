@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ##
 # Copyright 2012-2013 Ghent University
 #
