@@ -47,7 +47,7 @@ shared_setup.SHARED_TARGET.update({
 
 PACKAGE = {
     'name': 'vsc-utils',
-    'version': '1.4.6',
+    'version': '1.4.7',
     'author': [ag, sdw],
     'maintainer': [ag, sdw],
     'packages': ['vsc', 'vsc.utils'],
