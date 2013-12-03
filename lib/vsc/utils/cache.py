@@ -74,35 +74,32 @@ class FileCache(object):
         self.filename = filename
         self.retain_old = retain_old
 
-        try:
-            f = open(self.filename, 'rb')
+        if retain_old:
             try:
-                try:  # Python 2.4 support
-                    g = gzip.GzipFile(mode='rb', fileobj=f)
-                    s = g.read()
-                    self.shelf = jsonpickle.decode(s)
-                    g.close()
-                except IOError, err:
-                    self.log.error("Cannot load data from cache file %s" % (self.filename,))
-                    try:
-                        f.seek(0)
-                        self.shelf = pickle.load(f)
-                    except pickle.UnpicklingError, err:
-                        if retain_old:  # in this case we have a problem
-                            self.log.raiseException("Problem loading pickle data from %s" % (self.filename,))
-                        else:
-                            self.log.warning("Failed loading pickle data from %s" % (self.filename,))
-                    except IOError:
-                        if retain_old:  # in this case we have a problem
+                f = open(self.filename, 'rb')
+                try:
+                    try:  # Python 2.4 support
+                        g = gzip.GzipFile(mode='rb', fileobj=f)
+                        s = g.read()
+                        self.shelf = jsonpickle.decode(s)
+                        g.close()
+                    except IOError, err:
+                        self.log.error("Cannot load data from cache file %s" % (self.filename,))
+                        try:
+                            f.seek(0)
+                            self.shelf = pickle.load(f)
+                        except pickle.UnpicklingError, err:
+                                self.log.raiseException("Problem loading pickle data from %s" % (self.filename,))
+                        except IOError:
+                                self.log.raiseException("Could not load pickle data from %s" % (self.filename,))
+                        except (OSError, IOError):
                             self.log.raiseException("Could not load pickle data from %s" % (self.filename,))
-                        else:
-                            self.log.warning("Failed loading pickle data from %s" % (self.filename,))
-                    except (OSError, IOError):
-                        self.log.raiseException("Could not load pickle data from %s" % (self.filename,))
-            finally:
-                f.close()
-        except (OSError, IOError), err:
-            self.log.warning("Could not access the file cache at %s [%s]" % (self.filename, err))
+                finally:
+                    f.close()
+            except (OSError, IOError), err:
+                self.log.warning("Could not access the file cache at %s [%s]" % (self.filename, err))
+                self.shelf = {}
+        else:
             self.shelf = {}
 
         if not self.shelf:
