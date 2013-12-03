@@ -83,13 +83,22 @@ class FileCache(object):
                     self.shelf = jsonpickle.decode(s)
                     g.close()
                 except IOError, err:
+                    self.log.error("Cannot load data from cache file %s" % (self.filename,))
                     try:
                         f.seek(0)
                         self.shelf = pickle.load(f)
                     except pickle.UnpicklingError, err:
-                        self.log.raiseException("Problem loading pickle data from %s" % (self.filename))
+                        if retain_old:  # in this case we have a problem
+                            self.log.raiseException("Problem loading pickle data from %s" % (self.filename,))
+                        else:
+                            self.log.warning("Failed loading pickle data from %s" % (self.filename,))
+                    except IOError:
+                        if retain_old:  # in this case we have a problem
+                            self.log.raiseException("Could not load pickle data from %s" % (self.filename,))
+                        else:
+                            self.log.warning("Failed loading pickle data from %s" % (self.filename,))
                     except (OSError, IOError):
-                        self.log.raiseException("Could not load pickle data from %s" % (self.filename))
+                        self.log.raiseException("Could not load pickle data from %s" % (self.filename,))
             finally:
                 f.close()
         except (OSError, IOError), err:
@@ -97,7 +106,7 @@ class FileCache(object):
             self.shelf = {}
 
         if not self.shelf:
-            self.log.info("Cache in %s starts with an empty shelf" % (self.filename))
+            self.log.info("Cache in %s starts with an empty shelf" % (self.filename,))
 
         self.new_shelf = {}
 
