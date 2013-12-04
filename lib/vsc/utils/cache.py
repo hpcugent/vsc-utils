@@ -58,7 +58,7 @@ class FileCache(object):
     _not_ written to the file.
     """
 
-    def __init__(self, filename, retain_old=False):
+    def __init__(self, filename, retain_old=True):
         """Initializer.
 
         Checks if the file can be accessed and load the data therein if any. If the file does not yet exist, start
