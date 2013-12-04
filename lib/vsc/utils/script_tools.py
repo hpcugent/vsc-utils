@@ -36,6 +36,7 @@ import sys
 
 from copy import deepcopy
 
+from vsc.utils import fancylogger
 from vsc.utils.availability import proceed_on_ha_service
 from vsc.utils.generaloption import SimpleOption
 from vsc.utils.lock import lock_or_bork, release_or_bork, LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE
@@ -119,6 +120,8 @@ class ExtendedSimpleOption(SimpleOption):
         else:
             sys.excepthook = excepthook
 
+        self.log = fancylogger.getLogger()
+
     def prologue(self):
         """Checks the options given for settings and takes appropriate action.
 
@@ -180,6 +183,7 @@ class ExtendedSimpleOption(SimpleOption):
 
         This function is meant to be used as sys.excepthook
         """
+        self.log.exception("unhandled exception detected: %s - %s" % (tp, value))
         message = "Script failure: %s - %s" % (tp, value)
         sys.exc_clear()
         self.critical(message)
