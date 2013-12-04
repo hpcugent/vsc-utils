@@ -75,7 +75,7 @@ class FileCache(object):
         self.retain_old = retain_old
 
         self.new_shelf = {}
-        if retain_old:
+        if not retain_old:
             self.log.info("Starting with a new empty cache, not retaining previous info if any.")
             self.shelf = {}
             return
