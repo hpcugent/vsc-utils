@@ -86,7 +86,7 @@ def store_on_gpfs(user_name, path, key, information, gpfs, login_mount_point, gp
             logger.info("Dry run: would chmod 640 %s" % (filename,))
             logger.info("Dry run: would chown %s to %s %s" % (filename, path_stat.st_uid, path_stat.st_gid))
         else:
-            cache = FileCache(filename)
+            cache = FileCache(filename, False)  # data need not be retained
             cache.update(key=key, data=information, threshold=0)
             cache.close()
 
