@@ -96,7 +96,7 @@ class ExtendedSimpleOption(SimpleOption):
     The prologue should be called at the start of the script; the epilogue at the end.
     """
 
-    def __init__(self, options, run_prologue=True):
+    def __init__(self, options, run_prologue=True, excepthook=None):
         """Initialise.
 
         If run_prologue is True (default), we immediately execute the prologue.
@@ -113,6 +113,11 @@ class ExtendedSimpleOption(SimpleOption):
 
         if run_prologue:
             self.prologue()
+
+        if not excepthook:
+            sys.excepthook = self.critical_exception_handler
+        else:
+            sys.excepthook = excepthook
 
     def prologue(self):
         """Checks the options given for settings and takes appropriate action.
