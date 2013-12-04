@@ -89,7 +89,7 @@ class FileCache(object):
                     self.shelf = jsonpickle.decode(s)
                     g.close()
                 except IOError, err:
-                    self.log.error("Cannot load data from cache file %s" % (self.filename,))
+                    self.log.error("Cannot load data from cache file %s as gzipped json" % (self.filename,))
                     try:
                         f.seek(0)
                         self.shelf = pickle.load(f)
