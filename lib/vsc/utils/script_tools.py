@@ -165,15 +165,16 @@ class ExtendedSimpleOption(SimpleOption):
         self.nagios_reporter.warning(nagios_message)
 
     def critical(self, nagios_message):
-        """Run at the end of a script and force a Critical exit
-
-        This is typically used when some exception occurred and we want a clean exit.
-        """
-        exception_type, exception_value = sys.exc_info()[:2]
-        if exception_type:
-            message = "%s (%s - %s)" % (nagios_message, exception_type, exception_value)
-            sys.exc_clear()
-        else:
-            message = nagios_message
+        """Run at the end of a script and force a Critical exit."""
         self._epilogue()
-        self.nagios_reporter.critical(message)
+        self.nagios_reporter.critical(nagios_message)
+
+    def critical_exception_handler(self, tp, value, traceback):
+        """
+        Run at the end of a script and force a Critical exit.
+
+        This function is meant to be used as sys.excepthook
+        """
+        message = "Script failure: %s - %s" % (tp, value)
+        sys.exc_clear()
+        self.critical(message)
