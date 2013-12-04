@@ -74,38 +74,35 @@ class FileCache(object):
         self.filename = filename
         self.retain_old = retain_old
 
-        if retain_old:
-            try:
-                f = open(self.filename, 'rb')
-                try:
-                    try:  # Python 2.4 support
-                        g = gzip.GzipFile(mode='rb', fileobj=f)
-                        s = g.read()
-                        self.shelf = jsonpickle.decode(s)
-                        g.close()
-                    except IOError, err:
-                        self.log.error("Cannot load data from cache file %s" % (self.filename,))
-                        try:
-                            f.seek(0)
-                            self.shelf = pickle.load(f)
-                        except pickle.UnpicklingError, err:
-                                self.log.raiseException("Problem loading pickle data from %s" % (self.filename,))
-                        except IOError:
-                                self.log.raiseException("Could not load pickle data from %s" % (self.filename,))
-                        except (OSError, IOError):
-                            self.log.raiseException("Could not load pickle data from %s" % (self.filename,))
-                finally:
-                    f.close()
-            except (OSError, IOError), err:
-                self.log.warning("Could not access the file cache at %s [%s]" % (self.filename, err))
-                self.shelf = {}
-        else:
-            self.shelf = {}
-
-        if not self.shelf:
-            self.log.info("Cache in %s starts with an empty shelf" % (self.filename,))
-
         self.new_shelf = {}
+        if retain_old:
+            self.log.info("Starting with a new empty cache, not retaining previous info if any.")
+            self.shelf = {}
+            return
+
+        try:
+            f = open(self.filename, 'rb')
+            try:
+                try:  # Python 2.4 support
+                    g = gzip.GzipFile(mode='rb', fileobj=f)
+                    s = g.read()
+                    self.shelf = jsonpickle.decode(s)
+                    g.close()
+                except IOError, err:
+                    self.log.error("Cannot load data from cache file %s" % (self.filename,))
+                    try:
+                        f.seek(0)
+                        self.shelf = pickle.load(f)
+                    except pickle.UnpicklingError, err:
+                        self.log.raiseException("Problem loading pickle data from %s" % (self.filename,))
+                    except (OSError, IOError):
+                        self.log.raiseException("Could not load pickle data from %s" % (self.filename,))
+            finally:
+                f.close()
+        except (OSError, IOError), err:
+            self.log.warning("Could not access the file cache at %s [%s]" % (self.filename, err))
+            self.shelf = {}
+            self.log.info("Cache in %s starts with an empty shelf" % (self.filename,))
 
     def update(self, key, data, threshold):
         """Update the given data if the existing data is older than the given threshold.
