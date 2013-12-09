@@ -36,6 +36,7 @@ import sys
 
 from copy import deepcopy
 
+from vsc.utils import fancylogger
 from vsc.utils.availability import proceed_on_ha_service
 from vsc.utils.generaloption import SimpleOption
 from vsc.utils.lock import lock_or_bork, release_or_bork, LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE
@@ -96,7 +97,7 @@ class ExtendedSimpleOption(SimpleOption):
     The prologue should be called at the start of the script; the epilogue at the end.
     """
 
-    def __init__(self, options, run_prologue=True):
+    def __init__(self, options, run_prologue=True, excepthook=None):
         """Initialise.
 
         If run_prologue is True (default), we immediately execute the prologue.
@@ -113,6 +114,13 @@ class ExtendedSimpleOption(SimpleOption):
 
         if run_prologue:
             self.prologue()
+
+        if not excepthook:
+            sys.excepthook = self.critical_exception_handler
+        else:
+            sys.excepthook = excepthook
+
+        self.log = fancylogger.getLogger()
 
     def prologue(self):
         """Checks the options given for settings and takes appropriate action.
@@ -165,6 +173,17 @@ class ExtendedSimpleOption(SimpleOption):
         self.nagios_reporter.warning(nagios_message)
 
     def critical(self, nagios_message):
-        """Run at the end of a script and force a Critical exit"""
+        """Run at the end of a script and force a Critical exit."""
         self._epilogue()
         self.nagios_reporter.critical(nagios_message)
+
+    def critical_exception_handler(self, tp, value, traceback):
+        """
+        Run at the end of a script and force a Critical exit.
+
+        This function is meant to be used as sys.excepthook
+        """
+        self.log.exception("unhandled exception detected: %s - %s" % (tp, value))
+        message = "Script failure: %s - %s" % (tp, value)
+        sys.exc_clear()
+        self.critical(message)
