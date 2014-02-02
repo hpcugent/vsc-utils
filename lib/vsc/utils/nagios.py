@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 # #
 # Copyright 2012-2013 Ghent University
@@ -108,8 +107,8 @@ class NagiosRange(object):
     DEFAULT_START = 0
     def __init__(self, nrange):
         """Initialisation
-            @param nrange: nrange in [@][start:][end] format. If it is not a string, it is converted to 
-                          string and that string should allow conversion to float. 
+            @param nrange: nrange in [@][start:][end] format. If it is not a string, it is converted to
+                          string and that string should allow conversion to float.
         """
         self.log = getLogger(self.__class__.__name__, fname=False)
 
@@ -437,7 +436,7 @@ class SimpleNagios(NagiosResult):
         """Evaluate the overall critical and warning level.
             warning is not checked if critical is reached
             returns warn,crit,msg
-                msg is the name of the perfdata that caused the 
+                msg is the name of the perfdata that caused the
                 critical/warning level
         """
         self.__dict__.update(kwargs)
