@@ -1,5 +1,6 @@
-# encoding: utf-8
-##
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+# #
 # Copyright 2012-2013 Ghent University
 #
 # This file is part of vsc-utils,
@@ -23,7 +24,7 @@
 #
 # You should have received a copy of the GNU Library General Public License
 # along with vsc-utils. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
 This module provides functionality to cache and report results of script executions that can readily be
 interpreted by nagios/icinga.
@@ -100,6 +101,95 @@ def critical_exit(message):
 def real_exit(exit_code, message):
     """A public function, with arguments in the same order as NagiosReporter.cache"""
     _real_exit(message, exit_code)
+
+
+class NagiosRange(object):
+    """Implement Nagios ranges"""
+    DEFAULT_START = 0
+    def __init__(self, nrange):
+        """Initialisation
+            @param nrange: nrange in [@][start:][end] format. If it is not a string, it is converted to 
+                          string and that string should allow conversion to float. 
+        """
+        self.log = getLogger(self.__class__.__name__, fname=False)
+
+        if not isinstance(nrange, basestring):
+            newnrange = str(nrange)
+            self.log.debug("nrange %s of type %s, converting to string (%s)" % (str(nrange), type(nrange), newnrange))
+            try:
+                float(newnrange)
+            except:
+                self.log.raiseException("nrange %s (type %s) is not valid after conversion to string (newnrange %s)" %
+                                        (str(nrange), type(nrange), newnrange))
+            nrange = newnrange
+
+        self.range_fn = self.parse(nrange)
+
+    def parse(self, nrange):
+        """Convert nrange string into nrange function.
+            range_fn tests if a value is inside the nrange
+        """
+        reg = re.compile(r"^\s*(?P<neg>@)?((?P<start>(~|[0-9.-]+)):)?(?P<end>[0-9.-]+)?\s*$")
+        r = reg.search(nrange)
+        if r:
+            res = r.groupdict()
+            self.log.debug("parse: nrange %s gave %s" % (nrange, res))
+
+            start_txt = res['start']
+            if start_txt is None:
+                start = 0
+            elif start_txt == '~':
+                start = None  # -inf
+            else:
+                try:
+                    start = float(start_txt)
+                except:
+                    self.raiseException("Invalid start txt value %s" % start_txt)
+
+            end = res['end']
+            if end is not None:
+                try:
+                    end = float(end)
+                except:
+                    self.raiseException("Invalid end value %s" % end)
+
+            neg = res['neg'] is not None
+            self.log.debug("parse: start %s end %s neg %s" % (start, end, neg))
+        else:
+            self.log.raiseException('parse: invalid nrange %s.' % nrange)
+
+        def range_fn(test):
+            # test inside nrange?
+            try:
+                test = float(test)
+            except:
+                self.log.raiseException("range_fn: can't convert test %s (type %s) to float" % (test, type(test)))
+
+            start_res = True  # default: -inf < test
+            if start is not None:
+                # start <= test
+                start_res = operator.le(start, test)
+
+            end_res = True  # default: test < +inf
+            if end is not None:
+                # test <= end
+                end_res = operator.le(test, end)
+
+            tmp_res = operator.and_(start_res, end_res)
+            if neg:
+                tmp_res = operator.not_(tmp_res)
+
+            self.log.debug("range_fn: test %s start_res %s end_res %s result %s (neg %s)" %
+                           (test, start_res, end_res, tmp_res, neg))
+            return tmp_res
+
+        return range_fn
+
+    def alert(self, test):
+        """Return the inverse evaluation of the range function with value test.
+            Returns True if an alert should be raised, i.e. if test is outside nrange.
+        """
+        return not self.range_fn(test)
 
 
 class NagiosReporter(object):
@@ -256,8 +346,12 @@ class NagiosResult(object):
         if not processed_dict:
             return self.message
 
-        perf = ["%s=%s;%s;%s;" % (k, v.get('value', ''), v.get('warning', ''), v.get('critical', ''))
-                for k, v in sorted(processed_dict.iteritems())]
+        perf = []
+        for k, v in sorted(processed_dict.iteritems()):
+            if ' ' in k:
+                k = "'%s'" % k
+            perf.append("%s=%s%s;%s;%s;" % (k, v.get('value', ''), v.get('unit', ''),
+                                          v.get('warning', ''), v.get('critical', '')))
 
         return "%s | %s" % (self.message, ' '.join(perf))
 
@@ -285,7 +379,6 @@ class SimpleNagios(NagiosResult):
     USE_HEADER = True
     RESERVED_WORDS = set(['message', 'ok', 'warning', 'critical', 'unknown',
                          '_exit', '_cache', '_cache_user', '_final', '_final_state', '_report', '_threshold'])
-    EVAL_OPERATOR = operator.ge
 
     def __init__(self, **kwargs):
         """Initialise message and perfdata"""
@@ -341,25 +434,41 @@ class SimpleNagios(NagiosResult):
         self._exit(NAGIOS_EXIT_UNKNOWN, msg)
 
     def _eval(self, **kwargs):
-        """Evaluate the overal warning and critical level"""
+        """Evaluate the overall critical and warning level.
+            warning is not checked if critical is reached
+            returns warn,crit,msg
+                msg is the name of the perfdata that caused the 
+                critical/warning level
+        """
         self.__dict__.update(kwargs)
 
         processed_dict = self._process_data()
 
-        warn = True in [self.EVAL_OPERATOR(v['value'], v['warning'])
-                        for v in processed_dict.values() if 'warning' in v]
-        crit = True in [self.EVAL_OPERATOR(v['value'], v['critical'])
-                        for v in processed_dict.values() if 'critical' in v]
+        msg = []
 
-        return warn, crit
+        warn, crit = None, None
+        for k, v in sorted(processed_dict.iteritems()):
+            if NagiosRange(v['critical']).alert(v['value']):
+                crit = True
+                msg.append(k)
+
+        if not crit:
+            for k, v in sorted(processed_dict.iteritems()):
+                if NagiosRange(v['warning']).alert(v['value']):
+                    warn = True
+                    msg.append(k)
+
+        return warn, crit, ', '.join(msg)
 
     def _eval_and_exit(self, **kwargs):
         """Based on provided performance data, exit with proper message and exitcode"""
-        warn, crit = self._eval(**kwargs)
+        warn, crit, msg = self._eval(**kwargs)
 
         if crit:
+            self.message = msg
             self.critical(self)
         elif warn:
+            self.message = msg
             self.warning(self)
         else:
             self.ok(self)
