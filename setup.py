@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-##
+# #
 # Copyright 2012-2013 Ghent University
 #
 # This file is part of vsc-utils,
@@ -23,7 +23,7 @@
 #
 # You should have received a copy of the GNU Library General Public License
 # along with vsc-utils. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
 vsc-utils base distribution setup.py
 
@@ -47,7 +47,7 @@ shared_setup.SHARED_TARGET.update({
 
 PACKAGE = {
     'name': 'vsc-utils',
-    'version': '1.5',
+    'version': '1.6',
     'author': [ag, sdw],
     'maintainer': [ag, sdw],
     'packages': ['vsc', 'vsc.utils'],
