@@ -1,4 +1,4 @@
-##
+# #
 #
 # Copyright 2012-2013 Ghent University
 #
@@ -23,7 +23,7 @@
 #
 # You should have received a copy of the GNU Library General Public License
 # along with vsc-utils. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
 Caching utilities.
 
@@ -58,7 +58,7 @@ class FileCache(object):
     _not_ written to the file.
     """
 
-    def __init__(self, filename, retain_old=True):
+    def __init__(self, filename, retain_old=True, raise_unpickable=False):
         """Initializer.
 
         Checks if the file can be accessed and load the data therein if any. If the file does not yet exist, start
@@ -94,7 +94,12 @@ class FileCache(object):
                         f.seek(0)
                         self.shelf = pickle.load(f)
                     except pickle.UnpicklingError, err:
-                        self.log.raiseException("Problem loading pickle data from %s" % (self.filename,))
+                        msg = "Problem loading pickle data from %s (corrupt data)" % (self.filename,)
+                        if raise_unpickable:
+                            self.log.raiseException(msg)
+                        else:
+                            self.log.error("%s. Continue with empty shelf: %s", (msg, err))
+                            self.shelf = {}
                     except (OSError, IOError):
                         self.log.raiseException("Could not load pickle data from %s" % (self.filename,))
             finally:
