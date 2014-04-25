@@ -29,6 +29,7 @@ Utilities to allow interacting with a REST API as an application that
 was registered with the OAuth system of the web application.
 """
 import jsonpickle
+import urllib
 import urllib2
 
 
@@ -48,14 +49,14 @@ def request_access_token(opener, path, client_id, client_secret):
 
 
 
-def make_api_request(opener, path, payload, access_token=""):
+def make_api_request(opener, path, method='GET', payload="", access_token=""):
     """
     Make a call to the REST API, given an access token.
     """
     request = urllib2.Request(path, payload)
     request.add_header('Content-Type', 'application/json')
     request.add_header('Authorization', "Bearer %s" % (access_token,))
-    request.get_method = lambda: 'PATCH'
+    request.get_method = lambda: method
     uri = opener.open(request)
     response = uri.read()
     return jsonpickle.decode(response)
