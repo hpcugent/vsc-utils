@@ -56,7 +56,7 @@ PACKAGE = {
     'maintainer': [ag, sdw],
     'packages': ['vsc', 'vsc.utils'],
     'namespace_packages': ['vsc', 'vsc.utils'],
-    'provides': ['python-vsc-packages-utils = 0.11'],
+    'provides': ['python-vsc-packages-utils = 0.11', 'vsc-utils', 'python-vsc-utils'],
     'scripts': [],
     'install_requires': [
         'vsc-base >= 1.6.3',
