@@ -148,7 +148,9 @@ class FileCache(object):
 
     def close(self):
         """Close the cache."""
-
+        dirname = os.path.dirname(self.filename)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
         f = open(self.filename, 'wb')
         if not f:
             self.log.error('cannot open the file cache at %s for writing' % (self.filename))
