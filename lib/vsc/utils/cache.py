@@ -35,6 +35,7 @@ except:
     import pickle
 import gzip
 import jsonpickle
+import os
 import time
 
 from vsc.utils import fancylogger
