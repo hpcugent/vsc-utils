@@ -32,6 +32,7 @@ Unit tests for vsc.utils.cache
 import os
 import tempfile
 import time
+import shutil
 import sys
 import random
 from unittest import TestCase, TestLoader
@@ -46,7 +47,7 @@ def get_rand_data():
     length = random.randint(0, LIST_LEN)
     data = {}
     for x in xrange(length):
-        data[random.randint(0, sys.maxint)] =  random.randint(0, sys.maxint)
+        data[random.randint(0, sys.maxint)] = random.randint(0, sys.maxint)
     threshold = random.randint(0, sys.maxint)
     return data, threshold
 
@@ -78,11 +79,11 @@ class TestCache(TestCase):
         """Check if the loaded data is the same as the saved data."""
         # test with random data
         data, threshold = get_rand_data()
-
+        tempdir = tempfile.mkdtemp()
         # create a tempfilename
-        (handle, filename) = tempfile.mkstemp()
-        os.unlink(filename)
+        (handle, filename) = tempfile.mkstemp(dir=tempdir)
         os.close(handle)
+        shutil.rmtree(tempdir)
         cache = FileCache(filename)
         for (key, value) in data.items():
             cache.update(key, value, threshold)
@@ -98,7 +99,7 @@ class TestCache(TestCase):
             self.assertTrue(ts <= now)
         new_cache.close()
 
-        os.unlink(filename)
+        shutil.rmtree(tempdir)
 
 
 def suite():
