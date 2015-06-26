@@ -100,7 +100,7 @@ class FileCache(object):
                         self.log.raiseException("Could not load pickle data from %s" % (self.filename,))
             finally:
                 f.close()
-        except (OSError, IOError), err:
+        except (OSError, IOError, ValueError), err:
             self.log.warning("Could not access the file cache at %s [%s]" % (self.filename, err))
             self.shelf = {}
             self.log.info("Cache in %s starts with an empty shelf" % (self.filename,))
