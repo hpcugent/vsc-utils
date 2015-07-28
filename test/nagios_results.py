@@ -32,7 +32,7 @@ Tests for the NagiosResult class in the vsc.utils.nagios module
 """
 from unittest import TestCase, TestLoader
 
-from vsc.utils.nagios import NagiosResult
+from vsc.utils.nagios import NagiosResult, NagiosRange
 
 
 class TestNagiosResult(TestCase):
@@ -64,6 +64,58 @@ class TestNagiosResult(TestCase):
         n.a_metric_warning = 5
         self.assertTrue(n.__str__().endswith('a_metric=1;5;2;'),
                         "Warning threshold in correct position")
+
+    def test_nagios_range(self):
+        """Test the nagios range parser"""
+        # using the example range from  https://www.nagios-plugins.org/doc/guidelines.html#AEN200
+
+        # end only: alert if < 0 or > 10, (outside the range of {0 .. 10})
+        n = NagiosRange("10")
+        self.assertTrue(n.alert(11))
+        self.assertTrue(n.alert(-1))
+        # strict
+        self.assertFalse(n.alert(10))
+        self.assertFalse(n.alert(0))
+        self.assertFalse(n.alert(2))
+
+        # allow int as end with no start string
+        n = NagiosRange(10)
+        self.assertTrue(n.alert(11))
+        self.assertTrue(n.alert(-1))
+        self.assertFalse(n.alert(2))
+
+        # start only: alert if  < 10, (outside {10 .. +inf})
+        n = NagiosRange("10:")
+        self.assertTrue(n.alert(9))
+        self.assertTrue(n.alert(-20))
+        # strict
+        self.assertFalse(n.alert(10))
+        self.assertFalse(n.alert(11))
+
+        # alert if > 10, (outside the range of {-∞ .. 10})
+        n = NagiosRange("~:10")
+        self.assertTrue(n.alert(11))
+        # strict
+        self.assertFalse(n.alert(10))
+        self.assertFalse(n.alert(-100))
+
+        # alert if < 10 or > 20, (outside the range of {10 .. 20})
+        n = NagiosRange("10:20")
+        self.assertTrue(n.alert(9))
+        self.assertTrue(n.alert(21))
+        # strict
+        self.assertFalse(n.alert(10))
+        self.assertFalse(n.alert(15))
+        self.assertFalse(n.alert(20))
+
+        # alert if >= 10 and <= 20, (inside the range of {10 .. 20})
+        n = NagiosRange("@10:20")
+        self.assertTrue(n.alert(10))
+        self.assertTrue(n.alert(15))
+        self.assertTrue(n.alert(20))
+        # strict
+        self.assertFalse(n.alert(9))
+        self.assertFalse(n.alert(21))
 
 
 def suite():
