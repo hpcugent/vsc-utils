@@ -38,7 +38,7 @@ import time
 
 from lockfile.linklockfile import LockBase, LockFailed, NotLocked, NotMyLock
 
-from vsc import fancylogger
+from vsc.utils import fancylogger
 
 
 class LockFileReadError(Exception):

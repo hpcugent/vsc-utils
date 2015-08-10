@@ -33,7 +33,7 @@ scratch directories to avoid running expensive scripts to obtain it.
 """
 import os
 
-from vsc import fancylogger
+from vsc.utils import fancylogger
 
 from vsc.utils.cache import FileCache
 
