@@ -447,13 +447,13 @@ class SimpleNagios(NagiosResult):
 
         warn, crit = None, None
         for k, v in sorted(processed_dict.iteritems()):
-            if NagiosRange(v['critical']).alert(v['value']):
+            if "critical" in v and NagiosRange(v['critical']).alert(v['value']):
                 crit = True
                 msg.append(k)
 
         if not crit:
             for k, v in sorted(processed_dict.iteritems()):
-                if NagiosRange(v['warning']).alert(v['value']):
+                if "warning" in v and NagiosRange(v['warning']).alert(v['value']):
                     warn = True
                     msg.append(k)
 
