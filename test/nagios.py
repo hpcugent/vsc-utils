@@ -40,7 +40,8 @@ import StringIO
 
 from unittest import TestCase, TestLoader
 
-from vsc.utils.nagios import NagiosReporter, NAGIOS_EXIT_OK, NAGIOS_EXIT_WARNING, NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_UNKNOWN
+from vsc.utils.nagios import NagiosReporter, SimpleNagios
+from vsc.utils.nagios import NAGIOS_EXIT_OK, NAGIOS_EXIT_WARNING, NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_UNKNOWN
 from pwd import getpwuid
 
 
@@ -50,6 +51,17 @@ class TestNagios(TestCase):
     def setUp(self):
         user = getpwuid(os.getuid())
         self.nagios_user = user.pw_name
+
+    def test_eval(self):
+        """Test the evaluation of the warning/critical level."""
+
+        nagios = SimpleNagios(
+            foo=100,
+            foo_critical=90,
+            bar=20,
+        )
+
+        nagios._eval()
 
     def test_cache(self):
         """Test the caching mechanism in the reporter."""
