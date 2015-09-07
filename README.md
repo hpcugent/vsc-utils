@@ -1,7 +1,6 @@
 # vsc-utils
 
 ### Build Status
-- Python 2.4 : [![Build Status](https://jenkins1.ugent.be/job/vsc-utils-python24/badge/icon)](https://jenkins1.ugent.be/job/vsc-utils-python24/)
 - Python 2.6 : [![Build Status](https://jenkins1.ugent.be/job/vsc-utils-python26/badge/icon)](https://jenkins1.ugent.be/job/vsc-utils-python26/)
 - Python 2.7 : [![Build Status](https://jenkins1.ugent.be/job/vsc-utils-python27/badge/icon)](https://jenkins1.ugent.be/job/vsc-utils-python27/)
 
