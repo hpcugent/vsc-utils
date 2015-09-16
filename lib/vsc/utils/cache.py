@@ -97,7 +97,7 @@ class FileCache(object):
                         if raise_unpickable:
                             self.log.raiseException(msg)
                         else:
-                            self.log.error("%s. Continue with empty shelf: %s", (msg, err))
+                            self.log.error("%s. Continue with empty shelf: %s" % (msg, err))
                             self.shelf = {}
                     except (OSError, IOError):
                         self.log.raiseException("Could not load pickle data from %s" % (self.filename,))
