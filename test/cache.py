@@ -53,7 +53,6 @@ def get_rand_data():
 
 
 class TestCache(TestCase):
-
     def test_contents(self):
         """Check that the contents of the cache is what is expected prior to closing it."""
         # test with random data
@@ -99,6 +98,17 @@ class TestCache(TestCase):
             self.assertTrue(ts <= now)
         new_cache.close()
 
+        shutil.rmtree(tempdir)
+
+    def test_corrupt_gz_cache(self):
+        """Test to see if we can handle a corrupt cache file"""
+        tempdir = tempfile.mkdtemp()
+        # create a tempfilename
+        (handle, filename) = tempfile.mkstemp(dir=tempdir)
+        f = os.fdopen(handle, 'w')
+        f.write('blabla;not gz')
+        f.close()
+        FileCache(filename)
         shutil.rmtree(tempdir)
 
 
