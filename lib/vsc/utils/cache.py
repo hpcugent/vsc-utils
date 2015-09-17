@@ -82,7 +82,7 @@ class FileCache(object):
         try:
             with open(self.filename, 'rb') as f:
                 try:
-                    g = gzip.GzipFile(mode='rb', fileobj=f)
+                    g = gzip.GzipFile(mode='rb', fileobj=f)  # no context manager available in python 26 yet
                     s = g.read()
                     self.shelf = jsonpickle.decode(s)
                 except IOError, err:
