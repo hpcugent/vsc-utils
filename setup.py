@@ -30,36 +30,16 @@ vsc-utils base distribution setup.py
 @author: Stijn De Weirdt (Ghent University)
 @author: Andy Georges (Ghent University)
 """
-try:
-    import vsc.install.shared_setup as shared_setup
-    from vsc.install.shared_setup import ag, kh, sdw, wdp, jt
-except ImportError:
-    print "vsc.install could not be found, make sure a recent vsc-base is installed"
-    print "you might want to try 'easy_install [--user] https://github.com/hpcugent/vsc-base/archive/master.tar.gz'"
-
-
-def remove_bdist_rpm_source_file():
-    """List of files to remove from the (source) RPM."""
-    return ['lib/vsc/__init__.py', 'lib/vsc/utils/__init__.py']
-
-
-shared_setup.remove_extra_bdist_rpm_files = remove_bdist_rpm_source_file
-shared_setup.SHARED_TARGET.update({
-    'url': 'https://github.com/hpcugent/vsc-utils',
-    'download_url': 'https://github.com/hpcugent/vsc-utils'
-})
+import vsc.install.shared_setup as shared_setup
+from vsc.install.shared_setup import ag, sdw
 
 PACKAGE = {
-    'name': 'vsc-utils',
-    'version': '1.7.2',
+    'version': '1.7.3',
     'author': [ag, sdw],
     'maintainer': [ag, sdw],
-    'packages': ['vsc', 'vsc.utils'],
-    'namespace_packages': ['vsc', 'vsc.utils'],
-    'provides': ['python-vsc-packages-utils = 0.11', 'vsc-utils', 'python-vsc-utils'],
-    'scripts': [],
+    'excluded_pkgs_rpm': ['vsc', 'vsc.utils'], # vsc is default, vsc.utils is provided by vsc-base
     'install_requires': [
-        'vsc-base >= 1.6.3',
+        'vsc-base >= 2.4.13',
         'lockfile >= 0.9.1',
         'netifaces',
         'jsonpickle',

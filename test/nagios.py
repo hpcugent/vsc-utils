@@ -38,7 +38,7 @@ import string
 
 import StringIO
 
-from unittest import TestCase, TestLoader
+from vsc.install.testing import TestCase
 
 from vsc.utils.nagios import NagiosReporter, SimpleNagios
 from vsc.utils.nagios import NAGIOS_EXIT_OK, NAGIOS_EXIT_WARNING, NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_UNKNOWN
@@ -51,6 +51,7 @@ class TestNagios(TestCase):
     def setUp(self):
         user = getpwuid(os.getuid())
         self.nagios_user = user.pw_name
+        super(TestNagios, self).setUp()
 
     def test_eval(self):
         """Test the evaluation of the warning/critical level."""
@@ -154,7 +155,3 @@ class TestNagios(TestCase):
 
         os.unlink(filename)
 
-
-def suite():
-    """ return all the tests"""
-    return TestLoader().loadTestsFromTestCase(TestNagios)

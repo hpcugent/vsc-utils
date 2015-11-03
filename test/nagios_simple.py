@@ -34,7 +34,7 @@ import tempfile
 import StringIO
 import sys
 
-from unittest import TestCase, TestLoader
+from vsc.install.testing import TestCase
 
 from vsc.utils.nagios import SimpleNagios, NAGIOS_EXIT_OK, NAGIOS_EXIT_CRITICAL
 from vsc.utils.nagios import NAGIOS_EXIT_WARNING, NAGIOS_EXIT_UNKNOWN, NagiosReporter
@@ -174,7 +174,3 @@ class TestSimpleNagios(TestCase):
 
         os.unlink(filename)
 
-
-def suite():
-    """ return all the tests"""
-    return TestLoader().loadTestsFromTestCase(TestSimpleNagios)
