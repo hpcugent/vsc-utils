@@ -30,7 +30,7 @@ Tests for the NagiosResult class in the vsc.utils.nagios module
 
 @author: Luis Fernando Muñoz Mejías (Ghent University)
 """
-from unittest import TestCase, TestLoader
+from vsc.install.testing import TestCase
 
 from vsc.utils.nagios import NagiosResult, NagiosRange
 
@@ -116,8 +116,3 @@ class TestNagiosResult(TestCase):
         # strict
         self.assertFalse(n.alert(9))
         self.assertFalse(n.alert(21))
-
-
-def suite():
-    """ return all the tests"""
-    return TestLoader().loadTestsFromTestCase(TestNagiosResult)

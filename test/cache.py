@@ -35,7 +35,7 @@ import time
 import shutil
 import sys
 import random
-from unittest import TestCase, TestLoader
+from vsc.install.testing import TestCase
 
 from vsc.utils.cache import FileCache
 
@@ -110,8 +110,3 @@ class TestCache(TestCase):
         f.close()
         FileCache(filename)
         shutil.rmtree(tempdir)
-
-
-def suite():
-    """ return all the tests"""
-    return TestLoader().loadTestsFromTestCase(TestCache)
