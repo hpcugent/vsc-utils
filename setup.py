@@ -44,6 +44,7 @@ PACKAGE = {
         'netifaces',
         'jsonpickle',
         'crypto',
+        'pycrypto',
     ],
 }
 
