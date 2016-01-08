@@ -1,5 +1,5 @@
 #
-# Copyright 2012-2015 Ghent University
+# Copyright 2012-2016 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -134,7 +134,8 @@ class ExtendedSimpleOption(SimpleOption):
 
         # bail if nagios report is requested
         self.nagios_reporter = SimpleNagios(_cache=self.options.nagios_check_filename,
-                                            _report_and_exit=self.options.nagios_report)
+                                            _report_and_exit=self.options.nagios_report,
+                                            _threshold=self.options.nagios_check_interval_threshold)
 
         # check for HA host
         if self.options.ha and not proceed_on_ha_service(self.options.ha):
