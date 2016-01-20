@@ -34,7 +34,7 @@ import vsc.install.shared_setup as shared_setup
 from vsc.install.shared_setup import ag, sdw
 
 PACKAGE = {
-    'version': '1.7.7',
+    'version': '1.7.8',
     'author': [ag, sdw],
     'maintainer': [ag, sdw],
     'excluded_pkgs_rpm': ['vsc', 'vsc.utils'], # vsc is default, vsc.utils is provided by vsc-base
