@@ -44,10 +44,12 @@ class TestExtendedSimpleOption(TestCase):
     Tests for the ExtendedSimpleOption class.
     """
     def setup(self):
+        """Backup sys.argv"""
         self._old_argv = sys.argv
         sys.argv = []
 
     def teardown(self):
+        """restore sys.argv"""
         sys.argv = self._old_argv
 
     @mock.patch('vsc.utils.script_tools.TimestampedPidLockfile')
