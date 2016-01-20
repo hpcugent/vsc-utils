@@ -43,12 +43,13 @@ class TestExtendedSimpleOption(TestCase):
     """
     Tests for the ExtendedSimpleOption class.
     """
-    def setup(self):
+
+    def setUp(self):
         """Backup sys.argv"""
         self._old_argv = sys.argv
-        sys.argv = []
+        sys.argv = sys.argv[:1]
 
-    def teardown(self):
+    def tearDown(self):
         """restore sys.argv"""
         sys.argv = self._old_argv
 
