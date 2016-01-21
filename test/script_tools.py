@@ -44,15 +44,6 @@ class TestExtendedSimpleOption(TestCase):
     Tests for the ExtendedSimpleOption class.
     """
 
-    def setUp(self):
-        """Backup sys.argv"""
-        self._old_argv = sys.argv
-        sys.argv = sys.argv[:1]
-
-    def tearDown(self):
-        """restore sys.argv"""
-        sys.argv = self._old_argv
-
     @mock.patch('vsc.utils.script_tools.TimestampedPidLockfile')
     @mock.patch('vsc.utils.script_tools.lock_or_bork')
     @mock.patch('vsc.utils.script_tools.proceed_on_ha_service')
@@ -61,8 +52,7 @@ class TestExtendedSimpleOption(TestCase):
         mock_proceed.return_value = True
         mock_lockfile.return_value = mock.MagicMock()
 
-
-        opts = ExtendedSimpleOption({})
+        opts = ExtendedSimpleOption(options={}, go_args=[])
         self.assertEqual(opts.options.nagios_check_interval_threshold,
                          DEFAULT_OPTIONS['nagios-check-interval-threshold'][3])
         self.assertEqual(opts.nagios_reporter._threshold,
