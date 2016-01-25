@@ -97,7 +97,7 @@ class ExtendedSimpleOption(SimpleOption):
     The prologue should be called at the start of the script; the epilogue at the end.
     """
 
-    def __init__(self, options, run_prologue=True, excepthook=None):
+    def __init__(self, options, run_prologue=True, excepthook=None, **kwargs):
         """Initialise.
 
         If run_prologue is True (default), we immediately execute the prologue.
@@ -107,7 +107,7 @@ class ExtendedSimpleOption(SimpleOption):
         """
 
         options_ = _merge_options(options)
-        super(ExtendedSimpleOption, self).__init__(options_)
+        super(ExtendedSimpleOption, self).__init__(options_, kwargs)
 
         self.nagios_reporter = None
         self.lockfile = None
