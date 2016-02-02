@@ -44,7 +44,8 @@ class TestExtendedSimpleOption(TestCase):
     def setUp(self):
         """Backup sys.argv"""
         super(TestCase, self).setUp()
-        self._old_argv = sys.argv
+        # make a copy of sys.argv
+        self._old_argv = sys.argv[:]
         sys.argv = sys.argv[:1]
 
     def tearDown(self):
