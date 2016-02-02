@@ -107,7 +107,7 @@ class ExtendedSimpleOption(SimpleOption):
         """
 
         options_ = _merge_options(options)
-        super(ExtendedSimpleOption, self).__init__(options_, kwargs)
+        super(ExtendedSimpleOption, self).__init__(options_, **kwargs)
 
         self.nagios_reporter = None
         self.lockfile = None
