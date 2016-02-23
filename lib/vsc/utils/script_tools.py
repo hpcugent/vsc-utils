@@ -64,6 +64,7 @@ DEFAULT_OPTIONS = {
                               os.path.join(NAGIOS_CACHE_DIR,
                                            NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
     'nagios-check-interval-threshold': ('threshold of nagios checks timing out', 'int', 'store', 0),
+    'nagios-user': ('user nagios runs as', 'string', 'store', 'nrpe'),
 }
 
 
@@ -135,7 +136,9 @@ class ExtendedSimpleOption(SimpleOption):
         # bail if nagios report is requested
         self.nagios_reporter = SimpleNagios(_cache=self.options.nagios_check_filename,
                                             _report_and_exit=self.options.nagios_report,
-                                            _threshold=self.options.nagios_check_interval_threshold)
+                                            _threshold=self.options.nagios_check_interval_threshold,
+                                            _cache_user=self.options.nagios_user,
+                                            )
 
         # check for HA host
         if self.options.ha and not proceed_on_ha_service(self.options.ha):
