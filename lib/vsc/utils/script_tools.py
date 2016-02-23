@@ -64,7 +64,7 @@ DEFAULT_OPTIONS = {
                               os.path.join(NAGIOS_CACHE_DIR,
                                            NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
     'nagios-check-interval-threshold': ('threshold of nagios checks timing out', 'int', 'store', 0),
-    'nagios-user': ('user nagios runs as', 'string', 'store', 'nrpe'),
+    'nagios-user': ('user nagios runs as', 'string', 'store', 'nagios'),
 }
 
 

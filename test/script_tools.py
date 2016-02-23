@@ -66,8 +66,8 @@ class TestExtendedSimpleOption(TestCase):
                          DEFAULT_OPTIONS['nagios-check-interval-threshold'][3])
         self.assertEqual(opts.nagios_reporter._threshold,
                          DEFAULT_OPTIONS['nagios-check-interval-threshold'][3])
-        self.assertEqual(opts.nagios_reporter._cache_user, 'nrpe')
-        self.assertEqual(opts.options.nagios_user, 'nrpe')
+        self.assertEqual(opts.nagios_reporter._cache_user, 'nagios')
+        self.assertEqual(opts.options.nagios_user, 'nagios')
 
     @mock.patch('vsc.utils.script_tools.TimestampedPidLockfile')
     @mock.patch('vsc.utils.script_tools.lock_or_bork')
@@ -79,7 +79,7 @@ class TestExtendedSimpleOption(TestCase):
 
         threshold = random.uniform(1, 1000)
 
-        opts = ExtendedSimpleOption({'nagios-check-interval-threshold': threshold, 'nagios-user': 'nagios'})
+        opts = ExtendedSimpleOption({'nagios-check-interval-threshold': threshold, 'nagios-user': 'nrpe'})
         self.assertEqual(opts.options.nagios_check_interval_threshold, threshold)
-        self.assertEqual(opts.options.nagios_user, 'nagios')
-        self.assertEqual(opts.nagios_reporter._cache_user, 'nagios')
+        self.assertEqual(opts.options.nagios_user, 'nrpe')
+        self.assertEqual(opts.nagios_reporter._cache_user, 'nrpe')
