@@ -29,14 +29,18 @@ Unit tests for vsc.utils.cache
 @author: Andy Georges (Ghent University)
 """
 
+import gzip
+import mock
 import os
 import tempfile
 import time
 import shutil
 import sys
 import random
-from vsc.install.testing import TestCase
 
+from exceptions import ValueError
+
+from vsc.install.testing import TestCase
 from vsc.utils.cache import FileCache
 
 LIST_LEN = 30  # same as in paycheck
@@ -109,4 +113,23 @@ class TestCache(TestCase):
         f.write('blabla;not gz')
         f.close()
         FileCache(filename)
+        shutil.rmtree(tempdir)
+
+    @mock.patch('vsc.utils.cache.jsonpickle.decode')
+    def test_value_error(self, mock_decode):
+        "Test to see that a ValueError upon decoding gets caught correctly"
+        tempdir = tempfile.mkdtemp()
+        # create a tempfilename
+        (handle, filename) = tempfile.mkstemp(dir=tempdir)
+        f = os.fdopen(handle, 'w')
+        g = gzip.GzipFile(mode='w', fileobj=f)
+        g.write('blabla no json gzip stuffz')
+        g.close()
+
+        e = ValueError('unable to find valid JSON')
+        mock_decode.side_effect = e
+
+        fc = FileCache(filename)
+
+        self.assertTrue(fc.shelf == {})
         shutil.rmtree(tempdir)
