@@ -85,7 +85,6 @@ class FileCache(object):
                 try:
                     g = gzip.GzipFile(mode='rb', fileobj=f)  # no context manager available in python 26 yet
                     s = g.read()
-                    self.shelf = jsonpickle.decode(s)
                 except IOError, err:
                     self.log.error("Cannot load data from cache file %s as gzipped json" % (self.filename,))
                     try:
@@ -100,6 +99,12 @@ class FileCache(object):
                             self.shelf = {}
                     except (OSError, IOError):
                         self.log.raiseException("Could not load pickle data from %s" % (self.filename,))
+                else:
+                    try:
+                        self.shelf = jsonpickle.decode(s)
+                    except ValueError, err:
+                        self.log.error("Cannot decode JSON from %s [%s]", self.filename, err)
+                        self.shelf = {}
                 finally:
                     g.close()
 
