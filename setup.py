@@ -38,6 +38,7 @@ PACKAGE = {
     'author': [ag, sdw],
     'maintainer': [ag, sdw],
     'excluded_pkgs_rpm': ['vsc', 'vsc.utils'],  # vsc is default, vsc.utils is provided by vsc-base
+    'namespace_packages': ['vsc', 'vsc.utils'],
     'tests_require': ['mock'],
     'install_requires': [
         'vsc-base >= 2.4.16',
