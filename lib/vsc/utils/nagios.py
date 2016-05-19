@@ -265,6 +265,9 @@ class NagiosReporter(object):
             # only change owner/group when run as root
             if os.geteuid() == 0:
                 os.chown(self.filename, p.pw_uid, p.pw_gid)
+            else:
+                self.log.warn("Not running as root: Cannot chown the nagios check file %s to %s" %
+                              (self.filename, self.nagios_username))
         except:
             self.log.raiseException("Cannot chown the nagios check file %s to the nagios user" % (self.filename))
 
