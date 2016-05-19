@@ -5,7 +5,7 @@
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
 # with support of Ghent University (http://ugent.be/hpc),
-# the Flemish Supercomputer Centre (VSC) (https://vscentrum.be/nl/en),
+# the Flemish Supercomputer Centre (VSC) (https://www.vscentrum.be),
 # the Flemish Research Foundation (FWO) (http://www.fwo.be/en)
 # and the Department of Economy, Science and Innovation (EWI) (http://www.ewi-vlaanderen.be/en).
 #
@@ -262,7 +262,12 @@ class NagiosReporter(object):
         try:
             p = pwd.getpwnam(self.nagios_username)
             os.chmod(self.filename, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP)
-            os.chown(self.filename, p.pw_uid, p.pw_gid)
+            # only change owner/group when run as root
+            if os.geteuid() == 0:
+                os.chown(self.filename, p.pw_uid, p.pw_gid)
+            else:
+                self.log.warn("Not running as root: Cannot chown the nagios check file %s to %s" %
+                              (self.filename, self.nagios_username))
         except:
             self.log.raiseException("Cannot chown the nagios check file %s to the nagios user" % (self.filename))
 

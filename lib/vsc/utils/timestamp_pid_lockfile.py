@@ -4,7 +4,7 @@
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
 # with support of Ghent University (http://ugent.be/hpc),
-# the Flemish Supercomputer Centre (VSC) (https://vscentrum.be/nl/en),
+# the Flemish Supercomputer Centre (VSC) (https://www.vscentrum.be),
 # the Flemish Research Foundation (FWO) (http://www.fwo.be/en)
 # and the Department of Economy, Science and Innovation (EWI) (http://www.ewi-vlaanderen.be/en).
 #
@@ -84,6 +84,7 @@ class TimestampedPidLockfile(LockBase, object):
             _write_pid_timestamp_file(self.path)
             self.logger.info('Obtained lock on timestamped pid lockfile %s' % (self.path))
         except OSError, err:
+            doraise = True
             if err.errno == errno.EEXIST:
                 ## Check if the timestamp is older than the threshold
                 (pid, timestamp) = _read_pid_timestamp_file(self.path)
@@ -93,12 +94,12 @@ class TimestampedPidLockfile(LockBase, object):
                     self.logger.warning('Obsolete lockfile detected at %s: pid = %d, timestamp = %s' % (self.path, pid, time.ctime(timestamp)))
                     try:
                         _write_pid_timestamp_file(self.path)
-                    except OSError, err:
-                        self.logger.error('Unable to obtain lock on %s' % (self.path))
-                        raise LockFailed
-                else:
-                    self.logger.error('Unable to obtain lock on %s' % (self.path))
-                    raise LockFailed
+                        doraise = False
+                    except:
+                        pass
+            if doraise:
+                self.logger.error('Unable to obtain lock on %s: %s' % (self.path, err))
+                raise LockFailed
 
     def release(self):
         '''Release the lock.

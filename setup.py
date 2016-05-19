@@ -5,8 +5,8 @@
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
 # with support of Ghent University (http://ugent.be/hpc),
-# the Flemish Supercomputer Centre (VSC) (https://vscentrum.be/nl/en),
-# the Hercules foundation (http://www.herculesstichting.be/in_English)
+# the Flemish Supercomputer Centre (VSC) (https://www.vscentrum.be),
+# the Flemish Research Foundation (FWO) (http://www.fwo.be/en)
 # and the Department of Economy, Science and Innovation (EWI) (http://www.ewi-vlaanderen.be/en).
 #
 # http://github.com/hpcugent/vsc-utils
@@ -34,10 +34,10 @@ import vsc.install.shared_setup as shared_setup
 from vsc.install.shared_setup import ag, sdw
 
 PACKAGE = {
-    'version': '1.8.2',
+    'version': '1.8.3',
     'author': [ag, sdw],
     'maintainer': [ag, sdw],
-    'excluded_pkgs_rpm': ['vsc', 'vsc.utils'], # vsc is default, vsc.utils is provided by vsc-base
+    'excluded_pkgs_rpm': ['vsc', 'vsc.utils'],  # vsc is default, vsc.utils is provided by vsc-base
     'tests_require': ['mock'],
     'install_requires': [
         'vsc-base >= 2.4.16',
@@ -46,6 +46,7 @@ PACKAGE = {
         'jsonpickle',
         'pycrypto',
     ],
+    'setup_requires': ['vsc-install'],
     'zip_safe': False,
 }
 

@@ -4,7 +4,7 @@
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
 # with support of Ghent University (http://ugent.be/hpc),
-# the Flemish Supercomputer Centre (VSC) (https://vscentrum.be/nl/en),
+# the Flemish Supercomputer Centre (VSC) (https://www.vscentrum.be),
 # the Flemish Research Foundation (FWO) (http://www.fwo.be/en)
 # and the Department of Economy, Science and Innovation (EWI) (http://www.ewi-vlaanderen.be/en).
 #
@@ -157,8 +157,10 @@ class ExtendedSimpleOption(SimpleOption):
         if not self.options.disable_locking and not self.options.dry_run:
             release_or_bork(self.lockfile, self.nagios_reporter)
 
-    def epilogue(self, nagios_message, nagios_thresholds={}):
+    def epilogue(self, nagios_message, nagios_thresholds=None):
         """Run at the end of a script, quitting gracefully if possible."""
+        if nagios_thresholds is None:
+            nagios_thresholds = {}
 
         self._epilogue()
 
