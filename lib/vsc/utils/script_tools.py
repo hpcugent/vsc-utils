@@ -157,8 +157,10 @@ class ExtendedSimpleOption(SimpleOption):
         if not self.options.disable_locking and not self.options.dry_run:
             release_or_bork(self.lockfile, self.nagios_reporter)
 
-    def epilogue(self, nagios_message, nagios_thresholds={}):
+    def epilogue(self, nagios_message, nagios_thresholds=None):
         """Run at the end of a script, quitting gracefully if possible."""
+        if nagios_thresholds is None:
+            nagios_thresholds = {}
 
         self._epilogue()
 
