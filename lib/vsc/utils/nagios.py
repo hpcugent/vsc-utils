@@ -262,7 +262,9 @@ class NagiosReporter(object):
         try:
             p = pwd.getpwnam(self.nagios_username)
             os.chmod(self.filename, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP)
-            os.chown(self.filename, p.pw_uid, p.pw_gid)
+            # only change owner/group when run as root
+            if os.geteuid() == 0:
+                os.chown(self.filename, p.pw_uid, p.pw_gid)
         except:
             self.log.raiseException("Cannot chown the nagios check file %s to the nagios user" % (self.filename))
 
