@@ -117,7 +117,7 @@ class NagiosRange(object):
             self.log.debug("nrange %s of type %s, converting to string (%s)" % (str(nrange), type(nrange), newnrange))
             try:
                 float(newnrange)
-            except:
+            except ValueError:
                 self.log.raiseException("nrange %s (type %s) is not valid after conversion to string (newnrange %s)" %
                                         (str(nrange), type(nrange), newnrange))
             nrange = newnrange
@@ -142,14 +142,14 @@ class NagiosRange(object):
             else:
                 try:
                     start = float(start_txt)
-                except:
+                except ValueError:
                     self.raiseException("Invalid start txt value %s" % start_txt)
 
             end = res['end']
             if end is not None:
                 try:
                     end = float(end)
-                except:
+                except ValueError:
                     self.raiseException("Invalid end value %s" % end)
 
             neg = res['neg'] is not None
@@ -161,7 +161,7 @@ class NagiosRange(object):
             # test inside nrange?
             try:
                 test = float(test)
-            except:
+            except ValueError:
                 self.log.raiseException("range_fn: can't convert test %s (type %s) to float" % (test, type(test)))
 
             start_res = True  # default: -inf < test
@@ -227,7 +227,7 @@ class NagiosReporter(object):
         """
         try:
             nagios_cache = FileCache(self.filename, True)
-        except:
+        except (IOError, OSError):
             self.log.critical("Error opening file %s for reading" % (self.filename))
             unknown_exit("%s nagios gzipped JSON file unavailable (%s)" % (self.header, self.filename))
 
@@ -255,7 +255,7 @@ class NagiosReporter(object):
             nagios_cache.update('nagios', (nagios_exit, nagios_message), 0)  # always update
             nagios_cache.close()
             self.log.info("Wrote nagios check cache file %s at about %s" % (self.filename, time.ctime(time.time())))
-        except:
+        except (IOError, OSError):
             # raising an error is ok, since we usually do this as the very last thing in the script
             self.log.raiseException("Cannot save to the nagios gzipped JSON file (%s)" % (self.filename))
 
@@ -268,7 +268,7 @@ class NagiosReporter(object):
             else:
                 self.log.warn("Not running as root: Cannot chown the nagios check file %s to %s" %
                               (self.filename, self.nagios_username))
-        except:
+        except OSError:
             self.log.raiseException("Cannot chown the nagios check file %s to the nagios user" % (self.filename))
 
         return True

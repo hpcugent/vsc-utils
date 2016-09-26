@@ -30,7 +30,7 @@ Caching utilities.
 """
 try:
     import cPickle as pickle
-except:
+except ImportError:
     import pickle
 import gzip
 import jsonpickle
@@ -85,12 +85,12 @@ class FileCache(object):
                 try:
                     g = gzip.GzipFile(mode='rb', fileobj=f)  # no context manager available in python 26 yet
                     s = g.read()
-                except IOError, err:
+                except IOError as err:
                     self.log.error("Cannot load data from cache file %s as gzipped json", self.filename)
                     try:
                         f.seek(0)
                         self.shelf = pickle.load(f)
-                    except pickle.UnpicklingError, err:
+                    except pickle.UnpicklingError as err:
                         msg = "Problem loading pickle data from %s (corrupt data)" % (self.filename,)
                         if raise_unpickable:
                             self.log.raiseException(msg)
@@ -102,14 +102,14 @@ class FileCache(object):
                 else:
                     try:
                         self.shelf = jsonpickle.decode(s)
-                    except ValueError, err:
+                    except ValueError as err:
                         self.log.error("Cannot decode JSON from %s [%s]", self.filename, err)
                         self.log.info("Cache in %s starts with an empty shelf", self.filename)
                         self.shelf = {}
                 finally:
                     g.close()
 
-        except (OSError, IOError, ValueError), err:
+        except (OSError, IOError, ValueError) as err:
             self.log.warning("Could not access the file cache at %s [%s]", self.filename, err)
             self.shelf = {}
             self.log.info("Cache in %s starts with an empty shelf", (self.filename,))

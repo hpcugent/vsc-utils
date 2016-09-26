@@ -189,7 +189,8 @@ class ExtendedSimpleOption(SimpleOption):
 
         This function is meant to be used as sys.excepthook
         """
-        self.log.exception("unhandled exception detected: %s - %s" % (tp, value))
+        self.log.exception("unhandled exception detected: %s - %s", tp, value)
+        self.log.debug("traceback %s", traceback)
         message = "Script failure: %s - %s" % (tp, value)
         sys.exc_clear()
         self.critical(message)
