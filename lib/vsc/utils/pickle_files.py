@@ -61,7 +61,7 @@ class TimestampPickle(object):
 
         try:
             timestamp = pickle.load(open(self.filename, "rb"))
-        except:
+        except (IOError, OSError):
             self.log.exception("Failed to load timestamp pickle from filename %s." % (self.filename))
             return None
 

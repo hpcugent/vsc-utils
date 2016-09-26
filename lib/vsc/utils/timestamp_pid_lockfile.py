@@ -74,28 +74,30 @@ class TimestampedPidLockfile(LockBase, object):
             return pid == os.getpid()
         return False
 
-    def acquire(self):
+    def acquire(self, timeout=None):
         '''Obtains the lock, storing its own PID and the timestamp
         at which the lock was obtained in the lockfile.
 
         Raises a LockFailed exception when the lock cannot be obtained.
         '''
+        if not timeout:
+            timeout = self.threshold
         try:
             _write_pid_timestamp_file(self.path)
             self.logger.info('Obtained lock on timestamped pid lockfile %s' % (self.path))
-        except OSError, err:
+        except OSError as err:
             doraise = True
             if err.errno == errno.EEXIST:
                 ## Check if the timestamp is older than the threshold
                 (pid, timestamp) = _read_pid_timestamp_file(self.path)
-                if time.time() - timestamp > self.threshold:
+                if time.time() - timestamp > timeout:
                     _find_and_kill(pid)
                     os.unlink(self.path)
                     self.logger.warning('Obsolete lockfile detected at %s: pid = %d, timestamp = %s' % (self.path, pid, time.ctime(timestamp)))
                     try:
                         _write_pid_timestamp_file(self.path)
                         doraise = False
-                    except:
+                    except Exception:
                         pass
             if doraise:
                 self.logger.error('Unable to obtain lock on %s: %s' % (self.path, err))
@@ -125,7 +127,7 @@ def _read_pid_timestamp_file(path):
     '''
     try:
         pidfp = open(path, 'r')
-    except IOError, err:
+    except IOError as err:
         if err.errno == errno.ENOENT:
             return None
         else:
