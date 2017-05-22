@@ -65,6 +65,7 @@ DEFAULT_OPTIONS = {
                                            NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
     'nagios-check-interval-threshold': ('threshold of nagios checks timing out', 'int', 'store', 0),
     'nagios-user': ('user nagios runs as', 'string', 'store', 'nagios'),
+    'nagios-world-readable-check': ('make the nagios check data file world readable', None, 'store_true', False),
 }
 
 
@@ -138,6 +139,7 @@ class ExtendedSimpleOption(SimpleOption):
                                             _report_and_exit=self.options.nagios_report,
                                             _threshold=self.options.nagios_check_interval_threshold,
                                             _cache_user=self.options.nagios_user,
+                                            _world_readable=self.options.nagios_world_readable_check,
                                             )
 
         # check for HA host

@@ -32,6 +32,7 @@ import os
 import tempfile
 import StringIO
 import sys
+import stat
 
 from vsc.install.testing import TestCase
 
@@ -171,5 +172,25 @@ class TestSimpleNagios(TestCase):
         self.assertEqual(bo, "WARNING %s" % message)
         self.assertEqual(e.code, NAGIOS_EXIT_WARNING[0])
 
+        statres = os.stat(filename)
+
+        self.assertFalse(statres.st_mode & stat.S_IROTH)
+
+    def test_world_readable(self):
+        """Test world readable cache"""
+        (handle, filename) = tempfile.mkstemp()
         os.unlink(filename)
 
+        n = SimpleNagios(_cache=filename, _cache_user=self.nagios_user, _world_readable=True)
+        n.ok("test")
+        os.close(handle)
+
+        try:
+            reporter_test = NagiosReporter('test_cache', filename, -1, self.nagios_user)
+            reporter_test.report_and_exit()
+        except SystemExit, e:
+            pass
+
+        statres = os.stat(filename)
+
+        self.assertTrue(statres.st_mode & stat.S_IROTH)
