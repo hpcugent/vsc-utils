@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 #
-# Copyright 2012-2016 Ghent University
+# Copyright 2012-2017 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -197,7 +197,7 @@ class NagiosReporter(object):
     Can cache the result in a gzipped JSON file and print the result out at some later point.
     """
 
-    def __init__(self, header, filename, threshold, nagios_username="nagios"):
+    def __init__(self, header, filename, threshold, nagios_username="nagios", world_readable=False):
         """Initialisation.
 
         @type header: string
@@ -215,6 +215,8 @@ class NagiosReporter(object):
         self.header = header
         self.filename = filename
         self.threshold = threshold
+
+        self.world_readable = world_readable
 
         self.nagios_username = nagios_username
 
@@ -261,7 +263,11 @@ class NagiosReporter(object):
 
         try:
             p = pwd.getpwnam(self.nagios_username)
-            os.chmod(self.filename, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP)
+            if self.world_readable:
+                os.chmod(self.filename, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH)
+            else:
+                os.chmod(self.filename, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP)
+
             # only change owner/group when run as root
             if os.geteuid() == 0:
                 os.chown(self.filename, p.pw_uid, p.pw_gid)
