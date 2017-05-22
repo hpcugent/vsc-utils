@@ -40,7 +40,8 @@ from vsc.utils.cache import FileCache
 logger = fancylogger.getLogger(__name__)
 
 
-def store_on_gpfs(user_name, path, key, information, gpfs, login_mount_point, gpfs_mount_point, filename, dry_run=False):
+def store_on_gpfs(user_name, path, key, information, gpfs, login_mount_point, gpfs_mount_point, filename,
+                  dry_run=False):
     """
     Store the given information in a cache file that resides in a user's directory.
 
