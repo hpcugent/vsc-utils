@@ -1,5 +1,5 @@
 #
-# Copyright 2012-2016 Ghent University
+# Copyright 2012-2017 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -40,7 +40,8 @@ from vsc.utils.cache import FileCache
 logger = fancylogger.getLogger(__name__)
 
 
-def store_on_gpfs(user_name, path, key, information, gpfs, login_mount_point, gpfs_mount_point, filename, dry_run=False):
+def store_on_gpfs(user_name, path, key, information, gpfs, login_mount_point, gpfs_mount_point, filename,
+                  dry_run=False):
     """
     Store the given information in a cache file that resides in a user's directory.
 
