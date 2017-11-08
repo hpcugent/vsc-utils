@@ -1,5 +1,5 @@
 #
-# Copyright 2012-2016 Ghent University
+# Copyright 2012-2017 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -93,7 +93,8 @@ class TimestampedPidLockfile(LockBase, object):
                 if time.time() - timestamp > timeout:
                     _find_and_kill(pid)
                     os.unlink(self.path)
-                    self.logger.warning('Obsolete lockfile detected at %s: pid = %d, timestamp = %s' % (self.path, pid, time.ctime(timestamp)))
+                    self.logger.warning('Obsolete lockfile detected at %s: pid = %d, timestamp = %s' %
+                                        (self.path, pid, time.ctime(timestamp)))
                     try:
                         _write_pid_timestamp_file(self.path)
                         doraise = False
