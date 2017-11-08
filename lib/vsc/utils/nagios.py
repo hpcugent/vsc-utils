@@ -76,11 +76,11 @@ def _real_exit(message, code, metrics=''):
     """
     (exit_code, text) = code
     message = message.split('|')
+    msg = message[0]
     if len(message) > 1:
-        message = message[0]
-        metrics = ' | %s' % message[1]
-    print "%s %s%s" % (text, message[:NAGIOS_MAX_MESSAGE_LENGTH], metrics)
-    log.info("Nagios report %s: %s%s" % (text, message, metrics))
+        metrics = '|%s' % message[1]
+    print "%s %s%s" % (text, msg[:NAGIOS_MAX_MESSAGE_LENGTH], metrics)
+    log.info("Nagios report %s: %s%s" % (text, msg, metrics))
     sys.exit(exit_code)
 
 
@@ -486,9 +486,9 @@ class SimpleNagios(NagiosResult):
 
         if crit:
             self.message = msg
-            self.critical(self)
+            self.critical(str(self))
         elif warn:
             self.message = msg
-            self.warning(self)
+            self.warning(str(self))
         else:
-            self.ok(self)
+            self.ok(str(self))
