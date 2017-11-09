@@ -74,17 +74,17 @@ def _real_exit(message, code, metrics=''):
     @param code: the exit code of the application using the nagios utility
     @param metrics: Metrics for nagios, used to create graphs
     """
-    (exit_code, text) = code
+    (exit_code, exit_text) = code
     message = message.split('|')
     msg = message[0]
     if len(message) > 1:
         metrics = '|%s' % message[1]
     if len(msg) > NAGIOS_MAX_MESSAGE_LENGTH:
         # log long message but print truncated message
-        log.info("Nagios report %s: %s%s" % (text, msg, metrics))
+        log.info("Nagios report %s: %s%s" % (exit_text, msg, metrics))
         msg = msg[:NAGIOS_MAX_MESSAGE_LENGTH-3] + '...'
 
-    print "%s %s%s" % (text, msg, metrics)
+    print "%s %s%s" % (exit_text, msg, metrics)
     sys.exit(exit_code)
 
 
