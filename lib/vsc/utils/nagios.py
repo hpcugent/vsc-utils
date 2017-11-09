@@ -64,7 +64,7 @@ NAGIOS_MAX_MESSAGE_LENGTH = 8192
 
 
 def _real_exit(message, code, metrics=''):
-    """Prints the code and first  message and exitas accordingly.
+    """Prints the code and first  message and exits accordingly.
 
     @type message: string
     @type code: tuple
@@ -79,8 +79,12 @@ def _real_exit(message, code, metrics=''):
     msg = message[0]
     if len(message) > 1:
         metrics = '|%s' % message[1]
-    print "%s %s%s" % (text, msg[:NAGIOS_MAX_MESSAGE_LENGTH], metrics)
-    log.info("Nagios report %s: %s%s" % (text, msg, metrics))
+    if len(msg) > NAGIOS_MAX_MESSAGE_LENGTH:
+        # log long message but print truncated message
+        log.info("Nagios report %s: %s%s" % (text, msg, metrics))
+        msg = msg[:NAGIOS_MAX_MESSAGE_LENGTH-3] + '...'
+
+    print "%s %s%s" % (text, msg, metrics)
     sys.exit(exit_code)
 
 
