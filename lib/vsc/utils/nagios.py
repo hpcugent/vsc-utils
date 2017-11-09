@@ -60,20 +60,31 @@ NAGIOS_EXIT_OK = (0, 'OK')
 NAGIOS_EXIT_WARNING = (1, 'WARNING')
 NAGIOS_EXIT_CRITICAL = (2, 'CRITICAL')
 NAGIOS_EXIT_UNKNOWN = (3, 'UNKNOWN')
+NAGIOS_MAX_MESSAGE_LENGTH = 8192
 
 
-def _real_exit(message, code):
-    """Prints the code and message and exitas accordingly.
+def _real_exit(message, code, metrics=''):
+    """Prints the code and first  message and exits accordingly.
 
     @type message: string
     @type code: tuple
+    @type metrics: string
 
-    @param message: Useful message for nagios
-    @param code: the, ah, erm, exit code of the application using the nagios utility
+    @param message: Useful message for nagios, will be truncated to NAGIOS_MAX_MESSAGE_LENGTH
+    @param code: the exit code of the application using the nagios utility
+    @param metrics: Metrics for nagios, used to create graphs
     """
-    (exit_code, text) = code
-    print "%s %s" % (text, message)
-    log.info("Nagios report %s: %s" % (text, message))
+    (exit_code, exit_text) = code
+    message = message.split('|')
+    msg = message[0]
+    if len(message) > 1:
+        metrics = '|%s' % message[1]
+    if len(msg) > NAGIOS_MAX_MESSAGE_LENGTH:
+        # log long message but print truncated message
+        log.info("Nagios report %s: %s%s" % (exit_text, msg, metrics))
+        msg = msg[:NAGIOS_MAX_MESSAGE_LENGTH-3] + '...'
+
+    print "%s %s%s" % (exit_text, msg, metrics)
     sys.exit(exit_code)
 
 
@@ -479,9 +490,9 @@ class SimpleNagios(NagiosResult):
 
         if crit:
             self.message = msg
-            self.critical(self)
+            self.critical(str(self))
         elif warn:
             self.message = msg
-            self.warning(self)
+            self.warning(str(self))
         else:
-            self.ok(self)
+            self.ok(str(self))
