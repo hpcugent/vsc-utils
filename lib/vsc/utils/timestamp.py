@@ -34,9 +34,54 @@ moved here from vsc-ldap vsc.ldap.timestamp
 import datetime
 
 from vsc.utils.cache import FileCache
-from vsc.utils.dateandtime import Local, utc
+from vsc.utils.dateandtime import utc
 
 LDAP_DATETIME_TIMEFORMAT = "%Y%m%d%H%M%SZ"
+
+
+
+def convert_to_datetime(timestamp=None):
+    """
+    Convert a string or datetime.datime instance to a datetime.datetime with local tzinfo
+
+    If no timestamp is given return current time
+
+    if timestamp is a string we can convert following formats:
+    Parse a datestamp according to its length
+        * YYYYMMDD       (8 chars)
+        * unix timestamp (10 chars or any int)
+        * YYYYMMDDHHMM   (12 chars)
+        * LDAP_DATETIME_TIMEFORMAT
+    """
+    if timestamp is None:
+        timestamp = datetime.datetime.today()
+    if isinstance(timestamp, int):
+        timestamp = "%010d" % timestamp
+    if isinstance(timestamp, datetime.datetime):
+        if timestamp.tzinfo is None:
+            timestamp = timestamp.replace(tzinfo=utc)
+    elif isinstance(timestamp, basestring):
+        if len(timestamp) == 10:
+            # Unix timestamp
+            timestamp = datetime.datetime.fromtimestamp(int(timestamp), utc)
+        else:
+            if len(timestamp) == 12:
+                date_format = "%Y%m%d%H%M"
+            elif len(timestamp) == 15:  # len(LDAP_DATETIME_FORMAT doesn't work here
+                date_format =  LDAP_DATETIME_TIMEFORMAT
+            elif len(timestamp) == 8:
+                date_format = "%Y%m%d"
+            else:
+                raise Exception("invalid format provided %s" % timestamp)
+            timestamp = datetime.datetime.strptime(timestamp, date_format)
+
+    return timestamp.replace(tzinfo=utc)
+
+
+def convert_to_unix_timestamp(timestamp=None):
+    """Convert a string or datetime.datetime instance to a unix timestamp (Seconds since epoch)"""
+    timestamp = convert_to_datetime(timestamp)
+    return int((timestamp - datetime.datetime(1970, 1, 1, tzinfo=utc)).total_seconds())
 
 
 def convert_timestamp(timestamp=None):
@@ -49,17 +94,8 @@ def convert_timestamp(timestamp=None):
                 - LDAP formatted timestamp on GMT in the yyyymmddhhmmssZ format
                 - A datetime.datetime instance representing the timestamp
     """
-    if timestamp is None:
-        timestamp = datetime.datetime.today()
-
-    if isinstance(timestamp, datetime.datetime):
-        if timestamp.tzinfo is None:
-            timestamp = timestamp.replace(tzinfo=Local)
-        return (timestamp, timestamp.astimezone(utc).strftime(LDAP_DATETIME_TIMEFORMAT))
-
-    elif isinstance(timestamp, basestring):
-        tmp = datetime.datetime.strptime(timestamp, LDAP_DATETIME_TIMEFORMAT)
-        return (tmp.replace(tzinfo=utc).astimezone(Local), timestamp)
+    timestamp = convert_to_datetime(timestamp)
+    return (timestamp, timestamp.astimezone(utc).strftime(LDAP_DATETIME_TIMEFORMAT))
 
 
 def read_timestamp(filename):
@@ -82,7 +118,7 @@ def write_timestamp(filename, timestamp):
 
     if isinstance(timestamp, datetime.datetime) and timestamp.tzinfo is None:
         # add local timezoneinfo
-        timestamp_ = timestamp.replace(tzinfo=Local)
+        timestamp_ = timestamp.replace(tzinfo=utc)
         (_, timestamp_) = convert_timestamp(timestamp)
     else:
         timestamp_ = timestamp
