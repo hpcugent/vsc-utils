@@ -32,6 +32,7 @@ moved here from vsc-ldap vsc.ldap.timestamp
 """
 
 import datetime
+import logging
 
 from vsc.utils.cache import FileCache
 from vsc.utils.dateandtime import utc
@@ -105,7 +106,11 @@ def read_timestamp(filename):
 
     """
     cache = FileCache(filename)
-    (_, timestamp) = cache.load('timestamp')
+    try:
+        (_, timestamp) = cache.load('timestamp')
+    except TypeError:
+        logging.warning('could not load timestamp from cache file %s', filename)
+        timestamp = None
 
     return timestamp
 
