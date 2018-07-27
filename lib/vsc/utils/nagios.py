@@ -139,7 +139,7 @@ def exit_from_errorcode(errorcode, msg, error_map=None):
     try:
         NAGIOS_EXIT_MAP[e_map[errorcode]](msg)
     except (IndexError, KeyError):
-        unknown_exit(msg + " (errorcode not found in {0}".format(e_map))
+        unknown_exit(msg + " (errorcode {0} not found in {1}".format(errorcode, e_map))
 
 
 class NagiosRange(object):
