@@ -135,10 +135,11 @@ NAGIOS_EXIT_MAP = {
 }
 
 
-def exit_from_errorcode(errorcode, msg, error_map=NAGIOS_DEFAULT_ERRORCODE_MAP):
+def exit_from_errorcode(errorcode, msg, error_map=None):
     """Call the correct exit function based on the error code and the mapping"""
+    e_map = error_map or NAGIOS_DEFAULT_ERRORCODE_MAP
     try:
-        NAGIOS_EXIT_MAP[error_map[errorcode]](msg)
+        NAGIOS_EXIT_MAP[e_map[errorcode]](msg)
     except (IndexError, KeyError):
         unknown_exit(msg)
 
