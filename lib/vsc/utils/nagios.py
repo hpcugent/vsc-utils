@@ -68,6 +68,8 @@ NAGIOS_EXIT_UNKNOWN = (3, NAGIOS_UNKNOWN)
 NAGIOS_MAX_MESSAGE_LENGTH = 8192
 
 
+
+
 def _real_exit(message, code, metrics=''):
     """Prints the code and first  message and exits accordingly.
 
@@ -116,6 +118,29 @@ def critical_exit(message):
 def real_exit(exit_code, message):
     """A public function, with arguments in the same order as NagiosReporter.cache"""
     _real_exit(message, exit_code)
+
+
+NAGIOS_DEFAULT_ERRORCODE_MAP = {
+    0: NAGIOS_OK,
+    1: NAGIOS_WARNING,
+    2: NAGIOS_CRITICAL,
+    3: NAGIOS_UNKNOWN,
+}
+
+NAGIOS_EXIT_MAP = {
+    NAGIOS_OK: ok_exit,
+    NAGIOS_WARNING: warning_exit,
+    NAGIOS_CRITICAL: critical_exit,
+    NAGIOS_UNKNOWN: unknown_exit,
+}
+
+
+def exit_from_errorcode(errorcode, msg, error_map=NAGIOS_DEFAULT_ERRORCODE_MAP):
+    """Call the correct exit function based on the error code and the mapping"""
+    try:
+        NAGIOS_EXIT_MAP[error_map[errorcode]](msg)
+    except (IndexError, KeyError):
+        unknown_exit(msg)
 
 
 class NagiosRange(object):
