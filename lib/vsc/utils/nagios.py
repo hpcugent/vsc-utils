@@ -68,8 +68,6 @@ NAGIOS_EXIT_UNKNOWN = (3, NAGIOS_UNKNOWN)
 NAGIOS_MAX_MESSAGE_LENGTH = 8192
 
 
-
-
 def _real_exit(message, code, metrics=''):
     """Prints the code and first  message and exits accordingly.
 
@@ -141,7 +139,7 @@ def exit_from_errorcode(errorcode, msg, error_map=None):
     try:
         NAGIOS_EXIT_MAP[e_map[errorcode]](msg)
     except (IndexError, KeyError):
-        unknown_exit(msg)
+        unknown_exit(msg + " (errorcode not found in {0}".format(e_map))
 
 
 class NagiosRange(object):
