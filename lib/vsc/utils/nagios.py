@@ -118,6 +118,30 @@ def real_exit(exit_code, message):
     _real_exit(message, exit_code)
 
 
+NAGIOS_DEFAULT_ERRORCODE_MAP = {
+    0: NAGIOS_OK,
+    1: NAGIOS_WARNING,
+    2: NAGIOS_CRITICAL,
+    3: NAGIOS_UNKNOWN,
+}
+
+NAGIOS_EXIT_MAP = {
+    NAGIOS_OK: ok_exit,
+    NAGIOS_WARNING: warning_exit,
+    NAGIOS_CRITICAL: critical_exit,
+    NAGIOS_UNKNOWN: unknown_exit,
+}
+
+
+def exit_from_errorcode(errorcode, msg, error_map=None):
+    """Call the correct exit function based on the error code and the mapping"""
+    e_map = error_map or NAGIOS_DEFAULT_ERRORCODE_MAP
+    try:
+        NAGIOS_EXIT_MAP[e_map[errorcode]](msg)
+    except (IndexError, KeyError):
+        unknown_exit(msg + " (errorcode {0} not found in {1}".format(errorcode, e_map))
+
+
 class NagiosRange(object):
     """Implement Nagios ranges"""
     DEFAULT_START = 0
