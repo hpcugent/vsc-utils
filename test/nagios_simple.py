@@ -28,16 +28,19 @@ Tests for the NagiosResult class in the vsc.utils.nagios module
 
 @author: Stijn De Weirdt (Ghent University)
 """
+import mock
 import os
 import tempfile
 import StringIO
 import sys
 import stat
 
+
 from vsc.install.testing import TestCase
 
-from vsc.utils.nagios import SimpleNagios, NAGIOS_EXIT_OK, NAGIOS_EXIT_CRITICAL
+from vsc.utils.nagios import SimpleNagios, NAGIOS_EXIT_OK, NAGIOS_EXIT_CRITICAL 
 from vsc.utils.nagios import NAGIOS_EXIT_WARNING, NAGIOS_EXIT_UNKNOWN, NagiosReporter
+from vsc.utils.nagios import exit_from_errorcode, ok_exit, warning_exit, critical_exit, unknown_exit
 from pwd import getpwuid
 
 
@@ -188,9 +191,44 @@ class TestSimpleNagios(TestCase):
         try:
             reporter_test = NagiosReporter('test_cache', filename, -1, self.nagios_user)
             reporter_test.report_and_exit()
-        except SystemExit, e:
+        except SystemExit:
             pass
 
         statres = os.stat(filename)
 
         self.assertTrue(statres.st_mode & stat.S_IROTH)
+
+
+class TestNagiosExits(TestCase):
+    """Test for all things exiting with nagios results."""
+
+    def setUp(self):
+        """redirect stdout"""
+        self.old_stdout = sys.stdout
+        self.buffo = StringIO.StringIO()
+        sys.stdout = self.buffo
+        user = getpwuid(os.getuid())
+        self.nagios_user = user.pw_name
+
+    def tearDown(self):
+        """Restore stdout"""
+        self.buffo.close()
+        sys.stdout = self.old_stdout
+
+#    @mock.patch("vsc.utils.nagios.ok_exit")
+    def test_exit_from_errorcode(self):
+        """test calling the correct exit function."""
+
+        for (ec, expected) in [
+                (0, NAGIOS_EXIT_OK),
+                (1, NAGIOS_EXIT_WARNING), 
+                (2, NAGIOS_EXIT_CRITICAL), 
+                (3, NAGIOS_EXIT_UNKNOWN), 
+                (101, NAGIOS_EXIT_UNKNOWN),
+                ]:
+            try:
+                exit_from_errorcode(ec, "boem")
+            except SystemExit as err:
+                print err
+                self.assertTrue(err.code == expected[0])
+
