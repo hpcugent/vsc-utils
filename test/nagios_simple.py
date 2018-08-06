@@ -28,7 +28,6 @@ Tests for the NagiosResult class in the vsc.utils.nagios module
 
 @author: Stijn De Weirdt (Ghent University)
 """
-import mock
 import os
 import tempfile
 import StringIO
@@ -215,15 +214,14 @@ class TestNagiosExits(TestCase):
         self.buffo.close()
         sys.stdout = self.old_stdout
 
-#    @mock.patch("vsc.utils.nagios.ok_exit")
     def test_exit_from_errorcode(self):
         """test calling the correct exit function."""
 
         for (ec, expected) in [
                 (0, NAGIOS_EXIT_OK),
-                (1, NAGIOS_EXIT_WARNING), 
-                (2, NAGIOS_EXIT_CRITICAL), 
-                (3, NAGIOS_EXIT_UNKNOWN), 
+                (1, NAGIOS_EXIT_WARNING),
+                (2, NAGIOS_EXIT_CRITICAL),
+                (3, NAGIOS_EXIT_UNKNOWN),
                 (101, NAGIOS_EXIT_UNKNOWN),
                 ]:
             try:
