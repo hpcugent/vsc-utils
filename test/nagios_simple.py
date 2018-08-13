@@ -37,7 +37,7 @@ import stat
 
 from vsc.install.testing import TestCase
 
-from vsc.utils.nagios import SimpleNagios, NAGIOS_EXIT_OK, NAGIOS_EXIT_CRITICAL 
+from vsc.utils.nagios import SimpleNagios, NAGIOS_EXIT_OK, NAGIOS_EXIT_CRITICAL
 from vsc.utils.nagios import NAGIOS_EXIT_WARNING, NAGIOS_EXIT_UNKNOWN, NagiosReporter
 from vsc.utils.nagios import exit_from_errorcode, ok_exit, warning_exit, critical_exit, unknown_exit
 from pwd import getpwuid
