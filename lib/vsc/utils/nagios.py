@@ -56,24 +56,40 @@ log = getLogger(__name__)
 NAGIOS_CACHE_DIR = '/var/cache'
 NAGIOS_CACHE_FILENAME_TEMPLATE = '%s.nagios.json.gz'
 
-NAGIOS_EXIT_OK = (0, 'OK')
-NAGIOS_EXIT_WARNING = (1, 'WARNING')
-NAGIOS_EXIT_CRITICAL = (2, 'CRITICAL')
-NAGIOS_EXIT_UNKNOWN = (3, 'UNKNOWN')
+NAGIOS_OK = 'OK'
+NAGIOS_WARNING = 'WARNING'
+NAGIOS_CRITICAL = 'CRITICAL'
+NAGIOS_UNKNOWN = 'UNKNOWN'
+
+NAGIOS_EXIT_OK = (0, NAGIOS_OK)
+NAGIOS_EXIT_WARNING = (1, NAGIOS_WARNING)
+NAGIOS_EXIT_CRITICAL = (2, NAGIOS_CRITICAL)
+NAGIOS_EXIT_UNKNOWN = (3, NAGIOS_UNKNOWN)
+NAGIOS_MAX_MESSAGE_LENGTH = 8192
 
 
-def _real_exit(message, code):
-    """Prints the code and message and exitas accordingly.
+def _real_exit(message, code, metrics=''):
+    """Prints the code and first  message and exits accordingly.
 
     @type message: string
     @type code: tuple
+    @type metrics: string
 
-    @param message: Useful message for nagios
-    @param code: the, ah, erm, exit code of the application using the nagios utility
+    @param message: Useful message for nagios, will be truncated to NAGIOS_MAX_MESSAGE_LENGTH
+    @param code: the exit code of the application using the nagios utility
+    @param metrics: Metrics for nagios, used to create graphs
     """
-    (exit_code, text) = code
-    print "%s %s" % (text, message)
-    log.info("Nagios report %s: %s" % (text, message))
+    (exit_code, exit_text) = code
+    message = message.split('|')
+    msg = message[0]
+    if len(message) > 1:
+        metrics = '|%s' % message[1]
+    if len(msg) > NAGIOS_MAX_MESSAGE_LENGTH:
+        # log long message but print truncated message
+        log.info("Nagios report %s: %s%s" % (exit_text, msg, metrics))
+        msg = msg[:NAGIOS_MAX_MESSAGE_LENGTH-3] + '...'
+
+    print "%s %s%s" % (exit_text, msg, metrics)
     sys.exit(exit_code)
 
 
@@ -100,6 +116,30 @@ def critical_exit(message):
 def real_exit(exit_code, message):
     """A public function, with arguments in the same order as NagiosReporter.cache"""
     _real_exit(message, exit_code)
+
+
+NAGIOS_DEFAULT_ERRORCODE_MAP = {
+    0: NAGIOS_OK,
+    1: NAGIOS_WARNING,
+    2: NAGIOS_CRITICAL,
+    3: NAGIOS_UNKNOWN,
+}
+
+NAGIOS_EXIT_MAP = {
+    NAGIOS_OK: ok_exit,
+    NAGIOS_WARNING: warning_exit,
+    NAGIOS_CRITICAL: critical_exit,
+    NAGIOS_UNKNOWN: unknown_exit,
+}
+
+
+def exit_from_errorcode(errorcode, msg, error_map=None):
+    """Call the correct exit function based on the error code and the mapping"""
+    e_map = error_map or NAGIOS_DEFAULT_ERRORCODE_MAP
+    try:
+        NAGIOS_EXIT_MAP[e_map[errorcode]](msg)
+    except (IndexError, KeyError):
+        unknown_exit(msg + " (errorcode {0} not found in {1}".format(errorcode, e_map))
 
 
 class NagiosRange(object):
@@ -414,7 +454,7 @@ class SimpleNagios(NagiosResult):
                 cache = NagiosReporter('no header', self._cache, self._threshold, nagios_username=self._cache_user,
                                        world_readable=self._world_readable)
             else:
-                cache = NagiosReporter('no header', self._cache, self._threshold, world_readable=self.world_readable)
+                cache = NagiosReporter('no header', self._cache, self._threshold, world_readable=self._world_readable)
             if self._report_and_exit:
                 cache.report_and_exit()
             else:
@@ -479,9 +519,9 @@ class SimpleNagios(NagiosResult):
 
         if crit:
             self.message = msg
-            self.critical(self)
+            self.critical(str(self))
         elif warn:
             self.message = msg
-            self.warning(self)
+            self.warning(str(self))
         else:
-            self.ok(self)
+            self.ok(str(self))
