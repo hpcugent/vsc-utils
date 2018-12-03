@@ -131,3 +131,20 @@ def write_timestamp(filename, timestamp):
     cache = FileCache(filename)
     cache.update('timestamp', timestamp_, 0)
     cache.close()
+
+
+def retrieve_timestamp_with_default(filename, start_timestamp=None, default_timestamp="2014010100000Z", delta=10):
+    """
+    Return a tuple consisting of the following values:
+    - the timestamp from the given file if the start_timestamp is not provided 
+      and fall back on the default if needed.
+    - the current time based on the given delta, defaulting to 10s.
+    """
+    if not start_timestamp:
+        timestamp = convert_to_unix_timestamp(read_timestamp(filename))
+
+    timestamp = timestamp or default_timestamp
+    logging.info("Using timestamp %s", start_timestamp)
+
+    current_time = datetime.datetime.now(tz=utc) + datetime.timedelta(seconds=-10)
+    return (timestamp, current_time)
