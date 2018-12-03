@@ -139,6 +139,4 @@ class TestTimestamp(TestCase):
         self.assertEqual(2049584460, retrieve_timestamp_with_default("f", default_timestamp="20140102")[0])
 
         mock_read_timestamp.return_value = None
-
-
-
+        self.assertEqual("20140102", retrieve_timestamp_with_default("f", default_timestamp="20140102")[0])
