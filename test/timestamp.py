@@ -130,7 +130,6 @@ class TestTimestamp(TestCase):
         self.assertEqual(convert_timestamp(date), (datet, date))
 
     @mock.patch('vsc.utils.timestamp.read_timestamp')
-    @mock.patch('vsc.utils.timestamp.convert_to_unix_timestamp')
     def test_retrieve_timestamp(self, mock_read_timestamp):
         """Test for the filestamp retrieval."""
 
