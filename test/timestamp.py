@@ -28,12 +28,15 @@ Unit tests for vsc.utils.timestamp
 
 @author: Jens Timmerman (Ghent University)
 """
+import mock
+
 from datetime import datetime
 
 from vsc.install.testing import TestCase
 from vsc.utils.dateandtime import utc
 
 from vsc.utils.timestamp import convert_to_datetime, convert_to_unix_timestamp, convert_timestamp
+from vsc.utils.timestamp import retrieve_timestamp_with_default
 
 
 class TestTimestamp(TestCase):
@@ -125,5 +128,17 @@ class TestTimestamp(TestCase):
         self.assertEqual(convert_timestamp("201710290105"), (datet, date))
         self.assertEqual(convert_timestamp("20171029010500Z"), (datet, date))
         self.assertEqual(convert_timestamp(date), (datet, date))
+
+    @mock.patch('vsc.utils.timestamp.read_timestamp')
+    def test_retrieve_timestamp(self, mock_read_timestamp):
+        """Test for the filestamp retrieval."""
+
+        mock_read_timestamp.return_value = "203412130101"
+
+        self.assertEqual("20140102", retrieve_timestamp_with_default("f", start_timestamp="20140102")[0])
+        self.assertEqual(2049584460, retrieve_timestamp_with_default("f", default_timestamp="20140102")[0])
+
+        mock_read_timestamp.return_value = None
+
 
 
