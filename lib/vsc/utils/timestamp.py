@@ -133,12 +133,12 @@ def write_timestamp(filename, timestamp):
     cache.close()
 
 
-def retrieve_timestamp_with_default(filename, start_timestamp=None, default_timestamp="2014010100000Z", delta=10):
+def retrieve_timestamp_with_default(filename, start_timestamp=None, default_timestamp="2014010100000Z", delta=-10):
     """
     Return a tuple consisting of the following values:
     - the timestamp from the given file if the start_timestamp is not provided 
       and fall back on default_timestamp if needed.
-    - the current time based on the given delta, defaulting to 10s.
+    - the current time based on the given delta (offset compared to now(tz=utc) in seconds), defaulting to -10s.
     """
     timestamp = start_timestamp
     if start_timestamp is None:
