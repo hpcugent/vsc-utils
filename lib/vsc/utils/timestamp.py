@@ -102,8 +102,7 @@ def convert_timestamp(timestamp=None):
 def read_timestamp(filename):
     """Read the stored timestamp value from a pickled file.
 
-    @returns: string representing a timestamp in the proper LDAP time format
-
+    @returns: a timestamp in whatever format it was stored in (string LDAP timestamp, unix epoch, ...)
     """
     cache = FileCache(filename)
     try:
@@ -131,3 +130,25 @@ def write_timestamp(filename, timestamp):
     cache = FileCache(filename)
     cache.update('timestamp', timestamp_, 0)
     cache.close()
+
+
+def retrieve_timestamp_with_default(filename, start_timestamp=None, default_timestamp="2014010100000Z", delta=-10):
+    """
+    Return a tuple consisting of the following values:
+    - the timestamp from the given file if the start_timestamp is not provided 
+      and fall back on default_timestamp if needed.
+    - the current time based on the given delta (offset compared to now(tz=utc) in seconds), defaulting to -10s.
+    """
+    timestamp = start_timestamp
+    if start_timestamp is None:
+        timestamp = read_timestamp(filename)
+
+    if timestamp is None:
+        timestamp = convert_to_unix_timestamp(default_timestamp)
+    else:
+        timestamp = convert_to_unix_timestamp(timestamp)
+
+    logging.info("Using timestamp %s", timestamp)
+
+    current_time = datetime.datetime.now(tz=utc) + datetime.timedelta(seconds=delta)
+    return (timestamp, current_time)
