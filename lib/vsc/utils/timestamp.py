@@ -137,16 +137,19 @@ def retrieve_timestamp_with_default(filename, start_timestamp=None, default_time
     """
     Return a tuple consisting of the following values:
     - the timestamp from the given file if the start_timestamp is not provided 
-      and fall back on the default if needed.
+      and fall back on default_timestamp if needed.
     - the current time based on the given delta, defaulting to 10s.
     """
     timestamp = start_timestamp
-    if not start_timestamp:
-        timestamp = convert_to_unix_timestamp(read_timestamp(filename))
+    if start_timestamp is None:
+        timestamp = read_timestamp(filename)
 
-    timestamp = timestamp or default_timestamp
+    if timestamp is None:
+        timestamp = convert_to_unix_timestamp(default_timestamp)
+    else:
+        timestamp = convert_to_unix_timestamp(timestamp)
 
-    logging.info("Using timestamp %s", start_timestamp)
+    logging.info("Using timestamp %s", timestamp)
 
     current_time = datetime.datetime.now(tz=utc) + datetime.timedelta(seconds=delta)
     return (timestamp, current_time)
