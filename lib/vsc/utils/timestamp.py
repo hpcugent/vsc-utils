@@ -102,8 +102,7 @@ def convert_timestamp(timestamp=None):
 def read_timestamp(filename):
     """Read the stored timestamp value from a pickled file.
 
-    @returns: string representing a timestamp in the proper LDAP time format
-
+    @returns: a timestamp in whatever format it was stored in (string LDAP timestamp, unix epoch, ...)
     """
     cache = FileCache(filename)
     try:
