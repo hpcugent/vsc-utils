@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2018 Ghent University
+# Copyright 2018-2019 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -36,7 +36,7 @@ from vsc.install.testing import TestCase
 from vsc.utils.dateandtime import utc
 
 from vsc.utils.timestamp import convert_to_datetime, convert_to_unix_timestamp, convert_timestamp
-from vsc.utils.timestamp import retrieve_timestamp_with_default
+from vsc.utils.timestamp import retrieve_timestamp_with_default, DEFAULT_TIMESTAMP
 
 
 class TestTimestamp(TestCase):
@@ -132,6 +132,8 @@ class TestTimestamp(TestCase):
     @mock.patch('vsc.utils.timestamp.read_timestamp')
     def test_retrieve_timestamp(self, mock_read_timestamp):
         """Test for the filestamp retrieval."""
+        mock_read_timestamp.return_value = None
+        self.assertEqual(convert_to_unix_timestamp(DEFAULT_TIMESTAMP), retrieve_timestamp_with_default("f")[0])
 
         read_ts = "203412130101"
         mock_read_timestamp.return_value = read_ts
