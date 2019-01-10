@@ -39,6 +39,7 @@ from vsc.utils.dateandtime import utc
 
 LDAP_DATETIME_TIMEFORMAT = "%Y%m%d%H%M%SZ"
 
+DEFAULT_TIMESTAMP = "20140101000000Z"
 
 
 def convert_to_datetime(timestamp=None):
@@ -132,7 +133,7 @@ def write_timestamp(filename, timestamp):
     cache.close()
 
 
-def retrieve_timestamp_with_default(filename, start_timestamp=None, default_timestamp="201401010000", delta=-10):
+def retrieve_timestamp_with_default(filename, start_timestamp=None, default_timestamp=DEFAULT_TIMESTAMP, delta=-10):
     """
     Return a tuple consisting of the following values:
     - the timestamp from the given file if the start_timestamp is not provided
