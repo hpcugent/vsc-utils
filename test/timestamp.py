@@ -132,6 +132,8 @@ class TestTimestamp(TestCase):
     @mock.patch('vsc.utils.timestamp.read_timestamp')
     def test_retrieve_timestamp(self, mock_read_timestamp):
         """Test for the filestamp retrieval."""
+        mock_read_timestamp.return_value = None
+        self.assertEqual(convert_to_unix_timestamp(DEFAULT_TIMESTAMP), retrieve_timestamp_with_default("f")[0])
 
         read_ts = "203412130101"
         mock_read_timestamp.return_value = read_ts
@@ -140,7 +142,6 @@ class TestTimestamp(TestCase):
         default_ts = "20150103"
         self.assertEqual(convert_to_unix_timestamp(start_ts), retrieve_timestamp_with_default("f", start_timestamp=start_ts)[0])
         self.assertEqual(convert_to_unix_timestamp(read_ts), retrieve_timestamp_with_default("f", default_timestamp=default_ts)[0])
-        self.assertEqual(convert_to_unix_timestamp(DEFAULT_TIMESTAMP), retrieve_timestamp_with_default("f")[0])
 
         self.assertEqual(utc, retrieve_timestamp_with_default("f", default_timestamp="20140102")[1].tzinfo)
 
