@@ -44,7 +44,7 @@ DEFAULT_TIMESTAMP = "20140101000000Z"
 
 def convert_to_datetime(timestamp=None):
     """
-    Convert a string or datetime.datime instance to a datetime.datetime with local tzinfo
+    Convert a string or datetime.datime instance to a datetime.datetime with UTC tzinfo
 
     If no timestamp is given return current time
 
@@ -56,7 +56,10 @@ def convert_to_datetime(timestamp=None):
         * LDAP_DATETIME_TIMEFORMAT
     """
     if timestamp is None:
-        timestamp = datetime.datetime.today()
+        # utcnow is time tuple with valid utc time without tzinfo
+        #   replace(tzinfo=utc) fixes the tzinfo
+        return datetime.datetime.utcnow().replace(tzinfo=utc)
+
     if isinstance(timestamp, int):
         timestamp = "%010d" % timestamp
     if isinstance(timestamp, datetime.datetime):
