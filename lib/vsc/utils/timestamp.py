@@ -44,7 +44,7 @@ DEFAULT_TIMESTAMP = "20140101000000Z"
 
 def convert_to_datetime(timestamp=None):
     """
-    Convert a string or datetime.datime instance to a datetime.datetime with local tzinfo
+    Convert a string or datetime.datime instance to a datetime.datetime with UTC tzinfo
 
     If no timestamp is given return current time
 
@@ -56,7 +56,10 @@ def convert_to_datetime(timestamp=None):
         * LDAP_DATETIME_TIMEFORMAT
     """
     if timestamp is None:
-        timestamp = datetime.datetime.today()
+        # utcnow is time tuple with valid utc time without tzinfo
+        #   replace(tzinfo=utc) fixes the tzinfo
+        return datetime.datetime.utcnow().replace(tzinfo=utc)
+
     if isinstance(timestamp, int):
         timestamp = "%010d" % timestamp
     if isinstance(timestamp, datetime.datetime):
@@ -81,7 +84,10 @@ def convert_to_datetime(timestamp=None):
 
 
 def convert_to_unix_timestamp(timestamp=None):
-    """Convert a string or datetime.datetime instance to a unix timestamp (Seconds since epoch)"""
+    """
+    Convert a string or datetime.datetime instance
+    to an integer representing unix timestamp (seconds since epoch)
+    """
     timestamp = convert_to_datetime(timestamp)
     return int((timestamp - datetime.datetime(1970, 1, 1, tzinfo=utc)).total_seconds())
 
@@ -136,9 +142,10 @@ def write_timestamp(filename, timestamp):
 def retrieve_timestamp_with_default(filename, start_timestamp=None, default_timestamp=DEFAULT_TIMESTAMP, delta=-10):
     """
     Return a tuple consisting of the following values:
-    - the timestamp from the given file if the start_timestamp is not provided
+    - the unix timestamp (in int) from the given file if the start_timestamp is not provided
       and fall back on default_timestamp if needed.
-    - the current time based on the given delta (offset compared to now(tz=utc) in seconds), defaulting to -10s.
+    - the current time (datetime instance) based on the given delta (offset compared to now(tz=utc) in seconds),
+      defaulting to -10s.
     """
     timestamp = start_timestamp
     if start_timestamp is None:

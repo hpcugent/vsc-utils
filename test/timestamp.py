@@ -34,6 +34,7 @@ from datetime import datetime
 
 from vsc.install.testing import TestCase
 from vsc.utils.dateandtime import utc
+from vsc.utils.run import run
 
 from vsc.utils.timestamp import convert_to_datetime, convert_to_unix_timestamp, convert_timestamp
 from vsc.utils.timestamp import retrieve_timestamp_with_default, DEFAULT_TIMESTAMP
@@ -72,6 +73,10 @@ class TestTimestamp(TestCase):
 
 
     def test_convert_to_unix_timestamp(self):
+        ec, out = run(['date', '+%s'])
+        nowts = convert_to_unix_timestamp()
+        self.assertTrue(abs(nowts - int(out.strip())) < 2)
+
         date = 0
         self.assertEqual(convert_to_unix_timestamp("19700101"), date)
         self.assertEqual(convert_to_unix_timestamp("0000000000"), date)
