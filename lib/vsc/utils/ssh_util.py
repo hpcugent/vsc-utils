@@ -158,7 +158,7 @@ class Ssh_util(object):
 
                 try:
                     ssh_stderr = stderr.read().strip()
-                except:
+                except Exception as ex:
                     logging.error('Could not read from stderr. error: %s', ex)
                     exit_status = 1
                     ssh_stderr = ex
