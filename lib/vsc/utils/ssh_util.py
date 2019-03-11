@@ -167,7 +167,7 @@ class Ssh_util(object):
                     logging.error("Command failed: %s. stdout: %s stderr: %s",
                                   command, ssh_stdout, ssh_stderr)
                     self.disconnect()
-                    return exit_status, ssh_stderr
+                    return exit_status, [ssh_stderr, ]
 
                 else:
                     output.append(ssh_stdout)
@@ -177,4 +177,4 @@ class Ssh_util(object):
 
         else:
             logging.error("Could not establish SSH connection")
-            return 1, 'Could not establish SSH connection'
+            return 1, ['Could not establish SSH connection', ]
