@@ -151,12 +151,16 @@ class Ssh_util(object):
 
                 try:
                     ssh_stdout = stdout.read().strip()
-                    ssh_stderr = stderr.read().strip()
-
                 except Exception as ex:
-                    logging.error('Could not read from stdout/stderr. error: %s', ex)
+                    logging.error('Could not read from stdout. error: %s', ex)
                     exit_status = 1
-                    ssh_stdout = ""
+                    ssh_stdout = ex
+
+                try:
+                    ssh_stderr = stderr.read().strip()
+                except:
+                    logging.error('Could not read from stderr. error: %s', ex)
+                    exit_status = 1
                     ssh_stderr = ex
 
                 if exit_status != 0:
