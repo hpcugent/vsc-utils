@@ -40,7 +40,8 @@ from vsc.utils import fancylogger
 from vsc.utils.availability import proceed_on_ha_service
 from vsc.utils.generaloption import SimpleOption
 from vsc.utils.lock import lock_or_bork, release_or_bork, LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE
-from vsc.utils.nagios import SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE, NAGIOS_EXIT_OK
+from vsc.utils.nagios import SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE
+from vsc.utils.nagios import NAGIOS_EXIT_OK, NAGIOS_EXIT_WARNING, NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_UNKNOWN
 from vsc.utils.timestamp_pid_lockfile import TimestampedPidLockfile
 
 
@@ -184,6 +185,26 @@ class ExtendedSimpleOption(SimpleOption):
         """Run at the end of a script and force a Critical exit."""
         self._epilogue()
         self.nagios_reporter.critical(nagios_message)
+
+    def unknown(self, nagios_message):
+        """Run at the end of a script and force a Unknown exit."""
+        self._epilogue()
+        self.nagios_reporter.unknown(nagios_message)
+
+    def exit_with_nagios_code(self, nagios_code, nagios_message):
+        """Run at the end of a script and force a given exit."""
+        self._epilogue()
+        if nagios_code == NAGIOS_EXIT_OK:
+            self.nagios_reporter.ok(nagios_message)
+        if nagios_code == NAGIOS_EXIT_WARNING:
+            self.nagios_reporter.warning(nagios_message)
+        if nagios_code == NAGIOS_EXIT_CRITICAL:
+            self.nagios_reporter.critical(nagios_message)
+        if nagios_code == NAGIOS_EXIT_UNKNOWN:
+            self.nagios_reporter.unknown(nagios_message)
+
+        # you should not get here
+        raise ValueError('unknown nagios_code %s given.' % nagios_code)
 
     def critical_exception_handler(self, tp, value, traceback):
         """
