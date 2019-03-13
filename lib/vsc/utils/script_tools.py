@@ -185,6 +185,20 @@ class ExtendedSimpleOption(SimpleOption):
         self._epilogue()
         self.nagios_reporter.critical(nagios_message)
 
+    def unknown(self, nagios_message):
+        """Run at the end of a script and force a Unknown exit."""
+        self._epilogue()
+        self.nagios_reporter.unknown(nagios_message)
+
+    def make_exit_map(self, ok=0, warn=1, crit=2, unkn=3):
+        """Make a mapping of exit functions."""
+        return {
+            ok: self.ok,
+            warn: self.warning,
+            crit: self.critical,
+            unkn: self.unknown,
+        }
+
     def critical_exception_handler(self, tp, value, traceback):
         """
         Run at the end of a script and force a Critical exit.
