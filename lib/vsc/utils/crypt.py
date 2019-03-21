@@ -31,6 +31,7 @@ Borrowed code from http://code.activestate.com/recipes/576980/
 @author: Daniel Miller
 @author:  Stijn De Weirdt (Ghent University)
 """
+from __future__ import print_function
 
 # PyCrypto-based authenticated symetric encryption
 import cPickle as pickle
@@ -44,7 +45,7 @@ from vsc.utils import fancylogger
 try:
     import hashlib
 except Exception, err:
-    print "Can't load hashlib (python-devel + easy_install hashlib ?): %s" % err
+    print("Can't load hashlib (python-devel + easy_install hashlib ?): %s" % err)
     sys.exit(1)
 
 # 2.4 workaround
@@ -65,13 +66,13 @@ try:
         sha256 = Faker(sha256)
 
 except Exception, err:
-    print "Problem with Faker under 2.4: %s" % err
+    print("Problem with Faker under 2.4: %s" % err)
     sys.exit(1)
 
 try:
     from Crypto.Cipher import AES
 except Exception, err:
-    print "Can't load Cipher from python-crypto: %s" % err
+    print("Can't load Cipher from python-crypto: %s" % err)
     sys.exit(1)
 
 
@@ -149,10 +150,10 @@ if __name__ == "__main__":
     # usage example
     c = Crypticle()
     key = c.generate_key_string()
-    print "key: %s" % key
+    print("key: %s" % key)
     data = {"dict": "full", "of": "secrets"}
     crypt = Crypticle(key)
     safe = crypt.dumps(data)
     assert data == crypt.loads(safe)
     enctxt = safe.encode("base64")
-    print "encrypted data:\n%s" % enctxt
+    print("encrypted data:\n%s" % enctxt)

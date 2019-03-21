@@ -91,7 +91,7 @@ def store_on_gpfs(user_name, path, key, information, gpfs, login_mount_point, gp
             cache.close()
 
             gpfs.ignorerealpathmismatch = True
-            gpfs.chmod(0640, filename)
+            gpfs.chmod(0o640, filename)
             gpfs.chown(path_stat.st_uid, path_stat.st_uid, filename)
             gpfs.ignorerealpathmismatch = False
 
