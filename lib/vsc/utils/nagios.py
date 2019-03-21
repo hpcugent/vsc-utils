@@ -39,6 +39,7 @@ interpreted by nagios/icinga.
 @author: Andy Georges (Ghent University)
 @author: Luis Fernando Muñoz Mejías (Ghent University)
 """
+from __future__ import print_function
 
 import operator
 import os
@@ -89,7 +90,7 @@ def _real_exit(message, code, metrics=''):
         log.info("Nagios report %s: %s%s" % (exit_text, msg, metrics))
         msg = msg[:NAGIOS_MAX_MESSAGE_LENGTH-3] + '...'
 
-    print "%s %s%s" % (exit_text, msg, metrics)
+    print("%s %s%s" % (exit_text, msg, metrics))
     sys.exit(exit_code)
 
 
@@ -278,7 +279,7 @@ class NagiosReporter(object):
 
         if self.threshold <= 0 or time.time() - timestamp < self.threshold:
             self.log.info("Nagios check cache file %s contents delivered: %s" % (self.filename, nagios_message))
-            print "%s %s" % (nagios_exit_string, nagios_message)
+            print("%s %s" % (nagios_exit_string, nagios_message))
             sys.exit(nagios_exit_code)
         else:
             unknown_exit("%s gzipped JSON file too old (timestamp = %s)" % (self.header, time.ctime(timestamp)))

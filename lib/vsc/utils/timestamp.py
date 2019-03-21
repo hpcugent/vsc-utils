@@ -73,7 +73,7 @@ def convert_to_datetime(timestamp=None):
             if len(timestamp) == 12:
                 date_format = "%Y%m%d%H%M"
             elif len(timestamp) == 15:  # len(LDAP_DATETIME_FORMAT doesn't work here
-                date_format =  LDAP_DATETIME_TIMEFORMAT
+                date_format = LDAP_DATETIME_TIMEFORMAT
             elif len(timestamp) == 8:
                 date_format = "%Y%m%d"
             else:
