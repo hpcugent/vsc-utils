@@ -40,7 +40,6 @@ def request_access_token(opener, path, client_id, client_secret):
                                 "client_id": client_id,
                                 "client_secret": client_secret})
     request = urllib2.Request(path, payload)
-    request.add_header('Content-Type', 'application/json')
     request.get_method = lambda: 'POST'
     uri = opener.open(request)
     response = uri.read()
