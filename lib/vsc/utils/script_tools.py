@@ -1,5 +1,5 @@
 #
-# Copyright 2012-2019 Ghent University
+# Copyright 2012-2020 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -45,6 +45,9 @@ from vsc.utils.nagios import (
     SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE, NAGIOS_EXIT_OK,
     NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_WARNING
 )
+from vsc.utils.timestamp import (
+    convert_timestamp, write_timestamp, retrieve_timestamp_with_default,
+    convert_to_unix_timestamp)
 from vsc.utils.timestamp_pid_lockfile import TimestampedPidLockfile
 
 DEFAULT_TIMESTAMP = "20140101000000Z"
@@ -53,6 +56,8 @@ DEFAULT_CLI_OPTIONS = {
     'start_timestamp': ("The timestamp form which to start, otherwise use the cached value", None, "store", None),
     TIMESTAMP_FILE_OPTION: ("Location to cache the start timestamp", None, "store", None),
 }
+MAX_DELTA = 3
+MAX_RTT = 2 * MAX_DELTA + 1
 
 
 def _script_name(full_name):
