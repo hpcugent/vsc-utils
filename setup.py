@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ##
-# Copyright 2012-2013 Ghent University
+# Copyright 2012-2020 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -34,7 +34,7 @@ import vsc.install.shared_setup as shared_setup
 from vsc.install.shared_setup import ag, sdw
 
 PACKAGE = {
-    'version': '1.10.4',
+    'version': '1.11.0',
     'author': [ag, sdw],
     'maintainer': [ag, sdw],
     'excluded_pkgs_rpm': ['vsc', 'vsc.utils'],  # vsc is default, vsc.utils is provided by vsc-base
