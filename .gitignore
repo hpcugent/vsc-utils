@@ -35,3 +35,6 @@ html
 test-reports
 
 setup.cfg
+
+# IDE
+.vscode
