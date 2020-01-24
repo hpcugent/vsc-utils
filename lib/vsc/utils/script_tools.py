@@ -230,7 +230,7 @@ class ExtendedSimpleOption(SimpleOption):
 
 class CLI(object):
     """
-    Base class to implement sync clients.
+    Base class to implement cli tools that require timestamps, nagios checks, etc.
     """
     TIMESTAMP_MANDATORY = True
 
