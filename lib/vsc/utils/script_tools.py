@@ -321,7 +321,6 @@ class CLI(object):
         Method to add actual work to do.
         The method is executed in main method in a generic try/except/finally block
         You can return something, that, when it evals to true, is considered fatal
-            self.apc has accountpage client
             self.start_timestamp has start time (i.e. either passed via commandline or
                 latest successful run from cache file)
             self.current_time has current_time (to be used as next start_timestamp when all goes well)
@@ -354,7 +353,7 @@ class CLI(object):
         Runs in main after do
 
         If errors evals to true, this is indicates a handled failure
-        If errors evals to false, and this is not a dry_run (or forced group or accountn selection),
+        If errors evals to false, and this is not a dry_run
         it is considered success and creates the cache file with current time
         """
         if current_time is None:
@@ -363,8 +362,8 @@ class CLI(object):
         if errors:
             logging.warning("Could not process all %s", errors)
             self.warning("Not all processed")
-        elif not (self.options.dry_run or self.options.groups or self.options.accounts):
-            # don't update the timestamp on dryrun, or when forcing the groups/accounts
+        elif not self.options.dry_run:
+            # don't update the timestamp on dryrun
             timestamp = -1  # handle failing convert_timestamp
             try:
                 _, timestamp = convert_timestamp(current_time)
