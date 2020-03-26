@@ -46,7 +46,7 @@ PACKAGE = {
         'jsonpickle',
         'pycrypto >= 2.0',
     ],
-    'setup_requires': ['vsc-install'],
+    'setup_requires': ['vsc-install >= 0.15.1'],
     'zip_safe': False,
 }
 
