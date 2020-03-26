@@ -34,13 +34,13 @@ import vsc.install.shared_setup as shared_setup
 from vsc.install.shared_setup import ag, sdw
 
 PACKAGE = {
-    'version': '1.10.5',
+    'version': '2.0.0',
     'author': [ag, sdw],
     'maintainer': [ag, sdw],
     'excluded_pkgs_rpm': ['vsc', 'vsc.utils'],  # vsc is default, vsc.utils is provided by vsc-base
     'tests_require': ['mock'],
     'install_requires': [
-        'vsc-base >= 2.4.16',
+        'vsc-base >= 3.0.2',
         'lockfile >= 0.9.1',
         'netifaces',
         'jsonpickle',

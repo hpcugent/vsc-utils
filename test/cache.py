@@ -38,8 +38,6 @@ import shutil
 import sys
 import random
 
-from exceptions import ValueError
-
 from vsc.install.testing import TestCase
 from vsc.utils.cache import FileCache
 
@@ -50,9 +48,9 @@ def get_rand_data():
     """Returns a random dict with between 0 and LIST_LEN elements  and a random threshold"""
     length = random.randint(0, LIST_LEN)
     data = {}
-    for x in xrange(length):
-        data[random.randint(0, sys.maxint)] = random.randint(0, sys.maxint)
-    threshold = random.randint(0, sys.maxint)
+    for x in range(length):
+        data[random.randint(0, sys.maxsize)] = random.randint(0, sys.maxsize)
+    threshold = random.randint(0, sys.maxsize)
     return data, threshold
 
 
@@ -121,9 +119,9 @@ class TestCache(TestCase):
         tempdir = tempfile.mkdtemp()
         # create a tempfilename
         (handle, filename) = tempfile.mkstemp(dir=tempdir)
-        f = os.fdopen(handle, 'w')
-        g = gzip.GzipFile(mode='w', fileobj=f)
-        g.write('blabla no json gzip stuffz')
+        f = os.fdopen(handle, 'wb')
+        g = gzip.GzipFile(mode='wb', fileobj=f)
+        g.write(b'blabla no json gzip stuffz')
         g.close()
 
         e = ValueError('unable to find valid JSON')
