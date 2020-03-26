@@ -33,47 +33,15 @@ Borrowed code from http://code.activestate.com/recipes/576980/
 """
 from __future__ import print_function
 
-# PyCrypto-based authenticated symetric encryption
-import cPickle as pickle
+import hashlib
 import hmac
 import os
-import sys
+
+# PyCrypto-based authenticated symetric encryption
+from Crypto.Cipher import AES
 
 from vsc.utils import fancylogger
-
-## tested with hashlib-20081119 under 2.4
-try:
-    import hashlib
-except Exception, err:
-    print("Can't load hashlib (python-devel + easy_install hashlib ?): %s" % err)
-    sys.exit(1)
-
-# 2.4 workaround
-# http://code.google.com/p/boto/issues/detail?id=172
-try:
-    from hashlib import sha256 as sha256
-
-    if sys.version[:3] == "2.4":
-        # we are using an hmac that expects a .new() method.
-        class Faker:
-            def __init__(self, which):
-                self.which = which
-                self.digest_size = self.which().digest_size
-
-            def new(self, *args, **kwargs):
-                return self.which(*args, **kwargs)
-
-        sha256 = Faker(sha256)
-
-except Exception, err:
-    print("Problem with Faker under 2.4: %s" % err)
-    sys.exit(1)
-
-try:
-    from Crypto.Cipher import AES
-except Exception, err:
-    print("Can't load Cipher from python-crypto: %s" % err)
-    sys.exit(1)
+from vsc.utils.py2vs3 import pickle
 
 
 class Crypticle(object):
@@ -101,7 +69,7 @@ class Crypticle(object):
     def extract_keys(self, key_string, key_size):
         try:
             key = key_string.decode("base64")
-        except Exception, err:
+        except Exception as err:
             self.log.error("base64 decoding failed", err)
 
         if not len(key) == key_size / 8 + self.SIG_SIZE:
@@ -116,7 +84,7 @@ class Crypticle(object):
         iv_bytes = os.urandom(self.AES_BLOCK_SIZE)
         cypher = AES.new(aes_key, AES.MODE_CBC, iv_bytes)
         data = iv_bytes + cypher.encrypt(data)
-        sig = hmac.new(hmac_key, data, sha256).digest()
+        sig = hmac.new(hmac_key, data, hashlib.sha256).digest()
         return data + sig
 
     def decrypt(self, data):
@@ -124,7 +92,7 @@ class Crypticle(object):
         aes_key, hmac_key = self.keys
         sig = data[-self.SIG_SIZE:]
         data = data[:-self.SIG_SIZE]
-        if hmac.new(hmac_key, data, sha256).digest() != sig:
+        if hmac.new(hmac_key, data, hashlib.sha256).digest() != sig:
             self.log.error("message authentication failed")
         iv_bytes = data[:self.AES_BLOCK_SIZE]
         data = data[self.AES_BLOCK_SIZE:]
