@@ -44,7 +44,7 @@ PACKAGE = {
         'lockfile >= 0.9.1',
         'netifaces',
         'jsonpickle',
-        'pycrypto',
+        'pycrypto >= 2.0',
     ],
     'setup_requires': ['vsc-install'],
     'zip_safe': False,
