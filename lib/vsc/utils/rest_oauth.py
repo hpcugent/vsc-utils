@@ -28,18 +28,18 @@ Utilities to allow interacting with a REST API as an application that
 was registered with the OAuth system of the web application.
 """
 import jsonpickle
-import urllib
-import urllib2
+
+from vsc.utils.py2vs3 import Request, urlencode
 
 
 def request_access_token(opener, path, client_id, client_secret):
     """
     Make a call to the oauth api to obtain an access token.
     """
-    payload = urllib.urlencode({"grant_type": "client_credentials",
+    payload = urlencode({"grant_type": "client_credentials",
                                 "client_id": client_id,
                                 "client_secret": client_secret})
-    request = urllib2.Request(path, payload)
+    request = Request(path, payload)
     request.add_header('Content-Type', 'application/json')
     request.get_method = lambda: 'POST'
     uri = opener.open(request)
@@ -52,7 +52,7 @@ def make_api_request(opener, path, method='GET', payload="", access_token=""):
     """
     Make a call to the REST API, given an access token.
     """
-    request = urllib2.Request(path, payload)
+    request = Request(path, payload)
     request.add_header('Content-Type', 'application/json')
     request.add_header('Authorization', "Bearer %s" % (access_token,))
     request.get_method = lambda: method

@@ -28,16 +28,13 @@ Caching utilities.
 
 @author: Andy Georges (Ghent University)
 """
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
 import gzip
 import jsonpickle
 import os
 import time
 
 from vsc.utils import fancylogger
+from vsc.utils.py2vs3 import pickle
 
 
 class FileCache(object):
@@ -171,7 +168,8 @@ class FileCache(object):
 
             g = gzip.GzipFile(mode='wb', fileobj=f)
             pickled = jsonpickle.encode(self.new_shelf)
-            g.write(pickled)
+            # .encode() is required in Python 3, since we need to pass a bytestring
+            g.write(pickled.encode())
             g.close()
             f.close()
 

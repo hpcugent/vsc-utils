@@ -36,6 +36,7 @@ import logging
 
 from vsc.utils.cache import FileCache
 from vsc.utils.dateandtime import utc
+from vsc.utils.py2vs3 import is_string
 
 LDAP_DATETIME_TIMEFORMAT = "%Y%m%d%H%M%SZ"
 
@@ -65,7 +66,7 @@ def convert_to_datetime(timestamp=None):
     if isinstance(timestamp, datetime.datetime):
         if timestamp.tzinfo is None:
             timestamp = timestamp.replace(tzinfo=utc)
-    elif isinstance(timestamp, basestring):
+    elif is_string(timestamp):
         if len(timestamp) == 10:
             # Unix timestamp
             timestamp = datetime.datetime.fromtimestamp(int(timestamp), utc)

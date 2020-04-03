@@ -1,5 +1,5 @@
 #
-# Copyright 2012-2019 Ghent University
+# Copyright 2012-2020 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -30,17 +30,16 @@ Tests for the NagiosResult class in the vsc.utils.nagios module
 """
 import os
 import tempfile
-import StringIO
 import sys
 import stat
-
+from pwd import getpwuid
 
 from vsc.install.testing import TestCase
 
 from vsc.utils.nagios import SimpleNagios, NAGIOS_EXIT_OK, NAGIOS_EXIT_CRITICAL
 from vsc.utils.nagios import NAGIOS_EXIT_WARNING, NAGIOS_EXIT_UNKNOWN, NagiosReporter
 from vsc.utils.nagios import exit_from_errorcode, ok_exit, warning_exit, critical_exit, unknown_exit
-from pwd import getpwuid
+from vsc.utils.py2vs3 import StringIO
 
 
 class TestSimpleNagios(TestCase):
@@ -49,7 +48,7 @@ class TestSimpleNagios(TestCase):
     def setUp(self):
         """redirect stdout"""
         self.old_stdout = sys.stdout
-        self.buffo = StringIO.StringIO()
+        self.buffo = StringIO()
         sys.stdout = self.buffo
         user = getpwuid(os.getuid())
         self.nagios_user = user.pw_name
@@ -65,14 +64,16 @@ class TestSimpleNagios(TestCase):
         self.buffo.seek(0)
         self.buffo.truncate(0)
 
+        raised_exception = None
         try:
             SimpleNagios(**kwargs)
-        except SystemExit, e:
-            pass
+        except SystemExit as err:
+            raised_exception = err
+
         bo = self.buffo.getvalue().rstrip()
 
         self.assertEqual(bo, message)
-        self.assertEqual(e.code, nagios_exit[0])
+        self.assertEqual(raised_exception.code, nagios_exit[0])
 
     def _basic_test_single_instance_and_exit(self, fn, msg, message, nagios_exit):
         """Basic test"""
@@ -80,16 +81,19 @@ class TestSimpleNagios(TestCase):
         self.buffo.seek(0)
         self.buffo.truncate(0)
 
-        n = SimpleNagios()
-        f = getattr(n, fn)
+        nagios = SimpleNagios()
+        func = getattr(nagios, fn)
+
+        raised_exception = None
         try:
-            f(msg)
-        except SystemExit, e:
-            pass
+            func(msg)
+        except SystemExit as err:
+            raised_exception = err
+
         bo = self.buffo.getvalue().rstrip()
 
         self.assertEqual(bo, message)
-        self.assertEqual(e.code, nagios_exit[0])
+        self.assertEqual(raised_exception.code, nagios_exit[0])
 
     def test_simple_single_instance(self):
         """Test what is generated when performance data is given, but not critical/warning"""
@@ -164,15 +168,16 @@ class TestSimpleNagios(TestCase):
         self.buffo.seek(0)
         self.buffo.truncate(0)
 
+        raised_exception = None
         try:
             reporter_test = NagiosReporter('test_cache', filename, -1, self.nagios_user)
             reporter_test.report_and_exit()
-        except SystemExit, e:
-            pass
+        except SystemExit as err:
+            raised_exception = err
         bo = self.buffo.getvalue().rstrip()
 
         self.assertEqual(bo, "WARNING %s" % message)
-        self.assertEqual(e.code, NAGIOS_EXIT_WARNING[0])
+        self.assertEqual(raised_exception.code, NAGIOS_EXIT_WARNING[0])
 
         statres = os.stat(filename)
 
@@ -204,7 +209,7 @@ class TestNagiosExits(TestCase):
     def setUp(self):
         """redirect stdout"""
         self.old_stdout = sys.stdout
-        self.buffo = StringIO.StringIO()
+        self.buffo = StringIO()
         sys.stdout = self.buffo
         user = getpwuid(os.getuid())
         self.nagios_user = user.pw_name
@@ -227,6 +232,6 @@ class TestNagiosExits(TestCase):
             try:
                 exit_from_errorcode(ec, "boem")
             except SystemExit as err:
-                print err
+                print(err)
                 self.assertTrue(err.code == expected[0])
 

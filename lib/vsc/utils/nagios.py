@@ -49,8 +49,9 @@ import stat
 import sys
 import time
 
-from vsc.utils.fancylogger import getLogger
 from vsc.utils.cache import FileCache
+from vsc.utils.fancylogger import getLogger
+from vsc.utils.py2vs3 import is_string
 
 log = getLogger(__name__)
 
@@ -153,7 +154,7 @@ class NagiosRange(object):
         """
         self.log = getLogger(self.__class__.__name__, fname=False)
 
-        if not isinstance(nrange, basestring):
+        if not is_string(nrange):
             newnrange = str(nrange)
             self.log.debug("nrange %s of type %s, converting to string (%s)" % (str(nrange), type(nrange), newnrange))
             try:
@@ -379,7 +380,7 @@ class NagiosResult(object):
         """Convert the self.__dict__ in list of dictionaries with value/ok/warning/critical"""
         processed_dict = dict()
 
-        for key, value in self.__dict__.iteritems():
+        for key, value in self.__dict__.items():
             if key in self.RESERVED_WORDS or key.startswith('_'):
                 continue
             processed_key = self.NAME_REG.search(key).groupdict()
@@ -398,7 +399,7 @@ class NagiosResult(object):
             return self.message
 
         perf = []
-        for k, v in sorted(processed_dict.iteritems()):
+        for k, v in sorted(processed_dict.items()):
             if ' ' in k:
                 k = "'%s'" % k
             perf.append("%s=%s%s;%s;%s;" % (k, v.get('value', ''), v.get('unit', ''),
@@ -501,13 +502,13 @@ class SimpleNagios(NagiosResult):
         msg = []
 
         warn, crit = None, None
-        for k, v in sorted(processed_dict.iteritems()):
+        for k, v in sorted(processed_dict.items()):
             if "critical" in v and NagiosRange(v['critical']).alert(v['value']):
                 crit = True
                 msg.append(k)
 
         if not crit:
-            for k, v in sorted(processed_dict.iteritems()):
+            for k, v in sorted(processed_dict.items()):
                 if "warning" in v and NagiosRange(v['warning']).alert(v['value']):
                     warn = True
                     msg.append(k)

@@ -35,11 +35,11 @@ Various types of pickle files that can be used to store non-component specific i
 @author: Stijn De Weirdt (Ghent University)
 """
 
-import cPickle as pickle
 import os
 import stat
 
 from vsc.utils import fancylogger
+from vsc.utils.py2vs3 import pickle
 
 
 class TimestampPickle(object):

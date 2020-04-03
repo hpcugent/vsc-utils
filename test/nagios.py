@@ -1,5 +1,5 @@
 #
-# Copyright 2012-2019 Ghent University
+# Copyright 2012-2020 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -34,14 +34,13 @@ import time
 import sys
 import random
 import string
-
-import StringIO
+from pwd import getpwuid
 
 from vsc.install.testing import TestCase
 
 from vsc.utils.nagios import NagiosReporter, SimpleNagios
 from vsc.utils.nagios import NAGIOS_EXIT_OK, NAGIOS_EXIT_WARNING, NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_UNKNOWN
-from pwd import getpwuid
+from vsc.utils.py2vs3 import StringIO
 
 
 class TestNagios(TestCase):
@@ -86,11 +85,11 @@ class TestNagios(TestCase):
 
         try:
             old_stdout = sys.stdout
-            buffer = StringIO.StringIO()
+            buffer = StringIO()
             sys.stdout = buffer
             reporter_test = NagiosReporter('test_cache', filename, threshold, self.nagios_user)
             reporter_test.report_and_exit()
-        except SystemExit, err:
+        except SystemExit as err:
             line = buffer.getvalue().rstrip()
             sys.stdout = old_stdout
             buffer.close()
@@ -112,19 +111,20 @@ class TestNagios(TestCase):
 
         # redirect stdout
         old_stdout = sys.stdout
-        buff = StringIO.StringIO()
+        buff = StringIO()
         sys.stdout = buff
 
         nagios_exit = NAGIOS_EXIT_OK
         reporter.cache(nagios_exit, message)
         os.close(handle)
 
+        raised_exception = None
         try:
             reporter_test = NagiosReporter('test_cache', filename, threshold, self.nagios_user)
             reporter_test.report_and_exit()
-        except SystemExit, err:
-            pass
-        self.assertEqual(err.code, NAGIOS_EXIT_OK[0],
+        except SystemExit as err:
+            raised_exception = err
+        self.assertEqual(raised_exception.code, NAGIOS_EXIT_OK[0],
                          "Exit with status when the cached data is recent")
         # restore stdout
         buff.close()
@@ -135,19 +135,21 @@ class TestNagios(TestCase):
         time.sleep(threshold + 1)
         # redirect stdout
         old_stdout = sys.stdout
-        buff = StringIO.StringIO()
+        buff = StringIO()
         sys.stdout = buff
+
+        raised_exception = None
         try:
             reporter_test = NagiosReporter('test_cache', filename, threshold, self.nagios_user)
             reporter_test.report_and_exit()
-        except SystemExit, err:
-            pass
+        except SystemExit as err:
+            raised_exception = err
 
         line = buff.getvalue().rstrip()
         # restore stdout
         buff.close()
         sys.stdout = old_stdout
-        self.assertEqual(err.code, NAGIOS_EXIT_UNKNOWN[0],
+        self.assertEqual(raised_exception.code, NAGIOS_EXIT_UNKNOWN[0],
                          "Too old caches lead to unknown status")
         self.assertTrue(line.startswith("%s test_cache gzipped JSON file too old (timestamp =" %
                                         (NAGIOS_EXIT_UNKNOWN[1])))
