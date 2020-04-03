@@ -43,7 +43,7 @@ from vsc.utils.generaloption import SimpleOption
 from vsc.utils.lock import lock_or_bork, release_or_bork, LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE
 from vsc.utils.nagios import (
     SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE, NAGIOS_EXIT_OK,
-    NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_WARNING
+    NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_WARNING, exit_from_errorcode
 )
 from vsc.utils.timestamp import (
     convert_timestamp, write_timestamp, retrieve_timestamp_with_default,
@@ -294,27 +294,22 @@ class CLI(object):
 
     def warning(self, msg):
         """
-        Convenience method that calls ExtendedSimpleOptions critical and exists with nagios warning exitcode
+        Convenience method that calls ExtendedSimpleOptions warning and exists with nagios warning exitcode
         """
-        logging.warning(msg)
-        self.fulloptions.critical(msg)
-        sys.exit(NAGIOS_EXIT_WARNING[0])
+        exit_from_errorcode(msg, 1)
 
     def critical(self, msg, log=True):
         """
         Convenience method that calls ExtendedSimpleOptions critical and exists with nagios critical exitcode
         """
-        if log:
-            logging.error(msg)
-        self.fulloptions.critical(msg)
-        sys.exit(NAGIOS_EXIT_CRITICAL[0])
+        exit_from_errorcode(msg, 2)
 
     def critical_exception(self, msg, exception):
         """
         Convenience method: report exception and critical method
         """
         logging.exception("%s: %s", msg, exception)
-        self.critical("%s (%s)" % (msg, type(exception)), log=False)
+        exit_from_errorcode(msg, 2)
 
     def do(self, dry_run):  #pylint: disable=unused-argument
         """
