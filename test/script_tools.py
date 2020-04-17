@@ -125,7 +125,7 @@ class TestCLI(TestCase):
             'nagios_check_filename': '/var/cache/setup.nagios.json.gz',
             'nagios_check_interval_threshold': 0,
             'nagios_report': False,
-            'nagios_user': 'nagios',
+            'nagios_user': 'nrpe',
             'nagios_world_readable_check': False,
             'quiet': False,
         }
