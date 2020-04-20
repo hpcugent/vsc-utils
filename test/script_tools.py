@@ -66,8 +66,8 @@ class TestExtendedSimpleOption(TestCase):
                          DEFAULT_OPTIONS['nagios-check-interval-threshold'][3])
         self.assertEqual(opts.nagios_reporter._threshold,
                          DEFAULT_OPTIONS['nagios-check-interval-threshold'][3])
-        self.assertEqual(opts.nagios_reporter._cache_user, 'nagios')
-        self.assertEqual(opts.options.nagios_user, 'nagios')
+        self.assertEqual(opts.nagios_reporter._cache_user, 'nrpe')
+        self.assertEqual(opts.options.nagios_user, 'nrpe')
         self.assertFalse(opts.nagios_reporter._world_readable)
         self.assertFalse(opts.options.nagios_world_readable_check)
 
