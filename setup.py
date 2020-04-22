@@ -43,9 +43,12 @@ install_requires = [
     'pycrypto >= 2.0',
 ]
 if sys.version_info < (3, 0):
-    # zipp 2.x or more recent is no longer compatible with Python 2
-    # (zipp is required by one of the other deps)
-    install_requires.append('zipp < 2')
+    # zipp 2.0 and configparser 5.0 or more recent are no longer compatible with Python 2
+    # (both are indirect deps of vsc-utils, required by one of the other deps)
+    install_requires.extend([
+        'zipp < 2',
+        'configparser < 5',
+    ])
 
 PACKAGE = {
     'version': '2.0.1',
