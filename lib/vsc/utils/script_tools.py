@@ -311,6 +311,7 @@ class CLI(object):
             self.options has options from commandline
             self.thresholds can be used to pass the thresholds during epilogue
         """
+        logging.error("`do` method not implemented")
         raise Exception("Not implemented")
 
     def make_time(self):
