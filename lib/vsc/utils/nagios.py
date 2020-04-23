@@ -185,14 +185,14 @@ class NagiosRange(object):
                 try:
                     start = float(start_txt)
                 except ValueError:
-                    self.raiseException("Invalid start txt value %s" % start_txt)
+                    self.log.raiseException("Invalid start txt value %s" % start_txt)
 
             end = res['end']
             if end is not None:
                 try:
                     end = float(end)
                 except ValueError:
-                    self.raiseException("Invalid end value %s" % end)
+                    self.log.raiseException("Invalid end value %s" % end)
 
             neg = res['neg'] is not None
             self.log.debug("parse: start %s end %s neg %s" % (start, end, neg))

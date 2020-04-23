@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ##
-# Copyright 2012-2013 Ghent University
+# Copyright 2012-2020 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -51,7 +51,7 @@ if sys.version_info < (3, 0):
     ])
 
 PACKAGE = {
-    'version': '2.0.1',
+    'version': '2.1.0',
     'author': [ag, sdw],
     'maintainer': [ag, sdw],
     'excluded_pkgs_rpm': ['vsc', 'vsc.utils'],  # vsc is default, vsc.utils is provided by vsc-base

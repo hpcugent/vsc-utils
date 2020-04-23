@@ -29,11 +29,12 @@ Tests for the classes and functions in vsc.utils.scrip_tools
 @author: Andy Georges
 """
 import mock
+import logging
 import random
 import sys
 
 from vsc.install.testing import TestCase
-from vsc.utils.script_tools import ExtendedSimpleOption, DEFAULT_OPTIONS
+from vsc.utils.script_tools import ExtendedSimpleOption, DEFAULT_OPTIONS, CLI
 
 
 class TestExtendedSimpleOption(TestCase):
@@ -65,8 +66,8 @@ class TestExtendedSimpleOption(TestCase):
                          DEFAULT_OPTIONS['nagios-check-interval-threshold'][3])
         self.assertEqual(opts.nagios_reporter._threshold,
                          DEFAULT_OPTIONS['nagios-check-interval-threshold'][3])
-        self.assertEqual(opts.nagios_reporter._cache_user, 'nagios')
-        self.assertEqual(opts.options.nagios_user, 'nagios')
+        self.assertEqual(opts.nagios_reporter._cache_user, 'nrpe')
+        self.assertEqual(opts.options.nagios_user, 'nrpe')
         self.assertFalse(opts.nagios_reporter._world_readable)
         self.assertFalse(opts.options.nagios_world_readable_check)
 
@@ -88,3 +89,60 @@ class TestExtendedSimpleOption(TestCase):
         self.assertEqual(opts.nagios_reporter._cache_user, 'nrpe')
         self.assertTrue(opts.nagios_reporter._world_readable)
         self.assertTrue(opts.options.nagios_world_readable_check)
+
+
+magic = mock.MagicMock(name='magic')
+
+class MyCLI(CLI):
+    TIMESTAMP_MANDATORY = False  # mainly for testing, you really should need this in production
+    CLI_OPTIONS = {
+        'magic': ('some magic', None, 'store', 'magicdef'),
+    }
+    def do(self, dry_run):
+        return magic.go()
+
+
+class TestCLI(TestCase):
+    """Tests for the CLI base class"""
+
+    @mock.patch('vsc.utils.script_tools.ExtendedSimpleOption.prologue')
+    def test_opts(self, prol):
+        sys.argv = ['abc']
+        ms = MyCLI()
+
+        logging.debug("options %s %s %s", ms.options, dir(ms.options), vars(ms.options))
+
+        extsimpopts = {
+            'configfiles': None,
+            'debug': False,
+            'disable_locking': False,
+            'dry_run': False,
+            'ha': None,
+            'help': None,
+            'ignoreconfigfiles': None,
+            'info': False,
+            'locking_filename': '/var/lock/setup.lock',
+            'nagios_check_filename': '/var/cache/setup.nagios.json.gz',
+            'nagios_check_interval_threshold': 0,
+            'nagios_report': False,
+            'nagios_user': 'nrpe',
+            'nagios_world_readable_check': False,
+            'quiet': False,
+        }
+
+        myopts = {
+            'magic': 'magicdef',
+            'start_timestamp': None,
+            'timestamp_file': '/var/cache/abc.timestamp',
+        }
+        myopts.update(extsimpopts)
+        self.assertEqual(ms.options.__dict__, myopts)
+
+        myopts = {
+            'magic': 'magicdef',
+        }
+        myopts.update(extsimpopts)
+        ms = MyCLI(default_options={})
+        logging.debug("options wo default sync options %s", ms.options)
+        self.assertEqual(ms.options.__dict__, myopts)
+
