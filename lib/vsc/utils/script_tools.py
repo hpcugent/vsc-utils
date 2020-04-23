@@ -281,17 +281,6 @@ class CLI(object):
 
         return ExtendedSimpleOption(options)
 
-    def _update_kwargs_modified_since(self, kwargs):
-        """
-        Update dict kwargs in place with modified_since value based on start_timestamp and current_time
-        """
-        if 'modified_since' not in kwargs:
-            if self.start_timestamp is not None:
-                mtime = self.start_timestamp
-                if self.current_time is not None:
-                    mtime = '%s_%s' % (mtime, convert_to_unix_timestamp(self.current_time))
-                kwargs['modified_since'] = mtime
-
     def warning(self, msg):
         """
         Convenience method that calls ExtendedSimpleOptions warning and exists with nagios warning exitcode
