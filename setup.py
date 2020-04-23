@@ -30,8 +30,25 @@ vsc-utils base distribution setup.py
 @author: Stijn De Weirdt (Ghent University)
 @author: Andy Georges (Ghent University)
 """
+import sys
+
 import vsc.install.shared_setup as shared_setup
 from vsc.install.shared_setup import ag, sdw
+
+install_requires = [
+    'vsc-base >= 3.0.2',
+    'lockfile >= 0.9.1',
+    'netifaces',
+    'jsonpickle',
+    'pycrypto >= 2.0',
+]
+if sys.version_info < (3, 0):
+    # zipp 2.0 and configparser 5.0 or more recent are no longer compatible with Python 2
+    # (both are indirect deps of vsc-utils, required by one of the other deps)
+    install_requires.extend([
+        'zipp < 2',
+        'configparser < 5',
+    ])
 
 PACKAGE = {
     'version': '2.1.0',
@@ -39,15 +56,7 @@ PACKAGE = {
     'maintainer': [ag, sdw],
     'excluded_pkgs_rpm': ['vsc', 'vsc.utils'],  # vsc is default, vsc.utils is provided by vsc-base
     'tests_require': ['mock'],
-    'install_requires': [
-        'vsc-base >= 3.0.2',
-        'lockfile >= 0.9.1',
-        'netifaces',
-        'jsonpickle',
-        'pycrypto >= 2.0',
-        'zipp < 2',
-        'configparser < 5',
-    ],
+    'install_requires': install_requires,
     'setup_requires': ['vsc-install >= 0.15.1'],
     'zip_safe': False,
 }
