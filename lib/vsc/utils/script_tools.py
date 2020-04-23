@@ -46,8 +46,8 @@ from vsc.utils.nagios import (
     exit_from_errorcode
 )
 from vsc.utils.timestamp import (
-    convert_timestamp, write_timestamp, retrieve_timestamp_with_default,
-    convert_to_unix_timestamp)
+    convert_timestamp, write_timestamp, retrieve_timestamp_with_default
+    )
 from vsc.utils.timestamp_pid_lockfile import TimestampedPidLockfile
 
 DEFAULT_TIMESTAMP = "20140101000000Z"
