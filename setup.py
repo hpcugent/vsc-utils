@@ -43,15 +43,19 @@ install_requires = [
     'pycrypto >= 2.0',
 ]
 if sys.version_info < (3, 0):
-    # zipp 2.0 and configparser 5.0 or more recent are no longer compatible with Python 2
-    # (both are indirect deps of vsc-utils, required by one of the other deps)
+    # jsonpickle pulls in too new and wrong deps on CentOS 7
     install_requires.extend([
-        'zipp < 2',
-        'configparser < 5',
+        'jsonpickle < 1.4.0'
     ])
 
+else:
+    install_requires.extend([
+        'jsonpickle'
+    ])
+
+
 PACKAGE = {
-    'version': '2.1.0',
+    'version': '2.1.1',
     'author': [ag, sdw],
     'maintainer': [ag, sdw],
     'excluded_pkgs_rpm': ['vsc', 'vsc.utils'],  # vsc is default, vsc.utils is provided by vsc-base
