@@ -285,20 +285,20 @@ class CLI(object):
         """
         Convenience method that calls ExtendedSimpleOptions warning and exists with nagios warning exitcode
         """
-        exit_from_errorcode(msg, 1)
+        exit_from_errorcode(1, msg)
 
     def critical(self, msg):
         """
         Convenience method that calls ExtendedSimpleOptions critical and exists with nagios critical exitcode
         """
-        exit_from_errorcode(msg, 2)
+        exit_from_errorcode(2, msg)
 
     def critical_exception(self, msg, exception):
         """
         Convenience method: report exception and critical method
         """
         logging.exception("%s: %s", msg, exception)
-        exit_from_errorcode(msg, 2)
+        exit_from_errorcode(2, msg)
 
     def do(self, dry_run):  #pylint: disable=unused-argument
         """
