@@ -147,12 +147,11 @@ class TestCLI(TestCase):
         self.assertEqual(ms.options.__dict__, myopts)
 
     @mock.patch('vsc.utils.script_tools.ExtendedSimpleOption.prologue')
-    def test_exit(self, mock_critical, mock_unknown, mock_warning, mock_ok, mock_prologue):
+    def test_exit(self, mock_prologue):
 
         cli = MyCLI()
 
         fake_exit = mock.MagicMock()
-
         with mock.patch('vsc.utils.nagios._real_exit', fake_exit):
             cli.warning("be warned")
             fake_exit.assert_called_with("be warned", NAGIOS_EXIT_WARNING)
