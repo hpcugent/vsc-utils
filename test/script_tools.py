@@ -34,8 +34,8 @@ import random
 import sys
 
 from vsc.install.testing import TestCase
+from vsc.utils.nagios import NAGIOS_EXIT_WARNING
 from vsc.utils.script_tools import ExtendedSimpleOption, DEFAULT_OPTIONS, CLI
-
 
 class TestExtendedSimpleOption(TestCase):
     """
@@ -145,4 +145,15 @@ class TestCLI(TestCase):
         ms = MyCLI(default_options={})
         logging.debug("options wo default sync options %s", ms.options)
         self.assertEqual(ms.options.__dict__, myopts)
+
+    @mock.patch('vsc.utils.script_tools.ExtendedSimpleOption.prologue')
+    def test_exit(self, mock_prologue):
+
+        cli = MyCLI()
+
+        fake_exit = mock.MagicMock()
+        with mock.patch('vsc.utils.nagios._real_exit', fake_exit):
+            cli.warning("be warned")
+            fake_exit.assert_called_with("be warned", NAGIOS_EXIT_WARNING)
+
 
