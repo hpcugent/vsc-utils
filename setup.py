@@ -40,7 +40,6 @@ install_requires = [
     'lockfile >= 0.9.1',
     'netifaces',
     'jsonpickle',
-    'pycrypto >= 2.0',
 ]
 if sys.version_info < (3, 0):
     # jsonpickle pulls in too new and wrong deps on CentOS 7
@@ -55,7 +54,7 @@ else:
 
 
 PACKAGE = {
-    'version': '2.1.3',
+    'version': '2.1.4',
     'author': [ag, sdw],
     'maintainer': [ag, sdw],
     'excluded_pkgs_rpm': ['vsc', 'vsc.utils'],  # vsc is default, vsc.utils is provided by vsc-base
