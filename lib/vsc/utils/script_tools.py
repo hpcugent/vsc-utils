@@ -379,7 +379,9 @@ class CLI(object):
         try:
             errors = self.do(self.options.dry_run)
         except Exception as err:
-            self.critical_exception("Script failed in a horrible way", err)
+            msg = "Script failed in a horrible way: %s" % err.message
+            self.fulloptions.critical(msg)
+            self.critical_exception(msg, err)
         finally:
             self.final()
 
