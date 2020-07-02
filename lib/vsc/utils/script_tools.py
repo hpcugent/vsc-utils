@@ -281,6 +281,12 @@ class CLI(object):
 
         return ExtendedSimpleOption(options)
 
+    def ok(self, msg):
+        """
+        Convenience method that calls ExtendedSimpleOptions warning and exists with nagios OK exitcode
+        """
+        exit_from_errorcode(0, msg)
+
     def warning(self, msg):
         """
         Convenience method that calls ExtendedSimpleOptions warning and exists with nagios warning exitcode
@@ -292,6 +298,12 @@ class CLI(object):
         Convenience method that calls ExtendedSimpleOptions critical and exists with nagios critical exitcode
         """
         exit_from_errorcode(2, msg)
+
+    def unknown(self, msg):
+        """
+        Convenience method that calls ExtendedSimpleOptions critical and exists with nagios unknown exitcode
+        """
+        exit_from_errorcode(3, msg)
 
     def critical_exception(self, msg, exception):
         """
@@ -369,7 +381,7 @@ class CLI(object):
         """
         errors = []
 
-        msg = "Sync"
+        msg = self.name
         if self.options.dry_run:
             msg += " (dry-run)"
         logging.info("%s started.", msg)
