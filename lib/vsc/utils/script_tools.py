@@ -283,7 +283,7 @@ class CLI(object):
 
     def ok(self, msg):
         """
-        Convenience method that calls ExtendedSimpleOptions warning and exists with nagios OK exitcode
+        Convenience method that calls ExtendedSimpleOptions ok and exists with nagios OK exitcode
         """
         exit_from_errorcode(0, msg)
 
@@ -301,7 +301,7 @@ class CLI(object):
 
     def unknown(self, msg):
         """
-        Convenience method that calls ExtendedSimpleOptions critical and exists with nagios unknown exitcode
+        Convenience method that calls ExtendedSimpleOptions unknown and exists with nagios unknown exitcode
         """
         exit_from_errorcode(3, msg)
 
