@@ -285,25 +285,33 @@ class CLI(object):
         """
         Convenience method that calls ExtendedSimpleOptions ok and exists with nagios OK exitcode
         """
-        exit_from_errorcode(0, msg)
+        logging.info(msg)
+        self.fulloptions.ok(msg)
+        sys.exit(NAGIOS_EXIT_OK[0])
 
     def warning(self, msg):
         """
         Convenience method that calls ExtendedSimpleOptions warning and exists with nagios warning exitcode
         """
-        exit_from_errorcode(1, msg)
+        logging.warning(msg)
+        self.fulloptions.critical(msg)
+        sys.exit(NAGIOS_EXIT_WARNING[0])
 
-    def critical(self, msg):
+    def critical(self, msg, log=True):
         """
         Convenience method that calls ExtendedSimpleOptions critical and exists with nagios critical exitcode
         """
-        exit_from_errorcode(2, msg)
+        logging.error(msg)
+        self.fulloptions.critical(msg)
+        sys.exit(NAGIOS_EXIT_CRITICAL[0])
 
     def unknown(self, msg):
         """
         Convenience method that calls ExtendedSimpleOptions unknown and exists with nagios unknown exitcode
         """
-        exit_from_errorcode(3, msg)
+        logging.error(msg)
+        self.fulloptions.unknown(msg)
+        sys.exit(NAGIOS_EXIT_UNKNOWN[0])
 
     def critical_exception(self, msg, exception):
         """
@@ -357,8 +365,8 @@ class CLI(object):
             current_time = self.current_time
 
         if errors:
-            logging.warning("Could not process all %s", errors)
-            self.warning("Not all processed")
+            logging.warning("Encountered errors: %s", errors)
+            self.warning("Failed to complete without errors.")
         elif not self.options.dry_run:
             # don't update the timestamp on dryrun
             timestamp = -1  # handle failing convert_timestamp
@@ -398,3 +406,31 @@ class CLI(object):
         self.post(errors)
 
         self.fulloptions.epilogue("%s complete" % msg, self.thresholds)
+
+
+
+class NrpeCLI(object):
+
+    def ok(self, msg):
+        """
+        Convenience method that exists with nagios OK exitcode
+        """
+        exit_from_errorcode(0, msg)
+
+    def warning(self, msg):
+        """
+        Convenience method exists with nagios warning exitcode
+        """
+        exit_from_errorcode(1, msg)
+
+    def critical(self, msg):
+        """
+        Convenience method that exists with nagios critical exitcode
+        """
+        exit_from_errorcode(2, msg)
+
+    def unknown(self, msg):
+        """
+        Convenience method that exists with nagios unknown exitcode
+        """
+        exit_from_errorcode(3, msg)
