@@ -42,8 +42,8 @@ from vsc.utils.availability import proceed_on_ha_service
 from vsc.utils.generaloption import SimpleOption
 from vsc.utils.lock import lock_or_bork, release_or_bork, LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE
 from vsc.utils.nagios import (
-    SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE, NAGIOS_EXIT_OK,
-    exit_from_errorcode
+    SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE, exit_from_errorcode,
+    NAGIOS_EXIT_OK, NAGIOS_EXIT_WARNING, NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_UNKNOWN,
 )
 from vsc.utils.timestamp import (
     convert_timestamp, write_timestamp, retrieve_timestamp_with_default
@@ -256,6 +256,7 @@ class CLI(object):
         self.start_timestamp = None
         self.current_time = None
 
+
     def make_options(self, defaults=None):
         """
         Take the default sync options, set the default timestamp file and merge
@@ -297,7 +298,7 @@ class CLI(object):
         self.fulloptions.critical(msg)
         sys.exit(NAGIOS_EXIT_WARNING[0])
 
-    def critical(self, msg, log=True):
+    def critical(self, msg):
         """
         Convenience method that calls ExtendedSimpleOptions critical and exists with nagios critical exitcode
         """
