@@ -35,7 +35,7 @@ import sys
 
 from vsc.install.testing import TestCase
 from vsc.utils.nagios import NAGIOS_EXIT_WARNING
-from vsc.utils.script_tools import ExtendedSimpleOption, DEFAULT_OPTIONS, CLI
+from vsc.utils.script_tools import ExtendedSimpleOption, DEFAULT_OPTIONS, NrpeCLI
 
 class TestExtendedSimpleOption(TestCase):
     """
@@ -93,7 +93,7 @@ class TestExtendedSimpleOption(TestCase):
 
 magic = mock.MagicMock(name='magic')
 
-class MyCLI(CLI):
+class MyCLI(NrpeCLI):
     TIMESTAMP_MANDATORY = False  # mainly for testing, you really should need this in production
     CLI_OPTIONS = {
         'magic': ('some magic', None, 'store', 'magicdef'),

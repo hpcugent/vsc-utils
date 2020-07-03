@@ -410,7 +410,10 @@ class CLI(object):
 
 
 
-class NrpeCLI(object):
+class NrpeCLI(CLI):
+
+    def __init__(self, name=None, default_options=None):
+        super(NrpeCLI, self).__init__(name=name, default_options=default_options)
 
     def ok(self, msg):
         """
