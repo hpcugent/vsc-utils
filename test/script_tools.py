@@ -223,8 +223,6 @@ class TestCLI(TestCase):
     @mock.patch('vsc.utils.script_tools.release_or_bork')
     def test_exit(self, locklock, releaselock):
 
-        locklock.return_value = True
-        releaselock.return_value = True
         cli = MyCLI()
 
         fake_exit = mock.MagicMock()
