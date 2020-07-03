@@ -295,7 +295,7 @@ class CLI(object):
         Convenience method that calls ExtendedSimpleOptions warning and exists with nagios warning exitcode
         """
         logging.warning(msg)
-        self.fulloptions.critical(msg)
+        self.fulloptions.warning(msg)
         sys.exit(NAGIOS_EXIT_WARNING[0])
 
     def critical(self, msg):
