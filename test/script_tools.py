@@ -32,10 +32,12 @@ import mock
 import logging
 import random
 import sys
+import tempfile
+import getpass
 
 from vsc.install.testing import TestCase
 from vsc.utils.nagios import NAGIOS_EXIT_WARNING
-from vsc.utils.script_tools import ExtendedSimpleOption, DEFAULT_OPTIONS, CLI
+from vsc.utils.script_tools import ExtendedSimpleOption, DEFAULT_OPTIONS, NrpeCLI, CLI
 
 class TestExtendedSimpleOption(TestCase):
     """
@@ -93,7 +95,7 @@ class TestExtendedSimpleOption(TestCase):
 
 magic = mock.MagicMock(name='magic')
 
-class MyCLI(CLI):
+class MyNrpeCLI(NrpeCLI):
     TIMESTAMP_MANDATORY = False  # mainly for testing, you really should need this in production
     CLI_OPTIONS = {
         'magic': ('some magic', None, 'store', 'magicdef'),
@@ -102,13 +104,27 @@ class MyCLI(CLI):
         return magic.go()
 
 
-class TestCLI(TestCase):
+class MyCLI(CLI):
+    TIMESTAMP_MANDATORY = False  # mainly for testing, you really should need this in production
+    TESTFILE = tempfile.mkstemp()[1]
+    TESTFILE2 = tempfile.mkstemp()[1]
+
+    CLI_OPTIONS = {
+        'magic': ('some magic', None, 'store', 'magicdef'),
+        'nagios_check_filename': ('bla', None, 'store', TESTFILE),
+        'locking_filename': ('test', None, 'store', TESTFILE2),
+        'nagios_user': ('user nagios runs as', 'string', 'store', getpass.getuser()),
+    }
+    def do(self, dry_run):
+        return magic.go()
+
+class TestNrpeCLI(TestCase):
     """Tests for the CLI base class"""
 
     @mock.patch('vsc.utils.script_tools.ExtendedSimpleOption.prologue')
     def test_opts(self, prol):
         sys.argv = ['abc']
-        ms = MyCLI()
+        ms = MyNrpeCLI()
 
         logging.debug("options %s %s %s", ms.options, dir(ms.options), vars(ms.options))
 
@@ -142,18 +158,76 @@ class TestCLI(TestCase):
             'magic': 'magicdef',
         }
         myopts.update(extsimpopts)
-        ms = MyCLI(default_options={})
+        ms = MyNrpeCLI(default_options={})
         logging.debug("options wo default sync options %s", ms.options)
         self.assertEqual(ms.options.__dict__, myopts)
 
     @mock.patch('vsc.utils.script_tools.ExtendedSimpleOption.prologue')
     def test_exit(self, mock_prologue):
 
-        cli = MyCLI()
+        cli = MyNrpeCLI()
 
         fake_exit = mock.MagicMock()
         with mock.patch('vsc.utils.nagios._real_exit', fake_exit):
             cli.warning("be warned")
             fake_exit.assert_called_with("be warned", NAGIOS_EXIT_WARNING)
+
+
+class TestCLI(TestCase):
+    """Tests for the CLI base class"""
+
+    @mock.patch('vsc.utils.script_tools.ExtendedSimpleOption.prologue')
+    def test_opts(self, prol):
+        sys.argv = ['abc']
+        ms = MyCLI()
+
+        logging.debug("options %s %s %s", ms.options, dir(ms.options), vars(ms.options))
+
+
+
+        extsimpopts = {
+            'configfiles': None,
+            'debug': False,
+            'disable_locking': False,
+            'dry_run': False,
+            'ha': None,
+            'help': None,
+            'ignoreconfigfiles': None,
+            'info': False,
+            'locking_filename': ms.TESTFILE2,
+            'nagios_check_filename': ms.TESTFILE,
+            'nagios_check_interval_threshold': 0,
+            'nagios_report': False,
+            'nagios_user': getpass.getuser(),
+            'nagios_world_readable_check': False,
+            'quiet': False,
+        }
+
+        myopts = {
+            'magic': 'magicdef',
+            'start_timestamp': None,
+            'timestamp_file': '/var/cache/abc.timestamp',
+        }
+        myopts.update(extsimpopts)
+        self.assertEqual(ms.options.__dict__, myopts)
+
+        myopts = {
+            'magic': 'magicdef',
+        }
+        myopts.update(extsimpopts)
+        ms = MyCLI(default_options={})
+        logging.debug("options wo default sync options %s", ms.options)
+        self.assertEqual(ms.options.__dict__, myopts)
+
+    @mock.patch('vsc.utils.script_tools.lock_or_bork')
+    @mock.patch('vsc.utils.script_tools.release_or_bork')
+    def test_exit(self, locklock, releaselock):
+
+        cli = MyCLI()
+
+        fake_exit = mock.MagicMock()
+        with mock.patch('sys.exit', fake_exit):
+            cli.warning("be warned")
+            fake_exit.assert_called_with(1)
 
 

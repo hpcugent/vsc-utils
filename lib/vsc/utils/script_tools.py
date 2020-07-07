@@ -42,8 +42,8 @@ from vsc.utils.availability import proceed_on_ha_service
 from vsc.utils.generaloption import SimpleOption
 from vsc.utils.lock import lock_or_bork, release_or_bork, LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE
 from vsc.utils.nagios import (
-    SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE, NAGIOS_EXIT_OK,
-    exit_from_errorcode
+    SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE, exit_from_errorcode,
+    NAGIOS_EXIT_OK, NAGIOS_EXIT_WARNING, NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_UNKNOWN,
 )
 from vsc.utils.timestamp import (
     convert_timestamp, write_timestamp, retrieve_timestamp_with_default
@@ -256,6 +256,7 @@ class CLI(object):
         self.start_timestamp = None
         self.current_time = None
 
+
     def make_options(self, defaults=None):
         """
         Take the default sync options, set the default timestamp file and merge
@@ -281,17 +282,37 @@ class CLI(object):
 
         return ExtendedSimpleOption(options)
 
+    def ok(self, msg):
+        """
+        Convenience method that calls ExtendedSimpleOptions ok and exists with nagios OK exitcode
+        """
+        logging.info(msg)
+        self.fulloptions.ok(msg)
+        sys.exit(NAGIOS_EXIT_OK[0])
+
     def warning(self, msg):
         """
         Convenience method that calls ExtendedSimpleOptions warning and exists with nagios warning exitcode
         """
-        exit_from_errorcode(1, msg)
+        logging.warning(msg)
+        self.fulloptions.warning(msg)
+        sys.exit(NAGIOS_EXIT_WARNING[0])
 
     def critical(self, msg):
         """
         Convenience method that calls ExtendedSimpleOptions critical and exists with nagios critical exitcode
         """
-        exit_from_errorcode(2, msg)
+        logging.error(msg)
+        self.fulloptions.critical(msg)
+        sys.exit(NAGIOS_EXIT_CRITICAL[0])
+
+    def unknown(self, msg):
+        """
+        Convenience method that calls ExtendedSimpleOptions unknown and exists with nagios unknown exitcode
+        """
+        logging.error(msg)
+        self.fulloptions.unknown(msg)
+        sys.exit(NAGIOS_EXIT_UNKNOWN[0])
 
     def critical_exception(self, msg, exception):
         """
@@ -345,8 +366,8 @@ class CLI(object):
             current_time = self.current_time
 
         if errors:
-            logging.warning("Could not process all %s", errors)
-            self.warning("Not all processed")
+            logging.warning("Encountered errors: %s", errors)
+            self.warning("Failed to complete without errors.")
         elif not self.options.dry_run:
             # don't update the timestamp on dryrun
             timestamp = -1  # handle failing convert_timestamp
@@ -369,7 +390,7 @@ class CLI(object):
         """
         errors = []
 
-        msg = "Sync"
+        msg = self.name
         if self.options.dry_run:
             msg += " (dry-run)"
         logging.info("%s started.", msg)
@@ -379,12 +400,41 @@ class CLI(object):
         try:
             errors = self.do(self.options.dry_run)
         except Exception as err:
-            msg = "Script failed in a horrible way: %s" % err.message
-            self.fulloptions.critical(msg)
-            self.critical_exception(msg, err)
+            self.critical_exception("Script failed in a horrible way", err)
         finally:
             self.final()
 
         self.post(errors)
 
         self.fulloptions.epilogue("%s complete" % msg, self.thresholds)
+
+
+
+class NrpeCLI(CLI):
+
+    def __init__(self, name=None, default_options=None):
+        super(NrpeCLI, self).__init__(name=name, default_options=default_options)
+
+    def ok(self, msg):
+        """
+        Convenience method that exists with nagios OK exitcode
+        """
+        exit_from_errorcode(0, msg)
+
+    def warning(self, msg):
+        """
+        Convenience method exists with nagios warning exitcode
+        """
+        exit_from_errorcode(1, msg)
+
+    def critical(self, msg):
+        """
+        Convenience method that exists with nagios critical exitcode
+        """
+        exit_from_errorcode(2, msg)
+
+    def unknown(self, msg):
+        """
+        Convenience method that exists with nagios unknown exitcode
+        """
+        exit_from_errorcode(3, msg)
