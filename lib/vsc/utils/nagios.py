@@ -420,30 +420,30 @@ class FakeSimpleNagios(NagiosResult):
         logging.debug("empty __init__")
 
     def _exit(self, nagios_exitcode, msg):  #pylint: disable=unused-argument
-        logging.debug("empty _exit")
+        logging.debug("empty _exit, msg %s", msg)
         sys.exit(nagios_exitcode)
 
     def ok(self, msg):
-        logging.debug("empty ok")
+        logging.debug("empty ok, msg %s", msg)
         self._exit(NAGIOS_EXIT_OK, msg)
 
     def warning(self, msg):
-        logging.debug("empty warning")
+        logging.debug("empty warning, msg %s", msg)
         self._exit(NAGIOS_EXIT_WARNING, msg)
 
     def critical(self, msg):
-        logging.debug("empty critical")
+        logging.debug("empty critical, msg %s", msg)
         self._exit(NAGIOS_EXIT_CRITICAL, msg)
 
     def unknown(self, msg):
-        logging.debug("empty unknown")
+        logging.debug("empty unknown, msg %s", msg)
         self._exit(NAGIOS_EXIT_WARNING, msg)
 
     def _eval(self, **kwargs):
-        logging.debug("empty _eval")
+        logging.debug("empty _eval, kwargs %s", **kwargs)
 
     def _eval_and_exit(self, **kwargs):
-        logging.debug("empty _eval_and_exit")
+        logging.debug("empty _eval_and_exit, kwargs %s", **kwargs)
 
 
 class SimpleNagios(NagiosResult):
