@@ -44,6 +44,7 @@ from vsc.utils.lock import lock_or_bork, release_or_bork, LOCKFILE_DIR, LOCKFILE
 from vsc.utils.nagios import (
     SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE, exit_from_errorcode,
     NAGIOS_EXIT_OK, NAGIOS_EXIT_WARNING, NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_UNKNOWN,
+    FakeSimpleNagios,
 )
 from vsc.utils.timestamp import (
     convert_timestamp, write_timestamp, retrieve_timestamp_with_default
@@ -70,6 +71,7 @@ def _script_name(full_name):
 
 DEFAULT_OPTIONS = {
     'disable-locking': ('do NOT protect this script by a file-based lock', None, 'store_true', False),
+    'disable-nagios': ('do NOT generate a nagios cache file. Implies no locking.', None, 'store_true', False),
     'dry-run': ('do not make any updates whatsoever', None, 'store_true', False),
     'ha': ('high-availability master IP address', None, 'store', None),
     'locking-filename': ('file that will serve as a lock', None, 'store',
@@ -102,7 +104,6 @@ def _merge_options(options):
             opts[k] = v
 
     return opts
-
 
 class ExtendedSimpleOption(SimpleOption):
     """
@@ -151,12 +152,16 @@ class ExtendedSimpleOption(SimpleOption):
         """
 
         # bail if nagios report is requested
-        self.nagios_reporter = SimpleNagios(_cache=self.options.nagios_check_filename,
-                                            _report_and_exit=self.options.nagios_report,
-                                            _threshold=self.options.nagios_check_interval_threshold,
-                                            _cache_user=self.options.nagios_user,
-                                            _world_readable=self.options.nagios_world_readable_check,
-                                            )
+        if self.options.disable_nagios:
+            self.nagios_reporter = FakeSimpleNagios()
+        else:
+            self.nagios_reporter = SimpleNagios(
+                _cache=self.options.nagios_check_filename,
+                _report_and_exit=self.options.nagios_report,
+                _threshold=self.options.nagios_check_interval_threshold,
+                _cache_user=self.options.nagios_user,
+                _world_readable=self.options.nagios_world_readable_check,
+            )
 
         # check for HA host
         if self.options.ha and not proceed_on_ha_service(self.options.ha):

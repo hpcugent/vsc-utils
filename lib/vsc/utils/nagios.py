@@ -41,6 +41,7 @@ interpreted by nagios/icinga.
 """
 from __future__ import print_function
 
+import logging
 import operator
 import os
 import pwd
@@ -406,6 +407,43 @@ class NagiosResult(object):
                                           v.get('warning', ''), v.get('critical', '')))
 
         return "%s | %s" % (self.message, ' '.join(perf))
+
+
+class FakeSimpleNagios(NagiosResult):
+    """Absolutely no side effects.
+
+    For use in long running services that have no access to the locations where
+    Nagios results would be stored.
+    """
+
+    def __init__(self, **kwargs):
+        logging.debug("empty __init__")
+
+    def _exit(self, nagios_exitcode, msg):  #pylint: disable=unused-argument
+        logging.debug("empty _exit")
+        sys.exit(nagios_exitcode)
+
+    def ok(self, msg):
+        logging.debug("empty ok")
+        self._exit(NAGIOS_EXIT_OK, msg)
+
+    def warning(self, msg):
+        logging.debug("empty warning")
+        self._exit(NAGIOS_EXIT_WARNING, msg)
+
+    def critical(self, msg):
+        logging.debug("empty critical")
+        self._exit(NAGIOS_EXIT_CRITICAL, msg)
+
+    def unknown(self, msg):
+        logging.debug("empty unknown")
+        self._exit(NAGIOS_EXIT_WARNING, msg)
+
+    def _eval(self, **kwargs):
+        logging.debug("empty _eval")
+
+    def _eval_and_exit(self, **kwargs):
+        logging.debug("empty _eval_and_exit")
 
 
 class SimpleNagios(NagiosResult):

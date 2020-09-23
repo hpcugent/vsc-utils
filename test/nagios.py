@@ -28,6 +28,7 @@ Tests for the vsc.utils.nagios module.
 
 @author: Andy Georges (Ghent University)
 """
+import mock
 import os
 import tempfile
 import time
@@ -38,10 +39,21 @@ from pwd import getpwuid
 
 from vsc.install.testing import TestCase
 
-from vsc.utils.nagios import NagiosReporter, SimpleNagios
+from vsc.utils.nagios import NagiosReporter, SimpleNagios, FakeSimpleNagios
 from vsc.utils.nagios import NAGIOS_EXIT_OK, NAGIOS_EXIT_WARNING, NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_UNKNOWN
 from vsc.utils.py2vs3 import StringIO
 
+class TestFakeSimpleNagios(TestCase):
+    """Test for the fake simple nagios class"""
+
+    def test_ok(self):
+        """Test the ok function"""
+        fake_exit = mock.MagicMock()
+        with mock.patch('sys.exit', fake_exit):
+           fake_simple = FakeSimpleNagios()
+           fake_simple.ok("some message")
+
+        fake_exit.assert_called_with(NAGIOS_EXIT_OK)
 
 class TestNagios(TestCase):
     """Test for the nagios reporter class."""
