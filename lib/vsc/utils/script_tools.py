@@ -71,7 +71,7 @@ def _script_name(full_name):
 
 DEFAULT_OPTIONS = {
     'disable-locking': ('do NOT protect this script by a file-based lock', None, 'store_true', False),
-    'disable-nagios': ('do NOT generate a nagios cache file. Implies no locking.', None, 'store_true', False),
+    'disable-nagios': ('do NOT generate a nagios cache file.', None, 'store_true', False),
     'dry-run': ('do not make any updates whatsoever', None, 'store_true', False),
     'ha': ('high-availability master IP address', None, 'store', None),
     'locking-filename': ('file that will serve as a lock', None, 'store',
