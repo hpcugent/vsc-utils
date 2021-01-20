@@ -276,7 +276,6 @@ class NagiosReporter(object):
             unknown_exit("%s nagios gzipped JSON file unavailable (%s)" % (self.header, self.filename))
 
         (timestamp, ((nagios_exit_code, nagios_exit_string), nagios_message)) = nagios_cache.load('nagios')
-        nagios_cache.close()
 
         if self.threshold <= 0 or time.time() - timestamp < self.threshold:
             self.log.info("Nagios check cache file %s contents delivered: %s" % (self.filename, nagios_message))
