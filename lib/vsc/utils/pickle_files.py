@@ -62,7 +62,7 @@ class TimestampPickle(object):
         try:
             timestamp = pickle.load(open(self.filename, "rb"))
         except (IOError, OSError):
-            self.log.exception("Failed to load timestamp pickle from filename %s." % (self.filename))
+            self.log.exception("Failed to load timestamp pickle from filename %s.", self.filename)
             return None
 
         return timestamp
@@ -80,11 +80,11 @@ class TimestampPickle(object):
         try:
             pickle.dump(timestamp, open(self.filename, "wb"))
         except Exception:
-            self.log.exception("Failed to dump timestamp %s to pickle in filename %s" % (timestamp, self.filename))
+            self.log.exception("Failed to dump timestamp %s to pickle in filename %s", timestamp, self.filename)
             raise
 
         try:
             os.chmod(self.filename, stat.S_IRWXU)
         except Exception:
-            self.log.exception("Failed to set permissions on filename %s" % (self.filename))
+            self.log.exception("Failed to set permissions on filename %s", self.filename)
             raise
