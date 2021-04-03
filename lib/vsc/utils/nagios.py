@@ -1,3 +1,4 @@
+
 # -*- encoding: utf-8 -*-
 #
 # Copyright 2012-2021 Ghent University
@@ -300,7 +301,7 @@ class NagiosReporter(object):
             self.log.info("Wrote nagios check cache file %s at about %s", self.filename, time.ctime(time.time()))
         except (IOError, OSError):
             # raising an error is ok, since we usually do this as the very last thing in the script
-            self.log.raiseException("Cannot save to the nagios gzipped JSON file (%s)", self.filename)
+            self.log.raiseException("Cannot save to the nagios gzipped JSON file (%s)" % self.filename)
 
         try:
             p = pwd.getpwnam(self.nagios_username)
