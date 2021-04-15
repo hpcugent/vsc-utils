@@ -36,7 +36,7 @@ import vsc.install.shared_setup as shared_setup
 from vsc.install.shared_setup import ag, sdw
 
 install_requires = [
-    'vsc-base >= 3.0.2',
+    'vsc-base >= 3.2.4',
     'lockfile >= 0.9.1',
     'netifaces',
     'jsonpickle',
