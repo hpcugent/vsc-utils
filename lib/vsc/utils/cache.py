@@ -160,7 +160,7 @@ class FileCache(object):
             os.makedirs(dirname)
         f = open(self.filename, 'wb')
         if not f:
-            self.log.error('cannot open the file cache at %s for writing' % (self.filename))
+            self.log.error('cannot open the file cache at %s for writing', self.filename)
         else:
             if self.retain_old:
                 self.shelf.update(self.new_shelf)
@@ -173,4 +173,4 @@ class FileCache(object):
             g.close()
             f.close()
 
-            self.log.info('closing the file cache at %s' % (self.filename))
+            self.log.info('closing the file cache at %s', self.filename)

@@ -84,7 +84,7 @@ class TimestampedPidLockfile(LockBase, object):
             timeout = self.threshold
         try:
             _write_pid_timestamp_file(self.path)
-            self.logger.info('Obtained lock on timestamped pid lockfile %s' % (self.path))
+            self.logger.info('Obtained lock on timestamped pid lockfile %s', self.path)
         except OSError as err:
             doraise = True
             if err.errno == errno.EEXIST:
@@ -93,15 +93,15 @@ class TimestampedPidLockfile(LockBase, object):
                 if time.time() - timestamp > timeout:
                     _find_and_kill(pid)
                     os.unlink(self.path)
-                    self.logger.warning('Obsolete lockfile detected at %s: pid = %d, timestamp = %s' %
-                                        (self.path, pid, time.ctime(timestamp)))
+                    self.logger.warning('Obsolete lockfile detected at %s: pid = %d, timestamp = %s',
+                                        self.path, pid, time.ctime(timestamp))
                     try:
                         _write_pid_timestamp_file(self.path)
                         doraise = False
                     except Exception:
                         pass
             if doraise:
-                self.logger.error('Unable to obtain lock on %s: %s' % (self.path, err))
+                self.logger.error('Unable to obtain lock on %s: %s', self.path, err)
                 raise LockFailed
 
     def release(self):
@@ -110,10 +110,10 @@ class TimestampedPidLockfile(LockBase, object):
         Remove the lockfile to indicate the lock was released.
         '''
         if not self.is_locked():
-            self.logger.error('Trying to release a lock that does not exist at %s.' % (self.path))
+            self.logger.error('Trying to release a lock that does not exist at %s.', self.path)
             raise NotLocked
         if not self.i_am_locking():
-            self.logger.error('Trying to release a lock the current process is not holding at %s' % (self.path))
+            self.logger.error('Trying to release a lock the current process is not holding at %s', self.path)
             raise NotMyLock
         os.remove(self.path)
 

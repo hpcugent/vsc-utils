@@ -160,7 +160,7 @@ class ExtendedSimpleOption(SimpleOption):
 
         # check for HA host
         if self.options.ha and not proceed_on_ha_service(self.options.ha):
-            self.log.warning("Not running on the target host %s in the HA setup. Stopping." % (self.options.ha,))
+            self.log.warning("Not running on the target host %s in the HA setup. Stopping.", self.options.ha)
             self.nagios_reporter.ok("Not running on the HA master.")
             sys.exit(NAGIOS_EXIT_OK)
 
@@ -169,7 +169,7 @@ class ExtendedSimpleOption(SimpleOption):
                                                    threshold=self.options.nagios_check_interval_threshold * 2)
             lock_or_bork(self.lockfile, self.nagios_reporter)
 
-        self.log.info("%s has started" % (_script_name(sys.argv[0])))
+        self.log.info("%s has started", _script_name(sys.argv[0]))
 
     def _epilogue(self):
         if not self.options.disable_locking and not self.options.dry_run:
@@ -184,7 +184,7 @@ class ExtendedSimpleOption(SimpleOption):
 
         nagios_thresholds['message'] = nagios_message
         self.nagios_reporter._eval_and_exit(**nagios_thresholds)
-        self.log.info("%s has finished" % (_script_name(sys.argv[0])))  # may not be reached
+        self.log.info("%s has finished", _script_name(sys.argv[0]))  # may not be reached
 
     def ok(self, nagios_message):
         """Run at the end of a script and force an OK exit."""

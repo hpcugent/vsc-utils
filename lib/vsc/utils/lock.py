@@ -55,11 +55,11 @@ def lock_or_bork(lockfile, simple_nagios):
         lockfile.acquire()
     except LockFailed:
         logger.critical('Unable to obtain lock: lock failed')
-        simple_nagios.critical("failed to take lock on %s" % (lockfile.path,))
+        simple_nagios.critical("failed to take lock on %s" % (lockfile.path))
         sys.exit(NAGIOS_EXIT_CRITICAL)
     except LockError:
-        logger.critical("Unable to obtain lock: could not read previous lock file %s" % (lockfile.path,))
-        simple_nagios.critical("failed to read lockfile %s" % (lockfile.path,))
+        logger.critical("Unable to obtain lock: could not read previous lock file %s", lockfile.path)
+        simple_nagios.critical("failed to read lockfile %s" % (lockfile.path))
         sys.exit(NAGIOS_EXIT_CRITICAL)
 
 

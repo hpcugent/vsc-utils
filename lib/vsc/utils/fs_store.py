@@ -56,9 +56,9 @@ def store_on_gpfs(user_name, path, key, information, gpfs, login_mount_point, gp
     """
 
     if user_name and user_name.startswith('vsc4'):
-        logger.debug("Storing %s information for user %s" % (key, user_name,))
-        logger.debug("information: %s" % (information,))
-        logger.debug("path for storing information would be %s" % (path,))
+        logger.debug("Storing %s information for user %s", key, user_name)
+        logger.debug("information: %s", information)
+        logger.debug("path for storing information would be %s", path)
 
         # FIXME: We need some better way to address this
         # Right now, we replace the nfs mount prefix which the symlink points to
@@ -66,15 +66,15 @@ def store_on_gpfs(user_name, path, key, information, gpfs, login_mount_point, gp
         # symlink problem once we take new default scratch into production
         if gpfs.is_symlink(path):
             target = os.path.realpath(path)
-            logger.debug("path is a symlink, target is %s" % (target,))
-            logger.debug("login_mount_point is %s" % (login_mount_point,))
+            logger.debug("path is a symlink, target is %s", target)
+            logger.debug("login_mount_point is %s", login_mount_point)
             if target.startswith(login_mount_point):
                 new_path = target.replace(login_mount_point, gpfs_mount_point, 1)
-                logger.info("Found a symlinked path %s to the nfs mount point %s. Replaced with %s" %
-                            (path, login_mount_point, gpfs_mount_point))
+                logger.info("Found a symlinked path %s to the nfs mount point %s. Replaced with %s",
+                            path, login_mount_point, gpfs_mount_point)
             else:
-                logger.warning("Unable to store quota information for %s on %s; symlink cannot be resolved properly"
-                                % (user_name, path))
+                logger.warning("Unable to store quota information for %s on %s; symlink cannot be resolved properly",
+                               user_name, path)
         else:
             new_path = path
 
@@ -82,9 +82,9 @@ def store_on_gpfs(user_name, path, key, information, gpfs, login_mount_point, gp
         filename = os.path.join(new_path, filename)
 
         if dry_run:
-            logger.info("Dry run: would update cache for at %s with %s" % (new_path, "%s" % (information,)))
-            logger.info("Dry run: would chmod 640 %s" % (filename,))
-            logger.info("Dry run: would chown %s to %s %s" % (filename, path_stat.st_uid, path_stat.st_gid))
+            logger.info("Dry run: would update cache for at %s with %s", new_path, information)
+            logger.info("Dry run: would chmod 640 %s", filename)
+            logger.info("Dry run: would chown %s to %s %s", filename, path_stat.st_uid, path_stat.st_gid)
         else:
             cache = FileCache(filename, False)  # data need not be retained
             cache.update(key=key, data=information, threshold=0)
@@ -95,7 +95,7 @@ def store_on_gpfs(user_name, path, key, information, gpfs, login_mount_point, gp
             gpfs.chown(path_stat.st_uid, path_stat.st_uid, filename)
             gpfs.ignorerealpathmismatch = False
 
-        logger.info("Stored user %s %s information at %s" % (user_name, key, filename))
+        logger.info("Stored user %s %s information at %s", user_name, key, filename)
 
 
 
