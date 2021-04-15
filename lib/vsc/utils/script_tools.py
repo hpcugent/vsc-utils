@@ -333,6 +333,7 @@ class CLI(object):
         """
         logging.error("`do` method not implemented")
         raise Exception("Not implemented")
+        return "Not implemented"
 
     def make_time(self):
         """
