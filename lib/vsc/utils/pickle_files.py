@@ -35,11 +35,12 @@ Various types of pickle files that can be used to store non-component specific i
 @author: Stijn De Weirdt (Ghent University)
 """
 
+import logging
 import os
 import stat
 
-from vsc.utils import fancylogger
-from vsc.utils.py2vs3 import pickle
+
+from vsc.utils.py2vs3 import pickle, FileNotFoundErrorExc
 
 
 class TimestampPickle(object):
@@ -47,7 +48,6 @@ class TimestampPickle(object):
 
     def __init__(self, filename):
         self.filename = filename
-        self.log = fancylogger.getLogger(self.__class__.__name__)
 
     def read(self):
         """Read a timestamp value from a pickled file.
@@ -61,8 +61,8 @@ class TimestampPickle(object):
 
         try:
             timestamp = pickle.load(open(self.filename, "rb"))
-        except (IOError, OSError):
-            self.log.exception("Failed to load timestamp pickle from filename %s.", self.filename)
+        except (IOError, OSError, FileNotFoundErrorExc):
+            logging.exception("Failed to load timestamp pickle from filename %s.", self.filename)
             return None
 
         return timestamp
@@ -80,11 +80,11 @@ class TimestampPickle(object):
         try:
             pickle.dump(timestamp, open(self.filename, "wb"))
         except Exception:
-            self.log.exception("Failed to dump timestamp %s to pickle in filename %s", timestamp, self.filename)
+            logging.exception("Failed to dump timestamp %s to pickle in filename %s", timestamp, self.filename)
             raise
 
         try:
             os.chmod(self.filename, stat.S_IRWXU)
         except Exception:
-            self.log.exception("Failed to set permissions on filename %s", self.filename)
+            logging.exception("Failed to set permissions on filename %s", self.filename)
             raise

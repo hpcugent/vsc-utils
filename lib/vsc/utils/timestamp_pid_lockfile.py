@@ -32,14 +32,13 @@ The above is available for Python 2.4, if a diff is applied.
 @author: Andy Georges (Ghent University)
 """
 import errno
+import logging
 import os
 import signal
 import time
 
 from lockfile.linklockfile import LockBase, LockFailed, NotLocked, NotMyLock
-
-from vsc.utils import fancylogger
-
+from vsc.utils.py2vs3 import FileNotFoundErrorExc, FileExistsErrorExc
 
 class LockFileReadError(Exception):
     '''Exception raised when we cannot get the expected information from the lock file.'''
@@ -54,7 +53,6 @@ class TimestampedPidLockfile(LockBase, object):
         '''Intializer.'''
         LockBase.__init__(self, path, False)
         self.threshold = threshold
-        self.logger = fancylogger.getLogger(self.__class__.__name__)
 
     def read_pid_timestamp(self):
         '''Obtain the PID and timestamp from the lockfile.
@@ -84,8 +82,8 @@ class TimestampedPidLockfile(LockBase, object):
             timeout = self.threshold
         try:
             _write_pid_timestamp_file(self.path)
-            self.logger.info('Obtained lock on timestamped pid lockfile %s', self.path)
-        except OSError as err:
+            logging.info('Obtained lock on timestamped pid lockfile %s', self.path)
+        except (OSError, FileNotFoundErrorExc, FileExistsErrorExc) as err:
             doraise = True
             if err.errno == errno.EEXIST:
                 ## Check if the timestamp is older than the threshold
@@ -93,15 +91,15 @@ class TimestampedPidLockfile(LockBase, object):
                 if time.time() - timestamp > timeout:
                     _find_and_kill(pid)
                     os.unlink(self.path)
-                    self.logger.warning('Obsolete lockfile detected at %s: pid = %d, timestamp = %s',
-                                        self.path, pid, time.ctime(timestamp))
+                    logging.warning('Obsolete lockfile detected at %s: pid = %d, timestamp = %s',
+                                    self.path, pid, time.ctime(timestamp))
                     try:
                         _write_pid_timestamp_file(self.path)
                         doraise = False
                     except Exception:
                         pass
             if doraise:
-                self.logger.error('Unable to obtain lock on %s: %s', self.path, err)
+                logging.error('Unable to obtain lock on %s: %s', self.path, err)
                 raise LockFailed
 
     def release(self):
@@ -110,10 +108,10 @@ class TimestampedPidLockfile(LockBase, object):
         Remove the lockfile to indicate the lock was released.
         '''
         if not self.is_locked():
-            self.logger.error('Trying to release a lock that does not exist at %s.', self.path)
+            logging.error('Trying to release a lock that does not exist at %s.', self.path)
             raise NotLocked
         if not self.i_am_locking():
-            self.logger.error('Trying to release a lock the current process is not holding at %s', self.path)
+            logging.error('Trying to release a lock the current process is not holding at %s', self.path)
             raise NotMyLock
         os.remove(self.path)
 

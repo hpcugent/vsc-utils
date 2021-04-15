@@ -34,7 +34,7 @@ import os
 import time
 
 from vsc.utils import fancylogger
-from vsc.utils.py2vs3 import pickle
+from vsc.utils.py2vs3 import pickle, FileNotFoundErrorExc
 
 
 class FileCache(object):
@@ -82,7 +82,7 @@ class FileCache(object):
                 try:
                     g = gzip.GzipFile(mode='rb', fileobj=f)  # no context manager available in python 26 yet
                     s = g.read()
-                except IOError as err:
+                except (IOError) as err:
                     self.log.error("Cannot load data from cache file %s as gzipped json", self.filename)
                     try:
                         f.seek(0)
@@ -106,7 +106,7 @@ class FileCache(object):
                 finally:
                     g.close()
 
-        except (OSError, IOError, ValueError) as err:
+        except (OSError, IOError, ValueError, FileNotFoundErrorExc) as err:
             self.log.warning("Could not access the file cache at %s [%s]", self.filename, err)
             self.shelf = {}
             self.log.info("Cache in %s starts with an empty shelf", (self.filename,))

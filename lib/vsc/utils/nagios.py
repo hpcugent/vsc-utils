@@ -52,7 +52,7 @@ import time
 
 from vsc.utils.cache import FileCache
 from vsc.utils.fancylogger import getLogger
-from vsc.utils.py2vs3 import is_string
+from vsc.utils.py2vs3 import is_string, FileNotFoundErrorExc
 
 log = getLogger(__name__)
 
@@ -316,7 +316,7 @@ class NagiosReporter(object):
             else:
                 self.log.warn("Not running as root: Cannot chown the nagios check file %s to %s",
                               self.filename, self.nagios_username)
-        except OSError:
+        except (OSError, FileNotFoundErrorExc):
             self.log.raiseException("Cannot chown the nagios check file %s to the nagios user" % (self.filename))
 
         return True
