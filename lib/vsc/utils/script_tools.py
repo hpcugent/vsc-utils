@@ -115,10 +115,12 @@ class ExtendedSimpleOption(SimpleOption):
     The prologue should be called at the start of the script; the epilogue at the end.
     """
 
-    def __init__(self, options, run_prologue=True, excepthook=None, **kwargs):
+    def __init__(self, options, run_prologue=True, excepthook=None, monitorclass=SimpleNagios, **kwargs):
         """Initialise.
 
         If run_prologue is True (default), we immediately execute the prologue.
+
+        - monitorclass: the class to use for interaction with the monitoring software
 
         Note that if taking a lock is requested (default), and the lock cannot be
         acquire for some reason, the program will exit,
@@ -129,6 +131,7 @@ class ExtendedSimpleOption(SimpleOption):
 
         self.nagios_reporter = None
         self.lockfile = None
+        self.MonitorClass = monitorclass
 
         if run_prologue:
             self.prologue()
@@ -140,23 +143,23 @@ class ExtendedSimpleOption(SimpleOption):
 
         self.log = fancylogger.getLogger()
 
-    def prologue(self, MonitorClass=SimpleNagios):
+    def prologue(self):
         """Checks the options given for settings and takes appropriate action.
 
         See _merge_options for the format.
-        - MonitorClass: the class to use for interaction with the monitoring software
+
         - if nagios_report is set, creates a MonitorClass instance and prints the report.
         - if ha is set, checks if running on the correct host, set the appropriate nagios message and bail if not.
         - if locking_filename is set, take a lock. If the lock fails, bork and set the nagios exit accordingly.
         """
 
         # bail if nagios report is requested
-        self.nagios_reporter = MonitorClass(_cache=self.options.nagios_check_filename,
-                                            _report_and_exit=self.options.nagios_report,
-                                            _threshold=self.options.nagios_check_interval_threshold,
-                                            _cache_user=self.options.nagios_user,
-                                            _world_readable=self.options.nagios_world_readable_check,
-                                            )
+        self.nagios_reporter = self.MonitorClass(_cache=self.options.nagios_check_filename,
+                                                 _report_and_exit=self.options.nagios_report,
+                                                 _threshold=self.options.nagios_check_interval_threshold,
+                                                 _cache_user=self.options.nagios_user,
+                                                 _world_readable=self.options.nagios_world_readable_check,
+                                                 )
 
         # check for HA host
         if self.options.ha and not proceed_on_ha_service(self.options.ha):
