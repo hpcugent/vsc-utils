@@ -42,7 +42,7 @@ from vsc.utils.availability import proceed_on_ha_service
 from vsc.utils.generaloption import SimpleOption
 from vsc.utils.lock import lock_or_bork, release_or_bork, LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE
 from vsc.utils.nagios import (
-    SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE, exit_from_errorcode,
+    SimpleZabbix, SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE, exit_from_errorcode,
     NAGIOS_EXIT_OK, NAGIOS_EXIT_WARNING, NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_UNKNOWN,
 )
 from vsc.utils.timestamp import (
@@ -140,18 +140,18 @@ class ExtendedSimpleOption(SimpleOption):
 
         self.log = fancylogger.getLogger()
 
-    def prologue(self):
+    def prologue(self, MonitorClass=SimpleNagios):
         """Checks the options given for settings and takes appropriate action.
 
         See _merge_options for the format.
-
-        - if nagios_report is set, creates a SimpleNagios instance and prints the report.
+        - MonitorClass: the class to use for interaction with the monitoring software
+        - if nagios_report is set, creates a MonitorClass instance and prints the report.
         - if ha is set, checks if running on the correct host, set the appropriate nagios message and bail if not.
         - if locking_filename is set, take a lock. If the lock fails, bork and set the nagios exit accordingly.
         """
 
         # bail if nagios report is requested
-        self.nagios_reporter = SimpleNagios(_cache=self.options.nagios_check_filename,
+        self.nagios_reporter = MonitorClass(_cache=self.options.nagios_check_filename,
                                             _report_and_exit=self.options.nagios_report,
                                             _threshold=self.options.nagios_check_interval_threshold,
                                             _cache_user=self.options.nagios_user,
