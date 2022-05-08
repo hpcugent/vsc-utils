@@ -30,15 +30,29 @@ This module adapts the nagios module so its output can be interpreted by Zabbix.
 
 @author: Samuel Moors (Vrije Universiteit Brussel)
 """
+from __future__ import print_function
 
 import json
 
-from vsc.utils.nagios import SimpleNagios
+
+from vsc.utils.nagios import SimpleNagios, NagiosReporter
 
 
 class SimpleZabbix(SimpleNagios):
+    def __init__(self, **kwargs):
+        """Initialise message and perfdata"""
+        super(SimpleZabbix, self)._init(reporterclass=ZabbixReporter, **kwargs)
+
     def __str__(self):
         """__str__ determines how the data is written to the cache"""
         processed_dict = {key: value for (key, value) in self.__dict__.items() if not key.startswith('_')}
         return json.dumps(processed_dict)
+
+
+class ZabbixReporter(NagiosReporter):
+    """Reporting class for Zabbix reports"""
+
+    def print_report(self, nagios_exit_string, nagios_message):
+        """Print the nagios report"""
+        print(nagios_message)
 

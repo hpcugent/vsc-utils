@@ -280,10 +280,14 @@ class NagiosReporter(object):
 
         if self.threshold <= 0 or time.time() - timestamp < self.threshold:
             self.log.info("Nagios check cache file %s contents delivered: %s", self.filename, nagios_message)
-            print("%s %s" % (nagios_exit_string, nagios_message))
+            self.print_report(nagios_exit_string, nagios_message)
             sys.exit(nagios_exit_code)
         else:
             unknown_exit("%s gzipped JSON file too old (timestamp = %s)" % (self.header, time.ctime(timestamp)))
+
+    def print_report(self, nagios_exit_string, nagios_message):
+        """Print the nagios report"""
+        print("%s %s" % (nagios_exit_string, nagios_message))
 
     def cache(self, nagios_exit, nagios_message):
         """Store the result in the cache file with a timestamp.
@@ -434,6 +438,11 @@ class SimpleNagios(NagiosResult):
 
     def __init__(self, **kwargs):
         """Initialise message and perfdata"""
+        self._init(**kwargs)
+
+    def _init(self, reporterclass=NagiosReporter, **kwargs):
+        """The real init method"""
+
         self.__dict__ = {}
         self.message = None  # the message
 
@@ -453,10 +462,10 @@ class SimpleNagios(NagiosResult):
         if self._cache:
             # make a NagiosReporter instance that can be used for caching
             if self._cache_user:
-                cache = NagiosReporter('no header', self._cache, self._threshold, nagios_username=self._cache_user,
+                cache = reporterclass('no header', self._cache, self._threshold, nagios_username=self._cache_user,
                                        world_readable=self._world_readable)
             else:
-                cache = NagiosReporter('no header', self._cache, self._threshold, world_readable=self._world_readable)
+                cache = reporterclass('no header', self._cache, self._threshold, world_readable=self._world_readable)
             if self._report_and_exit:
                 cache.report_and_exit()
             else:
