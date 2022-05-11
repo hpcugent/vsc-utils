@@ -56,7 +56,7 @@ class ZabbixReporter(NagiosReporter):
 
     def print_report_and_exit(self, timestamp, nagios_exit_code, nagios_exit_string, nagios_message):
         """Print the zabbix report and exit"""
-        json.dump([timestamp, nagios_exit_string, json.loads(nagios_message)], sys.stdout)
+        print('[%f, "%s", %s]' % (timestamp, nagios_exit_string, nagios_message))
         self.log.info("Zabbix check cache file %s contents delivered: %s", self.filename, nagios_message)
         sys.exit(nagios_exit_code)
 
