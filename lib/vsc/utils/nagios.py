@@ -460,7 +460,8 @@ class SimpleNagios(NagiosResult):
                 cache = self.REPORTERCLASS('no header', self._cache, self._threshold, nagios_username=self._cache_user,
                                        world_readable=self._world_readable)
             else:
-                cache = self.REPORTERCLASS('no header', self._cache, self._threshold, world_readable=self._world_readable)
+                cache = self.REPORTERCLASS(
+                    'no header', self._cache, self._threshold, world_readable=self._world_readable)
             if self._report_and_exit:
                 cache.report_and_exit()
             else:
