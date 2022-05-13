@@ -36,19 +36,7 @@ import json
 import sys
 
 from vsc.utils.nagios import SimpleNagios, NagiosReporter
-
-
-class SimpleZabbix(SimpleNagios):
-    """Class to allow easy interaction with Zabbix related code"""
-
-    def __init__(self, **kwargs):
-        """Initialise message and perfdata"""
-        super(SimpleZabbix, self)._init(reporterclass=ZabbixReporter, **kwargs)
-
-    def __str__(self):
-        """__str__ determines how the data is written to the cache"""
-        processed_dict = {key: value for (key, value) in self.__dict__.items() if not key.startswith('_')}
-        return json.dumps(processed_dict)
+from vsc.utils.script_tools import ExtendedSimpleOption
 
 
 class ZabbixReporter(NagiosReporter):
@@ -60,3 +48,16 @@ class ZabbixReporter(NagiosReporter):
         self.log.info("Zabbix check cache file %s contents delivered: %s", self.filename, nagios_message)
         sys.exit(nagios_exit_code)
 
+
+class SimpleZabbix(SimpleNagios):
+    """Class to allow easy interaction with Zabbix related code"""
+    REPORTERCLASS = ZabbixReporter
+
+    def __str__(self):
+        """__str__ determines how the data is written to the cache"""
+        processed_dict = {key: value for (key, value) in self.__dict__.items() if not key.startswith('_')}
+        return json.dumps(processed_dict)
+
+
+class ExtendedSimpleOptionZabbix(ExtendedSimpleOption):
+    MONITORCLASS = SimpleZabbix

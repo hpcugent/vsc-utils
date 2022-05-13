@@ -279,7 +279,6 @@ class NagiosReporter(object):
         (timestamp, ((nagios_exit_code, nagios_exit_string), nagios_message)) = nagios_cache.load('nagios')
         self.print_report_and_exit(timestamp, nagios_exit_code, nagios_exit_string, nagios_message)
 
-
     def print_report_and_exit(self, timestamp, nagios_exit_code, nagios_exit_string, nagios_message):
         """Print the nagios report (if the data is not too old) and exit"""
         if self.threshold <= 0 or time.time() - timestamp < self.threshold:
@@ -435,14 +434,10 @@ class SimpleNagios(NagiosResult):
     USE_HEADER = True
     RESERVED_WORDS = set(['message', 'ok', 'warning', 'critical', 'unknown',
                          '_exit', '_cache', '_cache_user', '_final', '_final_state', '_report', '_threshold'])
+    REPORTERCLASS = NagiosReporter
 
     def __init__(self, **kwargs):
         """Initialise message and perfdata"""
-        self._init(**kwargs)
-
-    def _init(self, reporterclass=NagiosReporter, **kwargs):
-        """The real init method"""
-
         self.__dict__ = {}
         self.message = None  # the message
 
@@ -462,10 +457,10 @@ class SimpleNagios(NagiosResult):
         if self._cache:
             # make a NagiosReporter instance that can be used for caching
             if self._cache_user:
-                cache = reporterclass('no header', self._cache, self._threshold, nagios_username=self._cache_user,
+                cache = self.REPORTERCLASS('no header', self._cache, self._threshold, nagios_username=self._cache_user,
                                        world_readable=self._world_readable)
             else:
-                cache = reporterclass('no header', self._cache, self._threshold, world_readable=self._world_readable)
+                cache = self.REPORTERCLASS('no header', self._cache, self._threshold, world_readable=self._world_readable)
             if self._report_and_exit:
                 cache.report_and_exit()
             else:

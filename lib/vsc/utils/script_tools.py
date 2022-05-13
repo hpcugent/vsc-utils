@@ -114,13 +114,12 @@ class ExtendedSimpleOption(SimpleOption):
 
     The prologue should be called at the start of the script; the epilogue at the end.
     """
+    MONITORCLASS = SimpleNagios
 
-    def __init__(self, options, run_prologue=True, excepthook=None, monitorclass=SimpleNagios, **kwargs):
+    def __init__(self, options, run_prologue=True, excepthook=None, **kwargs):
         """Initialise.
 
         If run_prologue is True (default), we immediately execute the prologue.
-
-        - monitorclass: the class to use for interaction with the monitoring software
 
         Note that if taking a lock is requested (default), and the lock cannot be
         acquire for some reason, the program will exit,
@@ -131,7 +130,6 @@ class ExtendedSimpleOption(SimpleOption):
 
         self.nagios_reporter = None
         self.lockfile = None
-        self.monitorclass = monitorclass
 
         if run_prologue:
             self.prologue()
@@ -148,13 +146,13 @@ class ExtendedSimpleOption(SimpleOption):
 
         See _merge_options for the format.
 
-        - if nagios_report is set, creates a monitorclass instance and prints the report.
+        - if nagios_report is set, creates a SimpleNagios instance and prints the report.
         - if ha is set, checks if running on the correct host, set the appropriate nagios message and bail if not.
         - if locking_filename is set, take a lock. If the lock fails, bork and set the nagios exit accordingly.
         """
 
         # bail if nagios report is requested
-        self.nagios_reporter = self.monitorclass(_cache=self.options.nagios_check_filename,
+        self.nagios_reporter = self.MONITORCLASS(_cache=self.options.nagios_check_filename,
                                                  _report_and_exit=self.options.nagios_report,
                                                  _threshold=self.options.nagios_check_interval_threshold,
                                                  _cache_user=self.options.nagios_user,
