@@ -1,5 +1,5 @@
 #
-# Copyright 2012-2021 Ghent University
+# Copyright 2012-2022 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -80,7 +80,7 @@ DEFAULT_OPTIONS = {
                               os.path.join(NAGIOS_CACHE_DIR,
                                            NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
     'nagios-check-interval-threshold': ('threshold of nagios checks timing out', 'int', 'store', 0),
-    'nagios-user': ('user nagios runs as', 'string', 'store', 'nrpe'),
+    'nagios-user': ('user nagios runs as', 'string', 'store', None),
     'nagios-world-readable-check': ('make the nagios check data file world readable', None, 'store_true', False),
 }
 
@@ -114,6 +114,7 @@ class ExtendedSimpleOption(SimpleOption):
 
     The prologue should be called at the start of the script; the epilogue at the end.
     """
+    MONITORCLASS = SimpleNagios
 
     def __init__(self, options, run_prologue=True, excepthook=None, **kwargs):
         """Initialise.
@@ -126,6 +127,9 @@ class ExtendedSimpleOption(SimpleOption):
 
         options_ = _merge_options(options)
         super(ExtendedSimpleOption, self).__init__(options_, **kwargs)
+
+        if not self.options.nagios_user:
+            self.options.nagios_user = self.MONITORCLASS.DEFAULT_CACHE_USER
 
         self.nagios_reporter = None
         self.lockfile = None
@@ -151,12 +155,12 @@ class ExtendedSimpleOption(SimpleOption):
         """
 
         # bail if nagios report is requested
-        self.nagios_reporter = SimpleNagios(_cache=self.options.nagios_check_filename,
-                                            _report_and_exit=self.options.nagios_report,
-                                            _threshold=self.options.nagios_check_interval_threshold,
-                                            _cache_user=self.options.nagios_user,
-                                            _world_readable=self.options.nagios_world_readable_check,
-                                            )
+        self.nagios_reporter = self.MONITORCLASS(_cache=self.options.nagios_check_filename,
+                                                 _report_and_exit=self.options.nagios_report,
+                                                 _threshold=self.options.nagios_check_interval_threshold,
+                                                 _cache_user=self.options.nagios_user,
+                                                 _world_readable=self.options.nagios_world_readable_check,
+                                                 )
 
         # check for HA host
         if self.options.ha and not proceed_on_ha_service(self.options.ha):
