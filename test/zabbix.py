@@ -87,7 +87,7 @@ class TestZabbix(TestCase):
             buffer.close()
             self.assertTrue(err.code == nagios_exit[0])
             line = json.loads(line)
-            self.assertTrue(line[1] == nagios_exit[1])
-            self.assertTrue(line[2][0] == json.loads(message)[0])
+            self.assertTrue(line["exit_string"] == nagios_exit[1])
+            self.assertTrue(line["message"][0] == json.loads(message)[0])
 
         os.unlink(filename)
