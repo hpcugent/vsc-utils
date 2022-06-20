@@ -435,6 +435,7 @@ class SimpleNagios(NagiosResult):
     RESERVED_WORDS = set(['message', 'ok', 'warning', 'critical', 'unknown',
                          '_exit', '_cache', '_cache_user', '_final', '_final_state', '_report', '_threshold'])
     REPORTERCLASS = NagiosReporter
+    DEFAULT_CACHE_USER = 'nrpe'
 
     def __init__(self, **kwargs):
         """Initialise message and perfdata"""

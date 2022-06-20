@@ -80,7 +80,7 @@ DEFAULT_OPTIONS = {
                               os.path.join(NAGIOS_CACHE_DIR,
                                            NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
     'nagios-check-interval-threshold': ('threshold of nagios checks timing out', 'int', 'store', 0),
-    'nagios-user': ('user nagios runs as', 'string', 'store', 'nrpe'),
+    'nagios-user': ('user nagios runs as', 'string', 'store', None),
     'nagios-world-readable-check': ('make the nagios check data file world readable', None, 'store_true', False),
 }
 
@@ -127,6 +127,9 @@ class ExtendedSimpleOption(SimpleOption):
 
         options_ = _merge_options(options)
         super(ExtendedSimpleOption, self).__init__(options_, **kwargs)
+
+        if not self.options.nagios_user:
+            self.options.nagios_user = self.MONITORCLASS.DEFAULT_CACHE_USER
 
         self.nagios_reporter = None
         self.lockfile = None

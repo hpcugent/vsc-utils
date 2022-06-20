@@ -52,6 +52,7 @@ class ZabbixReporter(NagiosReporter):
 class SimpleZabbix(SimpleNagios):
     """Class to allow easy interaction with Zabbix related code"""
     REPORTERCLASS = ZabbixReporter
+    DEFAULT_CACHE_USER = 'zabbix'
 
     def __str__(self):
         """__str__ determines how the data is written to the cache"""
