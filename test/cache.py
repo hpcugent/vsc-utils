@@ -102,15 +102,17 @@ class TestCache(TestCase):
 
         shutil.rmtree(tempdir)
 
-    def test_corrupt_gz_cache(self):
+    def test_corrupt_cache(self):
         """Test to see if we can handle a corrupt cache file"""
         tempdir = tempfile.mkdtemp()
-        # create a tempfilename
-        (handle, filename) = tempfile.mkstemp(dir=tempdir)
-        f = os.fdopen(handle, 'w')
-        f.write('blabla;not gz')
-        f.close()
-        FileCache(filename)
+
+        # create a bollocks cache file
+        with open(os.path.join(tempdir, "cache.db", "w")) as f:
+            f.write("blabla")
+
+        # this should clear the cache and create a new one
+        FileCache(tempdir)
+
         shutil.rmtree(tempdir)
 
     @mock.patch('vsc.utils.cache.jsonpickle.decode')
