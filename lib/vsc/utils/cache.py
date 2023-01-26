@@ -28,16 +28,15 @@ Caching utilities.
 
 @author: Andy Georges (Ghent University)
 """
-import gzip
-import jsonpickle
-import os
+import logging
 import time
-import pickle
+import diskcache as dc
 
-from vsc.utils import fancylogger
 
 class FileCache(object):
     """File cache with a timestamp safety.
+
+    Wrapper around diskcache to retain the old API until all usage can be replaced.
 
     Stores data (something that can be pickled) into a dictionary
     indexed by the data.key(). The value stored is a tuple consisting
@@ -65,52 +64,16 @@ class FileCache(object):
 
         @param filename: (absolute) path to the cache file.
         """
+        del raise_unpickable
 
-        self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
+        self.retain_old = retain_old  # this is no longer used
+
         self.filename = filename
-        self.retain_old = retain_old
-
-        self.new_shelf = {}
+        self.cache = dc.Cache(filename)
         if not retain_old:
-            self.log.info("Starting with a new empty cache, not retaining previous info if any.")
-            self.shelf = {}
-            return
+            self.cache.clear()
 
-        try:
-            with open(self.filename, 'rb') as f:
-                try:
-                    g = gzip.GzipFile(mode='rb', fileobj=f)  # no context manager available in python 26 yet
-                    s = g.read()
-                except (IOError) as err:
-                    self.log.error("Cannot load data from cache file %s as gzipped json", self.filename)
-                    try:
-                        f.seek(0)
-                        self.shelf = pickle.load(f)
-                    except pickle.UnpicklingError as err:
-                        msg = "Problem loading pickle data from %s (corrupt data)" % (self.filename,)
-                        if raise_unpickable:
-                            self.log.raiseException(msg)
-                        else:
-                            self.log.error("%s. Continue with empty shelf: %s", msg, err)
-                            self.shelf = {}
-                    except (OSError, IOError):
-                        self.log.raiseException("Could not load pickle data from %s", self.filename)
-                else:
-                    try:
-                        self.shelf = jsonpickle.decode(s)
-                    except ValueError as err:
-                        self.log.error("Cannot decode JSON from %s [%s]", self.filename, err)
-                        self.log.info("Cache in %s starts with an empty shelf", self.filename)
-                        self.shelf = {}
-                finally:
-                    g.close()
-
-        except (OSError, IOError, ValueError, FileNotFoundError) as err:
-            self.log.warning("Could not access the file cache at %s [%s]", self.filename, err)
-            self.shelf = {}
-            self.log.info("Cache in %s starts with an empty shelf", (self.filename,))
-
-    def update(self, key, data, threshold):
+    def update(self, key, data, threshold=None):
         """Update the given data if the existing data is older than the given threshold.
 
         @type key: something that can serve as a dictionary key (and thus can be pickled)
@@ -121,19 +84,11 @@ class FileCache(object):
         @param data: whatever needs to be stored
         @param threshold: time in seconds
         """
+        old, old_timestamp = self.cache.get(key, default=(None, None))
         now = time.time()
-        old = self.load(key)
-        if old:
-            (ts, _) = old
-            if now - ts > threshold:
-                self.new_shelf[key] = (now, data)
-                return True
-            else:
-                self.new_shelf[key] = old
-                return False
-        else:
-            self.new_shelf[key] = (now, data)
-            return True
+
+        if not old or now - old_timestamp > threshold:
+            self.cache[key] = (data, now)
 
     def load(self, key):
         """Load the stored data for the given key along with the timestamp it was stored.
@@ -142,32 +97,20 @@ class FileCache(object):
 
         @returns: (timestamp, data) if there is data for the given key, None otherwise.
         """
-        return self.new_shelf.get(key, None) or self.shelf.get(key, None)
+        return self.cache.get(key, default=None)
 
+    @DeprecationWarning
     def retain(self):
         """Retain non-updated data on close."""
         self.retain_old = True
 
+    @DeprecationWarning
     def discard(self):
         """Discard non-updated data on close."""
         self.retain_old = False
 
     def close(self):
         """Close the cache."""
-        dirname = os.path.dirname(self.filename)
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
-        with open(self.filename, 'wb') as fih:
-            if not fih:
-                self.log.error('cannot open the file cache at %s for writing', self.filename)
-            else:
-                if self.retain_old:
-                    self.shelf.update(self.new_shelf)
-                    self.new_shelf = self.shelf
+        self.cache.close()
 
-                with gzip.GzipFile(mode='wb', fileobj=fih) as zipf:
-                    pickled = jsonpickle.encode(self.new_shelf)
-                    # .encode() is required in Python 3, since we need to pass a bytestring
-                    zipf.write(pickled.encode())
-
-                self.log.info('closing the file cache at %s', self.filename)
+        logging.info('closing the file cache at %s', self.filename)
