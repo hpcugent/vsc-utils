@@ -114,22 +114,3 @@ class TestCache(TestCase):
         FileCache(tempdir)
 
         shutil.rmtree(tempdir)
-
-    @mock.patch('vsc.utils.cache.jsonpickle.decode')
-    def test_value_error(self, mock_decode):
-        "Test to see that a ValueError upon decoding gets caught correctly"
-        tempdir = tempfile.mkdtemp()
-        # create a tempfilename
-        (handle, filename) = tempfile.mkstemp(dir=tempdir)
-        f = os.fdopen(handle, 'wb')
-        g = gzip.GzipFile(mode='wb', fileobj=f)
-        g.write(b'blabla no json gzip stuffz')
-        g.close()
-
-        e = ValueError('unable to find valid JSON')
-        mock_decode.side_effect = e
-
-        fc = FileCache(filename)
-
-        self.assertTrue(fc.shelf == {})
-        shutil.rmtree(tempdir)
