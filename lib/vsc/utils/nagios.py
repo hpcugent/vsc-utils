@@ -260,24 +260,26 @@ class NagiosReporter(object):
         self.nagios_username = nagios_username
 
     def report_and_exit(self):
-        """Unzips the cache file and reads the JSON data back in, prints the data and exits accordingly.
+        """Reads the cache, prints the data and exits accordingly.
 
         If the cache data is too old (now - cache timestamp > self.threshold), a critical exit is produced.
         """
         try:
-            nagios_cache = FileCache(self.filename, True)
+            nagios_cache = FileCache(self.filename)
         except (IOError, OSError):
             logging.critical("Error opening file %s for reading", self.filename)
-            unknown_exit("%s nagios gzipped JSON file unavailable (%s)" % (self.header, self.filename))
+            unknown_exit("%s nagios cache unavailable (%s)" % (self.header, self.filename))
 
-        (timestamp, ((nagios_exit_code, nagios_exit_string), nagios_message)) = nagios_cache.load('nagios')
+        (_, nagios_exit_info) = nagios_cache.load('nagios')
 
-        if self.threshold <= 0 or time.time() - timestamp < self.threshold:
-            logging.info("Nagios check cache file %s contents delivered: %s", self.filename, nagios_message)
-            print("%s %s" % (nagios_exit_string, nagios_message))
-            sys.exit(nagios_exit_code)
-        else:
-            unknown_exit("%s gzipped JSON file too old (timestamp = %s)" % (self.header, time.ctime(timestamp)))
+        if nagios_exit_info is None:
+            unknown_exit("%s nagios exit info expired" % self.header)
+
+        ((nagios_exit_code, nagios_exit_string), nagios_message) = nagios_exit_info
+
+        print("%s %s" % (nagios_exit_string, nagios_message))
+        sys.exit(nagios_exit_code)
+
 
     def cache(self, nagios_exit, nagios_message):
         """Store the result in the cache file with a timestamp.
@@ -290,20 +292,28 @@ class NagiosReporter(object):
         """
         try:
             nagios_cache = FileCache(self.filename)
-            nagios_cache.update('nagios', (nagios_exit, nagios_message), 0)  # always update
+            nagios_cache.update('nagios', (nagios_exit, nagios_message), threshold=self.threshold)
             nagios_cache.close()
             logging.info("Wrote nagios check cache file %s at about %s", self.filename, time.ctime(time.time()))
         except (IOError, OSError):
             # raising an error is ok, since we usually do this as the very last thing in the script
-            logging.error("Cannot save to the nagios gzipped JSON file (%s)" % self.filename)
+            logging.error("Cannot save to the nagios cache (%s)", self.filename)
             raise Exception()
 
         try:
             p = pwd.getpwnam(self.nagios_username)
             if self.world_readable:
-                os.chmod(self.filename, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH)
+                os.chmod(
+                    self.filename,
+                    stat.S_IRUSR | stat.S_IWUSR |
+                    stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH |
+                    stat.S_IXUSR | stat.S_IXGRP
+                )
             else:
-                os.chmod(self.filename, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP)
+                os.chmod(
+                    self.filename,
+                    stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IXUSR | stat.S_IXGRP
+                )
 
             # only change owner/group when run as root
             if os.geteuid() == 0:
@@ -311,8 +321,8 @@ class NagiosReporter(object):
             else:
                 logging.warning("Not running as root: Cannot chown the nagios check file %s to %s",
                               self.filename, self.nagios_username)
-        except (OSError, FileNotFoundErrorExc):
-            logging.error("Cannot chown the nagios check file %s to the nagios user" % (self.filename))
+        except (OSError, FileNotFoundError):
+            logging.error("Cannot chown the nagios check file %s to the nagios user", self.filename)
             raise Exception()
 
         return True
@@ -439,7 +449,7 @@ class SimpleNagios(NagiosResult):
         self._final = None
         self._final_state = None
 
-        self._threshold = 0
+        self._threshold = None
         self._report_and_exit = False
 
         self._world_readable = False

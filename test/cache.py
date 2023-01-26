@@ -38,6 +38,7 @@ import shutil
 import sys
 import random
 
+from pathlib import PurePath
 from vsc.install.testing import TestCase
 from vsc.utils.cache import FileCache
 
@@ -61,9 +62,7 @@ class TestCache(TestCase):
         data, threshold = get_rand_data()
 
         # create a tempfilename
-        (handle, filename) = tempfile.mkstemp(dir='/tmp')
-        os.unlink(filename)
-        os.close(handle)
+        filename = PurePath("/tmp") / next(tempfile._get_candidate_names())
         cache = FileCache(filename)
         for (key, value) in data.items():
             cache.update(key, value, threshold)
@@ -72,7 +71,7 @@ class TestCache(TestCase):
         for key in data.keys():
             info = cache.load(key)
             self.assertFalse(info is None)
-            (ts, value) = info
+            ts, value = info
             self.assertTrue(value == data[key])
             self.assertTrue(ts <= now)
 
@@ -80,12 +79,10 @@ class TestCache(TestCase):
         """Check if the loaded data is the same as the saved data."""
         # test with random data
         data, threshold = get_rand_data()
-        tempdir = tempfile.mkdtemp()
-        # create a tempfilename
-        (handle, filename) = tempfile.mkstemp(dir=tempdir)
-        os.close(handle)
-        shutil.rmtree(tempdir)
+
+        filename = PurePath("/tmp") / next(tempfile._get_candidate_names())
         cache = FileCache(filename)
+
         for (key, value) in data.items():
             cache.update(key, value, threshold)
         cache.close()
@@ -93,24 +90,12 @@ class TestCache(TestCase):
         now = time.time()
         new_cache = FileCache(filename)
         for key in data.keys():
-            info = cache.load(key)
+            info = new_cache.load(key)
             self.assertTrue(info is not None)
             (ts, value) = info
             self.assertTrue(value == data[key])
             self.assertTrue(ts <= now)
         new_cache.close()
 
-        shutil.rmtree(tempdir)
+        shutil.rmtree(filename)
 
-    def test_corrupt_cache(self):
-        """Test to see if we can handle a corrupt cache file"""
-        tempdir = tempfile.mkdtemp()
-
-        # create a bollocks cache file
-        with open(os.path.join(tempdir, "cache.db", "w")) as f:
-            f.write("blabla")
-
-        # this should clear the cache and create a new one
-        FileCache(tempdir)
-
-        shutil.rmtree(tempdir)

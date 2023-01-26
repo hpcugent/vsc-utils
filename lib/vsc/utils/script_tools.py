@@ -37,7 +37,6 @@ import sys
 from copy import deepcopy
 
 import logging
-from vsc.utils import fancylogger
 from vsc.utils.availability import proceed_on_ha_service
 from vsc.utils.generaloption import SimpleOption
 from vsc.utils.lock import lock_or_bork, release_or_bork, LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE
@@ -138,8 +137,6 @@ class ExtendedSimpleOption(SimpleOption):
         else:
             sys.excepthook = excepthook
 
-        self.log = fancylogger.getLogger()
-
     def prologue(self):
         """Checks the options given for settings and takes appropriate action.
 
@@ -160,7 +157,7 @@ class ExtendedSimpleOption(SimpleOption):
 
         # check for HA host
         if self.options.ha and not proceed_on_ha_service(self.options.ha):
-            self.log.warning("Not running on the target host %s in the HA setup. Stopping.", self.options.ha)
+            logging.warning("Not running on the target host %s in the HA setup. Stopping.", self.options.ha)
             self.nagios_reporter.ok("Not running on the HA master.")
             sys.exit(NAGIOS_EXIT_OK)
 
@@ -169,7 +166,7 @@ class ExtendedSimpleOption(SimpleOption):
                                                    threshold=self.options.nagios_check_interval_threshold * 2)
             lock_or_bork(self.lockfile, self.nagios_reporter)
 
-        self.log.info("%s has started", _script_name(sys.argv[0]))
+        logging.info("%s has started", _script_name(sys.argv[0]))
 
     def _epilogue(self):
         if not self.options.disable_locking and not self.options.dry_run:
@@ -184,7 +181,7 @@ class ExtendedSimpleOption(SimpleOption):
 
         nagios_thresholds['message'] = nagios_message
         self.nagios_reporter._eval_and_exit(**nagios_thresholds)
-        self.log.info("%s has finished", _script_name(sys.argv[0]))  # may not be reached
+        logging.info("%s has finished", _script_name(sys.argv[0]))  # may not be reached
 
     def ok(self, nagios_message):
         """Run at the end of a script and force an OK exit."""
@@ -221,8 +218,8 @@ class ExtendedSimpleOption(SimpleOption):
 
         This function is meant to be used as sys.excepthook
         """
-        self.log.exception("unhandled exception detected: %s - %s", tp, value)
-        self.log.debug("traceback %s", traceback)
+        logging.exception("unhandled exception detected: %s - %s", tp, value)
+        logging.debug("traceback %s", traceback)
         message = "Script failure: %s - %s" % (tp, value)
         self.critical(message)
 

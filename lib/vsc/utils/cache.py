@@ -29,12 +29,10 @@ Caching utilities.
 @author: Andy Georges (Ghent University)
 """
 import diskcache as dc
-import logging
-import shutil
 import time
 
 
-class FileCache(object):
+class FileCache(dc.Cache):
     """File cache with a timestamp safety.
 
     Wrapper around diskcache to retain the old API until all usage can be replaced.
@@ -67,17 +65,12 @@ class FileCache(object):
         """
         del raise_unpickable
 
+        super().__init__(filename)
+
         self.retain_old = retain_old  # this is no longer used
 
-        self.filename = filename
-        try:
-            self.cache = dc.Cache(filename)
-        except:
-            shutil.rmtree(filename)
-            self.cache = dc.Cache(filename)
-
         if not retain_old:
-            self.cache.clear()
+            self.clear()
 
     def update(self, key, data, threshold=None):
         """Update the given data if the existing data is older than the given threshold.
@@ -90,11 +83,13 @@ class FileCache(object):
         @param data: whatever needs to be stored
         @param threshold: time in seconds
         """
-        old, old_timestamp = self.cache.get(key, default=(None, None))
         now = time.time()
+        stored = self.set(key=key, value=(now, data), expire=threshold)
 
-        if not old or now - old_timestamp > threshold:
-            self.cache[key] = (data, now)
+        if stored:
+            return (now, data)
+        else:
+            return (None, None)
 
     def load(self, key):
         """Load the stored data for the given key along with the timestamp it was stored.
@@ -103,7 +98,7 @@ class FileCache(object):
 
         @returns: (timestamp, data) if there is data for the given key, None otherwise.
         """
-        return self.cache.get(key, default=None)
+        return self.get(key, default=(None, None))
 
     @DeprecationWarning
     def retain(self):
@@ -115,8 +110,3 @@ class FileCache(object):
         """Discard non-updated data on close."""
         self.retain_old = False
 
-    def close(self):
-        """Close the cache."""
-        self.cache.close()
-
-        logging.info('closing the file cache at %s', self.filename)
