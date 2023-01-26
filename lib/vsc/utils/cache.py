@@ -28,9 +28,10 @@ Caching utilities.
 
 @author: Andy Georges (Ghent University)
 """
-import logging
-import time
 import diskcache as dc
+import logging
+import shutil
+import time
 
 
 class FileCache(object):
@@ -69,7 +70,12 @@ class FileCache(object):
         self.retain_old = retain_old  # this is no longer used
 
         self.filename = filename
-        self.cache = dc.Cache(filename)
+        try:
+            self.cache = dc.Cache(filename)
+        except:
+            shutil.rmtree(filename)
+            self.cache = dc.Cache(filename)
+
         if not retain_old:
             self.cache.clear()
 
