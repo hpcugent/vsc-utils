@@ -87,7 +87,7 @@ def _real_exit(message, code, metrics=''):
         metrics = '|%s' % message[1]
     if len(msg) > NAGIOS_MAX_MESSAGE_LENGTH:
         # log long message but print truncated message
-        log.info("Nagios report %s: %s%s", exit_text, msg, metrics)
+        logging.info("Nagios report %s: %s%s", exit_text, msg, metrics)
         msg = msg[:NAGIOS_MAX_MESSAGE_LENGTH-3] + '...'
 
     print("%s %s%s" % (exit_text, msg, metrics))
@@ -258,8 +258,6 @@ class NagiosReporter(object):
         self.world_readable = world_readable
 
         self.nagios_username = nagios_username
-
-        logging = getLogger(self.__class__.__name__, fname=False)
 
     def report_and_exit(self):
         """Unzips the cache file and reads the JSON data back in, prints the data and exits accordingly.
