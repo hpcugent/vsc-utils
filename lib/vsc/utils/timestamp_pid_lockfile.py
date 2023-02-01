@@ -125,15 +125,14 @@ def _read_pid_timestamp_file(path):
     Returns (pid :: Int, timestamp :: Int).
     '''
     try:
-        pidfp = open(path, 'r')
+        with open(path, 'r') as pidfp:
+            pidLine = pidfp.readline().strip()
+            timestampLine = pidfp.readline().strip()
     except IOError as err:
         if err.errno == errno.ENOENT:
             return None
         else:
             raise LockFileReadError('Cannot get the information from the pid file.')
-
-    pidLine = pidfp.readline().strip()
-    timestampLine = pidfp.readline().strip()
 
     try:
         pid = int(pidLine)
@@ -148,11 +147,11 @@ def _write_pid_timestamp_file(path):
 
     @type path: string corresponding to an (absolute) path to a file.
     '''
-    pidfp = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-    pidfile = os.fdopen(pidfp, 'w')
-    pidfile.write("%s\n%d\n" % (os.getpid(), int(time.time())))
-    pidfile.flush()
-    pidfile.close()
+    with os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY) as pidfp:
+        pidfile = os.fdopen(pidfp, 'w')
+        pidfile.write("%s\n%d\n" % (os.getpid(), int(time.time())))
+        pidfile.flush()
+
 
 
 def _find_and_kill(pid):

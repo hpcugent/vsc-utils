@@ -85,8 +85,8 @@ class TestConsumer(TestCase):
         self.assertEqual(open(cl1_ev1).read(), '[{"some": "data"}, {"some": "otherdata"}]')
 
     @mock.patch('vsc.utils.script_tools.ExtendedSimpleOption.prologue')
-    @mock.patch('vsc.reporting.xdmod.cli.KafkaConsumer', autospec=True)
-    @mock.patch('vsc.reporting.xdmod.consumer.ConsumerCLI.update_shred_file')
+    @mock.patch('vsc.utils.cli.KafkaConsumer', autospec=True)
+    @mock.patch('vsc.utils.consumer.ConsumerCLI.update_shred_file')
     def test_consume(self, mock_update_shred, mock_consumer, mock_prologue):
 
         cl1_1 = "test1_1|message1_1|cluster1|4|5|6|7|8|9|10|11|12|2020-02-28T01:02:03|14|15|16|17|18|19|20|21|22|23|24|25|26"

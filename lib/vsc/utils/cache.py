@@ -158,19 +158,17 @@ class FileCache(object):
         dirname = os.path.dirname(self.filename)
         if not os.path.exists(dirname):
             os.makedirs(dirname)
-        f = open(self.filename, 'wb')
-        if not f:
-            self.log.error('cannot open the file cache at %s for writing', self.filename)
-        else:
-            if self.retain_old:
-                self.shelf.update(self.new_shelf)
-                self.new_shelf = self.shelf
+        with open(self.filename, 'wb') as f:
+            if not f:
+                self.log.error('cannot open the file cache at %s for writing', self.filename)
+            else:
+                if self.retain_old:
+                    self.shelf.update(self.new_shelf)
+                    self.new_shelf = self.shelf
 
-            g = gzip.GzipFile(mode='wb', fileobj=f)
-            pickled = jsonpickle.encode(self.new_shelf)
-            # .encode() is required in Python 3, since we need to pass a bytestring
-            g.write(pickled.encode())
-            g.close()
-            f.close()
+                with gzip.GzipFile(mode='wb', fileobj=f) as g:
+                    pickled = jsonpickle.encode(self.new_shelf)
+                    # .encode() is required in Python 3, since we need to pass a bytestring
+                    g.write(pickled.encode())
 
-            self.log.info('closing the file cache at %s', self.filename)
+                self.log.info('closing the file cache at %s', self.filename)

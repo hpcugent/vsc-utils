@@ -59,11 +59,12 @@ class TimestampPickle(object):
         @raise
         """
 
-        try:
-            timestamp = pickle.load(open(self.filename, "rb"))
-        except (IOError, OSError, FileNotFoundErrorExc):
-            logging.exception("Failed to load timestamp pickle from filename %s.", self.filename)
-            return None
+        with open(self.filename, "rb") as f:
+            try:
+                timestamp = pickle.load(f)
+            except (IOError, OSError, FileNotFoundErrorExc):
+                logging.exception("Failed to load timestamp pickle from filename %s.", self.filename)
+                return None
 
         return timestamp
 
@@ -77,11 +78,12 @@ class TimestampPickle(object):
         @raise: KeyError if the configuration data was used but no filename information was found
         """
 
-        try:
-            pickle.dump(timestamp, open(self.filename, "wb"))
-        except Exception:
-            logging.exception("Failed to dump timestamp %s to pickle in filename %s", timestamp, self.filename)
-            raise
+        with open(self.filename, "wb") as f:
+            try:
+                pickle.dump(timestamp, f)
+            except Exception:
+                logging.exception("Failed to dump timestamp %s to pickle in filename %s", timestamp, self.filename)
+                raise
 
         try:
             os.chmod(self.filename, stat.S_IRWXU)
