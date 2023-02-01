@@ -40,6 +40,7 @@ install_requires = [
     'lockfile >= 0.9.1',
     'netifaces',
     'jsonpickle',
+    'kafka',
 ]
 if sys.version_info < (3, 0):
     # jsonpickle pulls in too new and wrong deps on CentOS 7
@@ -49,7 +50,7 @@ if sys.version_info < (3, 0):
 
 else:
     install_requires.extend([
-        'jsonpickle'
+        'jsonpickle',
     ])
 
 
