@@ -1,5 +1,5 @@
 #
-# Copyright 2012-2021 Ghent University
+# Copyright 2012-2023 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -32,10 +32,9 @@ import gzip
 import jsonpickle
 import os
 import time
+import pickle
 
 from vsc.utils import fancylogger
-from vsc.utils.py2vs3 import pickle, FileNotFoundErrorExc
-
 
 class FileCache(object):
     """File cache with a timestamp safety.
@@ -106,7 +105,7 @@ class FileCache(object):
                 finally:
                     g.close()
 
-        except (OSError, IOError, ValueError, FileNotFoundErrorExc) as err:
+        except (OSError, IOError, ValueError, FileNotFoundError) as err:
             self.log.warning("Could not access the file cache at %s [%s]", self.filename, err)
             self.shelf = {}
             self.log.info("Cache in %s starts with an empty shelf", (self.filename,))
@@ -158,19 +157,17 @@ class FileCache(object):
         dirname = os.path.dirname(self.filename)
         if not os.path.exists(dirname):
             os.makedirs(dirname)
-        f = open(self.filename, 'wb')
-        if not f:
-            self.log.error('cannot open the file cache at %s for writing', self.filename)
-        else:
-            if self.retain_old:
-                self.shelf.update(self.new_shelf)
-                self.new_shelf = self.shelf
+        with open(self.filename, 'wb') as fih:
+            if not fih:
+                self.log.error('cannot open the file cache at %s for writing', self.filename)
+            else:
+                if self.retain_old:
+                    self.shelf.update(self.new_shelf)
+                    self.new_shelf = self.shelf
 
-            g = gzip.GzipFile(mode='wb', fileobj=f)
-            pickled = jsonpickle.encode(self.new_shelf)
-            # .encode() is required in Python 3, since we need to pass a bytestring
-            g.write(pickled.encode())
-            g.close()
-            f.close()
+                with gzip.GzipFile(mode='wb', fileobj=fih) as zipf:
+                    pickled = jsonpickle.encode(self.new_shelf)
+                    # .encode() is required in Python 3, since we need to pass a bytestring
+                    zipf.write(pickled.encode())
 
-            self.log.info('closing the file cache at %s', self.filename)
+                self.log.info('closing the file cache at %s', self.filename)
