@@ -1,5 +1,5 @@
 #
-# Copyright 2012-2021 Ghent University
+# Copyright 2012-2023 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -38,10 +38,7 @@ Various types of pickle files that can be used to store non-component specific i
 import logging
 import os
 import stat
-
-
-from vsc.utils.py2vs3 import pickle, FileNotFoundErrorExc
-
+import pickle
 
 class TimestampPickle(object):
     """Stores a timestamp in some format in a file."""
@@ -60,8 +57,9 @@ class TimestampPickle(object):
         """
 
         try:
-            timestamp = pickle.load(open(self.filename, "rb"))
-        except (IOError, OSError, FileNotFoundErrorExc):
+            with open (self.filename, "rb") as fih:
+                timestamp = pickle.load(fih)
+        except (IOError, OSError, FileNotFoundError):
             logging.exception("Failed to load timestamp pickle from filename %s.", self.filename)
             return None
 
@@ -78,7 +76,8 @@ class TimestampPickle(object):
         """
 
         try:
-            pickle.dump(timestamp, open(self.filename, "wb"))
+            with open(self.filename, "wb") as fih:
+                pickle.dump(timestamp, fih)
         except Exception:
             logging.exception("Failed to dump timestamp %s to pickle in filename %s", timestamp, self.filename)
             raise

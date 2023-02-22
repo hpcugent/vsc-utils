@@ -1,5 +1,5 @@
 #
-# Copyright 2012-2021 Ghent University
+# Copyright 2012-2023 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -38,7 +38,6 @@ import signal
 import time
 
 from lockfile.linklockfile import LockBase, LockFailed, NotLocked, NotMyLock
-from vsc.utils.py2vs3 import FileNotFoundErrorExc, FileExistsErrorExc
 
 class LockFileReadError(Exception):
     '''Exception raised when we cannot get the expected information from the lock file.'''
@@ -83,7 +82,7 @@ class TimestampedPidLockfile(LockBase, object):
         try:
             _write_pid_timestamp_file(self.path)
             logging.info('Obtained lock on timestamped pid lockfile %s', self.path)
-        except (OSError, FileNotFoundErrorExc, FileExistsErrorExc) as err:
+        except (OSError, FileNotFoundError, FileExistsError) as err:
             doraise = True
             if err.errno == errno.EEXIST:
                 ## Check if the timestamp is older than the threshold
@@ -125,20 +124,18 @@ def _read_pid_timestamp_file(path):
     Returns (pid :: Int, timestamp :: Int).
     '''
     try:
-        pidfp = open(path, 'r')
+        with open(path, 'r') as pidfp:
+            pidLine = pidfp.readline().strip()
+            timestampLine = pidfp.readline().strip()
+            pid = int(pidLine)
+            timestamp = int(timestampLine)
+            return (pid, timestamp)
+
     except IOError as err:
         if err.errno == errno.ENOENT:
             return None
         else:
             raise LockFileReadError('Cannot get the information from the pid file.')
-
-    pidLine = pidfp.readline().strip()
-    timestampLine = pidfp.readline().strip()
-
-    try:
-        pid = int(pidLine)
-        timestamp = int(timestampLine)
-        return (pid, timestamp)
     except ValueError:
         raise LockFileReadError("Contents of pid file %s invalid" % (path))
 

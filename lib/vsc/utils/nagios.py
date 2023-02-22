@@ -1,7 +1,7 @@
 
 # -*- encoding: utf-8 -*-
 #
-# Copyright 2012-2021 Ghent University
+# Copyright 2012-2023 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -40,7 +40,6 @@ interpreted by nagios/icinga.
 @author: Andy Georges (Ghent University)
 @author: Luis Fernando Muñoz Mejías (Ghent University)
 """
-from __future__ import print_function
 
 import operator
 import os
@@ -52,7 +51,6 @@ import time
 
 from vsc.utils.cache import FileCache
 from vsc.utils.fancylogger import getLogger
-from vsc.utils.py2vs3 import is_string, FileNotFoundErrorExc
 
 log = getLogger(__name__)
 
@@ -155,7 +153,7 @@ class NagiosRange(object):
         """
         self.log = getLogger(self.__class__.__name__, fname=False)
 
-        if not is_string(nrange):
+        if not isinstance(nrange, str):
             newnrange = str(nrange)
             self.log.debug("nrange %s of type %s, converting to string (%s)", str(nrange), type(nrange), newnrange)
             try:
@@ -316,7 +314,7 @@ class NagiosReporter(object):
             else:
                 self.log.warn("Not running as root: Cannot chown the nagios check file %s to %s",
                               self.filename, self.nagios_username)
-        except (OSError, FileNotFoundErrorExc):
+        except (OSError, FileNotFoundError):
             self.log.raiseException("Cannot chown the nagios check file %s to the nagios user" % (self.filename))
 
         return True

@@ -30,8 +30,6 @@ vsc-utils base distribution setup.py
 @author: Stijn De Weirdt (Ghent University)
 @author: Andy Georges (Ghent University)
 """
-import sys
-
 import vsc.install.shared_setup as shared_setup
 from vsc.install.shared_setup import ag, sdw
 
@@ -41,20 +39,9 @@ install_requires = [
     'netifaces',
     'jsonpickle',
 ]
-if sys.version_info < (3, 0):
-    # jsonpickle pulls in too new and wrong deps on CentOS 7
-    install_requires.extend([
-        'jsonpickle < 1.4.0'
-    ])
-
-else:
-    install_requires.extend([
-        'jsonpickle'
-    ])
-
 
 PACKAGE = {
-    'version': '2.1.10',
+    'version': '2.2.0',
     'author': [ag, sdw],
     'maintainer': [ag, sdw],
     'excluded_pkgs_rpm': ['vsc', 'vsc.utils'],  # vsc is default, vsc.utils is provided by vsc-base

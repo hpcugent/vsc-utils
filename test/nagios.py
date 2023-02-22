@@ -1,5 +1,5 @@
 #
-# Copyright 2012-2021 Ghent University
+# Copyright 2012-2023 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -35,12 +35,12 @@ import sys
 import random
 import string
 from pwd import getpwuid
+from io import StringIO
 
 from vsc.install.testing import TestCase
 
 from vsc.utils.nagios import NagiosReporter, SimpleNagios
 from vsc.utils.nagios import NAGIOS_EXIT_OK, NAGIOS_EXIT_WARNING, NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_UNKNOWN
-from vsc.utils.py2vs3 import StringIO
 
 
 class TestNagios(TestCase):
