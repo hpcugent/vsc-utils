@@ -51,7 +51,6 @@ import sys
 import time
 
 from vsc.utils.cache import FileCache
-from vsc.utils.py2vs3 import is_string, FileNotFoundErrorExc
 
 
 NAGIOS_CACHE_DIR = '/var/cache'
