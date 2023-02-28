@@ -150,7 +150,7 @@ class NagiosRange(object):
             @param nrange: nrange in [@][start:][end] format. If it is not a string, it is converted to
                           string and that string should allow conversion to float.
         """
-        if not is_string(nrange):
+        if not isinstance(nrange, str):
             newnrange = str(nrange)
             logging.debug("nrange %s of type %s, converting to string (%s)", str(nrange), type(nrange), newnrange)
             try:
