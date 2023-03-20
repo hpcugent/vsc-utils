@@ -183,7 +183,7 @@ class NagiosRange(object):
                     start = float(start_txt)
                 except ValueError:
                     logging.exception("Invalid start txt value %s" % start_txt)
-                     raise
+                    raise
 
             end = res['end']
             if end is not None:
