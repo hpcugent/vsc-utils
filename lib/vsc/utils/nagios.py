@@ -302,7 +302,7 @@ class NagiosReporter(object):
         except (IOError, OSError):
             # raising an error is ok, since we usually do this as the very last thing in the script
             logging.error("Cannot save to the nagios cache (%s)", self.filename)
-            raise Exception()
+            raise
 
         try:
             p = pwd.getpwnam(self.nagios_username)
@@ -327,7 +327,7 @@ class NagiosReporter(object):
                               self.filename, self.nagios_username)
         except (OSError, FileNotFoundError):
             logging.error("Cannot chown the nagios check file %s to the nagios user", self.filename)
-            raise Exception()
+            raise
 
         return True
 
