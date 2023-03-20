@@ -156,8 +156,10 @@ class NagiosRange(object):
             try:
                 float(newnrange)
             except ValueError:
-                logging.exception("nrange %s (type %s) is not valid after conversion to string (newnrange %s)" %
-                                        (str(nrange), type(nrange), newnrange))
+                logging.exception(
+                    "nrange %s (type %s) is not valid after conversion to string (newnrange %s)",
+                    str(nrange), type(nrange), newnrange
+                )
                 raise
             nrange = newnrange
 
@@ -182,7 +184,7 @@ class NagiosRange(object):
                 try:
                     start = float(start_txt)
                 except ValueError:
-                    logging.exception("Invalid start txt value %s" % start_txt)
+                    logging.exception("Invalid start txt value %s", start_txt)
                     raise
 
             end = res['end']
@@ -190,13 +192,13 @@ class NagiosRange(object):
                 try:
                     end = float(end)
                 except ValueError:
-                    logging.exception("Invalid end value %s" % end)
+                    logging.exception("Invalid end value %s", end)
                     raise
 
             neg = res['neg'] is not None
             logging.debug("parse: start %s end %s neg %s", start, end, neg)
         else:
-            logging.exception('parse: invalid nrange %s.' % nrange)
+            logging.exception('parse: invalid nrange %s.', nrange)
             raise
 
         def range_fn(test):
@@ -204,7 +206,7 @@ class NagiosRange(object):
             try:
                 test = float(test)
             except ValueError:
-                logging.exception("range_fn: can't convert test %s (type %s) to float" % (test, type(test)))
+                logging.exception("range_fn: can't convert test %s (type %s) to float", test, type(test))
                 raise
 
             start_res = True  # default: -inf < test
