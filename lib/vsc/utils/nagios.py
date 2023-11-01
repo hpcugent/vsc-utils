@@ -198,7 +198,7 @@ class NagiosRange(object):
                     end = float(end)
                 except ValueError as exc:
                     msg = f"Invalid end value {end}"
-                    self.log.Exception("msg")
+                    self.log.exception("msg")
                     raise ValueError(msg) from exc
 
             neg = res['neg'] is not None
@@ -214,7 +214,7 @@ class NagiosRange(object):
                 test = float(test)
             except ValueError as exc:
                 msg = f"range_fn: can't convert test {test} (type {type(test)}) to float"
-                self.log.Exception(msg)
+                self.log.exception(msg)
                 raise ValueError(msg) from exc
 
             start_res = True  # default: -inf < test
@@ -312,7 +312,7 @@ class NagiosReporter(object):
         except (IOError, OSError) as exc:
             # raising an error is ok, since we usually do this as the very last thing in the script
             msg = f"Cannot save to the nagios gzipped JSON file ({self.filename})"
-            self.log.Exception(msg)
+            self.log.exception(msg)
             raise OSError(msg) from exc
 
         try:
@@ -330,7 +330,7 @@ class NagiosReporter(object):
                               self.filename, self.nagios_username)
         except (OSError, FileNotFoundError) as exc:
             msg = f"Cannot chown the nagios check file {self.filename} to the nagios user"
-            self.log.Exception(msg)
+            self.log.exception(msg)
             raise(OSError(msg)) from exc
 
         return True
