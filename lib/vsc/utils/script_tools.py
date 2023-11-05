@@ -125,7 +125,7 @@ class ExtendedSimpleOption(SimpleOption):
         """
 
         options_ = _merge_options(options)
-        super(ExtendedSimpleOption, self).__init__(options_, **kwargs)
+        super().__init__(options_, **kwargs)
 
         self.nagios_reporter = None
         self.lockfile = None
@@ -223,11 +223,11 @@ class ExtendedSimpleOption(SimpleOption):
         """
         self.log.exception("unhandled exception detected: %s - %s", tp, value)
         self.log.debug("traceback %s", traceback)
-        message = "Script failure: %s - %s" % (tp, value)
+        message = f"Script failure: {tp} - {value}"
         self.critical(message)
 
 
-class CLI(object):
+class CLI:
     """
     Base class to implement cli tools that require timestamps, nagios checks, etc.
     """
@@ -271,13 +271,13 @@ class CLI(object):
         # insert default timestamp value file based on name
         if TIMESTAMP_FILE_OPTION in options:
             tsopt = list(options[TIMESTAMP_FILE_OPTION])
-            tsopt[-1] = os.path.join(self.CACHE_DIR, "%s.timestamp" % self.name)
+            tsopt[-1] = os.path.join(self.CACHE_DIR, f"{self.name}.timestamp")
             options[TIMESTAMP_FILE_OPTION] = tuple(tsopt)
 
         options.update(self.CLI_OPTIONS)
 
         if TIMESTAMP_FILE_OPTION not in options and self.TIMESTAMP_MANDATORY:
-            raise Exception("no mandatory %s option defined" % (TIMESTAMP_FILE_OPTION,))
+            raise ValueError(f"no mandatory {TIMESTAMP_FILE_OPTION} option defined")
 
         return ExtendedSimpleOption(options)
 
@@ -332,7 +332,7 @@ class CLI(object):
             self.thresholds can be used to pass the thresholds during epilogue
         """
         logging.error("`do` method not implemented")
-        raise Exception("Not implemented")
+        raise NotImplementedError("Not implemented")
         return "Not implemented"
 
     def make_time(self):
@@ -375,14 +375,13 @@ class CLI(object):
                 _, timestamp = convert_timestamp(current_time)
                 write_timestamp(self.options.timestamp_file, timestamp)
             except Exception as err:
-                txt = "Writing timestamp %s to %s failed: %s" % (timestamp, self.options.timestamp_file, err)
+                txt = f"Writing timestamp {timestamp} to {self.options.timestamp_file} failed: {err}"
                 self.critical_exception(txt, err)
 
     def final(self):
         """
         Run as finally block in main
         """
-        pass
 
     def main(self):
         """
@@ -406,14 +405,14 @@ class CLI(object):
 
         self.post(errors)
 
-        self.fulloptions.epilogue("%s complete" % msg, self.thresholds)
+        self.fulloptions.epilogue(f"{msg} complete", self.thresholds)
 
 
 
 class NrpeCLI(CLI):
 
     def __init__(self, name=None, default_options=None):
-        super(NrpeCLI, self).__init__(name=name, default_options=default_options)
+        super().__init__(name=name, default_options=default_options)
 
     def ok(self, msg):
         """

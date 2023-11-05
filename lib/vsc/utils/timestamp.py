@@ -1,4 +1,3 @@
-# -*- coding: latin-1 -*-
 #
 # Copyright 2009-2023 Ghent University
 #
@@ -61,7 +60,7 @@ def convert_to_datetime(timestamp=None):
         return datetime.datetime.utcnow().replace(tzinfo=utc)
 
     if isinstance(timestamp, int):
-        timestamp = "%010d" % timestamp
+        timestamp = f"{int(timestamp):010}"
     if isinstance(timestamp, datetime.datetime):
         if timestamp.tzinfo is None:
             timestamp = timestamp.replace(tzinfo=utc)
@@ -77,7 +76,7 @@ def convert_to_datetime(timestamp=None):
             elif len(timestamp) == 8:
                 date_format = "%Y%m%d"
             else:
-                raise Exception("invalid format provided %s" % timestamp)
+                raise ValueError(f"invalid format provided {timestamp}")
             timestamp = datetime.datetime.strptime(timestamp, date_format)
 
     return timestamp.replace(tzinfo=utc)
