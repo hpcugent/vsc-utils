@@ -45,15 +45,13 @@ from vsc.utils.nagios import (
     SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE, exit_from_errorcode,
     NAGIOS_EXIT_OK, NAGIOS_EXIT_WARNING, NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_UNKNOWN,
 )
-from vsc.utils.timestamp import (
-    convert_timestamp, write_timestamp, retrieve_timestamp_with_default
-    )
+from vsc.utils.timestamp import convert_timestamp, write_timestamp, retrieve_timestamp_with_default
 from vsc.utils.timestamp_pid_lockfile import TimestampedPidLockfile
 
 DEFAULT_TIMESTAMP = "20140101000000Z"
-TIMESTAMP_FILE_OPTION = 'timestamp_file'
+TIMESTAMP_FILE_OPTION = "timestamp_file"
 DEFAULT_CLI_OPTIONS = {
-    'start_timestamp': ("The timestamp form which to start, otherwise use the cached value", None, "store", None),
+    "start_timestamp": ("The timestamp form which to start, otherwise use the cached value", None, "store", None),
     TIMESTAMP_FILE_OPTION: ("Location to cache the start timestamp", None, "store", None),
 }
 MAX_DELTA = 3
@@ -151,12 +149,13 @@ class ExtendedSimpleOption(SimpleOption):
         """
 
         # bail if nagios report is requested
-        self.nagios_reporter = SimpleNagios(_cache=self.options.nagios_check_filename,
-                                            _report_and_exit=self.options.nagios_report,
-                                            _threshold=self.options.nagios_check_interval_threshold,
-                                            _cache_user=self.options.nagios_user,
-                                            _world_readable=self.options.nagios_world_readable_check,
-                                            )
+        self.nagios_reporter = SimpleNagios(
+            _cache=self.options.nagios_check_filename,
+            _report_and_exit=self.options.nagios_report,
+            _threshold=self.options.nagios_check_interval_threshold,
+            _cache_user=self.options.nagios_user,
+            _world_readable=self.options.nagios_world_readable_check,
+        )
 
         # check for HA host
         if self.options.ha and not proceed_on_ha_service(self.options.ha):
@@ -165,8 +164,9 @@ class ExtendedSimpleOption(SimpleOption):
             sys.exit(NAGIOS_EXIT_OK)
 
         if not self.options.disable_locking and not self.options.dry_run:
-            self.lockfile = TimestampedPidLockfile(self.options.locking_filename,
-                                                   threshold=self.options.nagios_check_interval_threshold * 2)
+            self.lockfile = TimestampedPidLockfile(
+                self.options.locking_filename, threshold=self.options.nagios_check_interval_threshold * 2
+            )
             lock_or_bork(self.lockfile, self.nagios_reporter)
 
         self.log.info("%s has started", _script_name(sys.argv[0]))
@@ -182,7 +182,7 @@ class ExtendedSimpleOption(SimpleOption):
 
         self._epilogue()
 
-        nagios_thresholds['message'] = nagios_message
+        nagios_thresholds["message"] = nagios_message
         self.nagios_reporter._eval_and_exit(**nagios_thresholds)
         self.log.info("%s has finished", _script_name(sys.argv[0]))  # may not be reached
 
@@ -231,6 +231,7 @@ class CLI:
     """
     Base class to implement cli tools that require timestamps, nagios checks, etc.
     """
+
     TIMESTAMP_MANDATORY = True
 
     CLI_OPTIONS = {}
@@ -254,7 +255,6 @@ class CLI:
 
         self.start_timestamp = None
         self.current_time = None
-
 
     def make_options(self, defaults=None):
         """
@@ -320,7 +320,7 @@ class CLI:
         logging.exception("%s: %s", msg, exception)
         exit_from_errorcode(2, msg)
 
-    def do(self, dry_run):  #pylint: disable=unused-argument
+    def do(self, dry_run):  # pylint: disable=unused-argument
         """
         Method to add actual work to do.
         The method is executed in main method in a generic try/except/finally block
@@ -408,9 +408,7 @@ class CLI:
         self.fulloptions.epilogue(f"{msg} complete", self.thresholds)
 
 
-
 class NrpeCLI(CLI):
-
     def __init__(self, name=None, default_options=None):
         super().__init__(name=name, default_options=default_options)
 

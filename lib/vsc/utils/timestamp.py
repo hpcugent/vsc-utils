@@ -112,9 +112,9 @@ def read_timestamp(filename):
     """
     cache = FileCache(filename)
     try:
-        (_, timestamp) = cache.load('timestamp')
+        (_, timestamp) = cache.load("timestamp")
     except TypeError:
-        logging.warning('could not load timestamp from cache file %s', filename)
+        logging.warning("could not load timestamp from cache file %s", filename)
         timestamp = None
 
     return timestamp
@@ -134,7 +134,7 @@ def write_timestamp(filename, timestamp):
         timestamp_ = timestamp
 
     cache = FileCache(filename)
-    cache.update('timestamp', timestamp_, 0)
+    cache.update("timestamp", timestamp_, 0)
     cache.close()
 
 
