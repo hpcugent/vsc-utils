@@ -96,7 +96,3 @@ def store_on_gpfs(user_name, path, key, information, gpfs, login_mount_point, gp
             gpfs.ignorerealpathmismatch = False
 
         logger.info("Stored user %s %s information at %s", user_name, key, filename)
-
-
-
-

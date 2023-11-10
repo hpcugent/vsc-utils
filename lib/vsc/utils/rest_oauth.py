@@ -53,7 +53,7 @@ def make_api_request(opener, path, method='GET', payload="", access_token=""):
     """
     request = Request(path, payload)
     request.add_header('Content-Type', 'application/json')
-    request.add_header('Authorization', "Bearer %s" % (access_token,))
+    request.add_header('Authorization', f"Bearer {access_token}")
     request.get_method = lambda: method
     uri = opener.open(request)
     response = uri.read()

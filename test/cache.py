@@ -30,13 +30,13 @@ Unit tests for vsc.utils.cache
 """
 
 import gzip
-import mock
 import os
 import tempfile
 import time
 import shutil
 import sys
 import random
+import mock
 
 from vsc.install.testing import TestCase
 from vsc.utils.cache import FileCache
@@ -48,7 +48,7 @@ def get_rand_data():
     """Returns a random dict with between 0 and LIST_LEN elements  and a random threshold"""
     length = random.randint(0, LIST_LEN)
     data = {}
-    for x in range(length):
+    for _ in range(length):
         data[random.randint(0, sys.maxsize)] = random.randint(0, sys.maxsize)
     threshold = random.randint(0, sys.maxsize)
     return data, threshold
@@ -69,11 +69,11 @@ class TestCache(TestCase):
             cache.update(key, value, threshold)
 
         now = time.time()
-        for key in data.keys():
+        for key, content in data.items():
             info = cache.load(key)
             self.assertFalse(info is None)
             (ts, value) = info
-            self.assertTrue(value == data[key])
+            self.assertTrue(value == content)
             self.assertTrue(ts <= now)
 
     def test_save_and_load(self):
@@ -92,11 +92,11 @@ class TestCache(TestCase):
 
         now = time.time()
         new_cache = FileCache(filename)
-        for key in data.keys():
+        for key, content in data.items():
             info = cache.load(key)
             self.assertTrue(info is not None)
             (ts, value) = info
-            self.assertTrue(value == data[key])
+            self.assertTrue(value == content)
             self.assertTrue(ts <= now)
         new_cache.close()
 

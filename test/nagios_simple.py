@@ -39,7 +39,7 @@ from vsc.install.testing import TestCase
 
 from vsc.utils.nagios import SimpleNagios, NAGIOS_EXIT_OK, NAGIOS_EXIT_CRITICAL
 from vsc.utils.nagios import NAGIOS_EXIT_WARNING, NAGIOS_EXIT_UNKNOWN, NagiosReporter
-from vsc.utils.nagios import exit_from_errorcode, ok_exit, warning_exit, critical_exit, unknown_exit
+from vsc.utils.nagios import exit_from_errorcode
 
 
 class TestSimpleNagios(TestCase):
@@ -134,8 +134,8 @@ class TestSimpleNagios(TestCase):
 
         # all warning values in message
         kwargs['value1'] = 7
-        self._basic_test_single_instance(kwargs, 'WARNING value1, value2 | value0=3;5;10; value1=7;5;10; value2=7;5;10;',
-                                         NAGIOS_EXIT_WARNING)
+        self._basic_test_single_instance(
+            kwargs, 'WARNING value1, value2 | value0=3;5;10; value1=7;5;10; value2=7;5;10;', NAGIOS_EXIT_WARNING)
 
         # warning in message
         kwargs['value1'] = 5
@@ -176,7 +176,7 @@ class TestSimpleNagios(TestCase):
             raised_exception = err
         bo = self.buffo.getvalue().rstrip()
 
-        self.assertEqual(bo, "WARNING %s" % message)
+        self.assertEqual(bo, f"WARNING {message}")
         self.assertEqual(raised_exception.code, NAGIOS_EXIT_WARNING[0])
 
         statres = os.stat(filename)
@@ -234,4 +234,3 @@ class TestNagiosExits(TestCase):
             except SystemExit as err:
                 print(err)
                 self.assertTrue(err.code == expected[0])
-

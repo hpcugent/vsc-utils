@@ -49,7 +49,7 @@ class TestNagios(TestCase):
     def setUp(self):
         user = getpwuid(os.getuid())
         self.nagios_user = user.pw_name
-        super(TestNagios, self).setUp()
+        super().setUp()
 
     def test_eval(self):
         """Test the evaluation of the warning/critical level."""
@@ -80,11 +80,11 @@ class TestNagios(TestCase):
 
         reporter.cache(nagios_exit, message)
 
-        (handle, output_filename) = tempfile.mkstemp()
+        (handle, _) = tempfile.mkstemp()
         os.close(handle)
 
+        old_stdout = sys.stdout
         try:
-            old_stdout = sys.stdout
             buffer = StringIO()
             sys.stdout = buffer
             reporter_test = NagiosReporter('test_cache', filename, threshold, self.nagios_user)
@@ -94,7 +94,7 @@ class TestNagios(TestCase):
             sys.stdout = old_stdout
             buffer.close()
             self.assertTrue(err.code == nagios_exit[0])
-            self.assertTrue(line == "%s %s" % (nagios_exit[1], message))
+            self.assertTrue(line == f"{nagios_exit[1]} {message}")
 
         os.unlink(filename)
 
@@ -151,8 +151,6 @@ class TestNagios(TestCase):
         sys.stdout = old_stdout
         self.assertEqual(raised_exception.code, NAGIOS_EXIT_UNKNOWN[0],
                          "Too old caches lead to unknown status")
-        self.assertTrue(line.startswith("%s test_cache gzipped JSON file too old (timestamp =" %
-                                        (NAGIOS_EXIT_UNKNOWN[1])))
+        self.assertTrue(line.startswith(f"{NAGIOS_EXIT_UNKNOWN[1]} test_cache gzipped JSON file too old (timestamp ="))
 
         os.unlink(filename)
-
