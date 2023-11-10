@@ -45,15 +45,13 @@ from vsc.utils.nagios import (
     SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE, exit_from_errorcode,
     NAGIOS_EXIT_OK, NAGIOS_EXIT_WARNING, NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_UNKNOWN,
 )
-from vsc.utils.timestamp import (
-    convert_timestamp, write_timestamp, retrieve_timestamp_with_default
-    )
+from vsc.utils.timestamp import convert_timestamp, write_timestamp, retrieve_timestamp_with_default
 from vsc.utils.timestamp_pid_lockfile import TimestampedPidLockfile
 
 DEFAULT_TIMESTAMP = "20140101000000Z"
-TIMESTAMP_FILE_OPTION = 'timestamp_file'
+TIMESTAMP_FILE_OPTION = "timestamp_file"
 DEFAULT_CLI_OPTIONS = {
-    'start_timestamp': ("The timestamp form which to start, otherwise use the cached value", None, "store", None),
+    "start_timestamp": ("The timestamp form which to start, otherwise use the cached value", None, "store", None),
     TIMESTAMP_FILE_OPTION: ("Location to cache the start timestamp", None, "store", None),
 }
 MAX_DELTA = 3
@@ -125,7 +123,7 @@ class ExtendedSimpleOption(SimpleOption):
         """
 
         options_ = _merge_options(options)
-        super(ExtendedSimpleOption, self).__init__(options_, **kwargs)
+        super().__init__(options_, **kwargs)
 
         self.nagios_reporter = None
         self.lockfile = None
@@ -151,12 +149,13 @@ class ExtendedSimpleOption(SimpleOption):
         """
 
         # bail if nagios report is requested
-        self.nagios_reporter = SimpleNagios(_cache=self.options.nagios_check_filename,
-                                            _report_and_exit=self.options.nagios_report,
-                                            _threshold=self.options.nagios_check_interval_threshold,
-                                            _cache_user=self.options.nagios_user,
-                                            _world_readable=self.options.nagios_world_readable_check,
-                                            )
+        self.nagios_reporter = SimpleNagios(
+            _cache=self.options.nagios_check_filename,
+            _report_and_exit=self.options.nagios_report,
+            _threshold=self.options.nagios_check_interval_threshold,
+            _cache_user=self.options.nagios_user,
+            _world_readable=self.options.nagios_world_readable_check,
+        )
 
         # check for HA host
         if self.options.ha and not proceed_on_ha_service(self.options.ha):
@@ -165,8 +164,9 @@ class ExtendedSimpleOption(SimpleOption):
             sys.exit(NAGIOS_EXIT_OK)
 
         if not self.options.disable_locking and not self.options.dry_run:
-            self.lockfile = TimestampedPidLockfile(self.options.locking_filename,
-                                                   threshold=self.options.nagios_check_interval_threshold * 2)
+            self.lockfile = TimestampedPidLockfile(
+                self.options.locking_filename, threshold=self.options.nagios_check_interval_threshold * 2
+            )
             lock_or_bork(self.lockfile, self.nagios_reporter)
 
         self.log.info("%s has started", _script_name(sys.argv[0]))
@@ -182,7 +182,7 @@ class ExtendedSimpleOption(SimpleOption):
 
         self._epilogue()
 
-        nagios_thresholds['message'] = nagios_message
+        nagios_thresholds["message"] = nagios_message
         self.nagios_reporter._eval_and_exit(**nagios_thresholds)
         self.log.info("%s has finished", _script_name(sys.argv[0]))  # may not be reached
 
@@ -223,14 +223,15 @@ class ExtendedSimpleOption(SimpleOption):
         """
         self.log.exception("unhandled exception detected: %s - %s", tp, value)
         self.log.debug("traceback %s", traceback)
-        message = "Script failure: %s - %s" % (tp, value)
+        message = f"Script failure: {tp} - {value}"
         self.critical(message)
 
 
-class CLI(object):
+class CLI:
     """
     Base class to implement cli tools that require timestamps, nagios checks, etc.
     """
+
     TIMESTAMP_MANDATORY = True
 
     CLI_OPTIONS = {}
@@ -255,7 +256,6 @@ class CLI(object):
         self.start_timestamp = None
         self.current_time = None
 
-
     def make_options(self, defaults=None):
         """
         Take the default sync options, set the default timestamp file and merge
@@ -271,13 +271,13 @@ class CLI(object):
         # insert default timestamp value file based on name
         if TIMESTAMP_FILE_OPTION in options:
             tsopt = list(options[TIMESTAMP_FILE_OPTION])
-            tsopt[-1] = os.path.join(self.CACHE_DIR, "%s.timestamp" % self.name)
+            tsopt[-1] = os.path.join(self.CACHE_DIR, f"{self.name}.timestamp")
             options[TIMESTAMP_FILE_OPTION] = tuple(tsopt)
 
         options.update(self.CLI_OPTIONS)
 
         if TIMESTAMP_FILE_OPTION not in options and self.TIMESTAMP_MANDATORY:
-            raise Exception("no mandatory %s option defined" % (TIMESTAMP_FILE_OPTION,))
+            raise ValueError(f"no mandatory {TIMESTAMP_FILE_OPTION} option defined")
 
         return ExtendedSimpleOption(options)
 
@@ -320,7 +320,7 @@ class CLI(object):
         logging.exception("%s: %s", msg, exception)
         exit_from_errorcode(2, msg)
 
-    def do(self, dry_run):  #pylint: disable=unused-argument
+    def do(self, dry_run):  # pylint: disable=unused-argument
         """
         Method to add actual work to do.
         The method is executed in main method in a generic try/except/finally block
@@ -332,7 +332,7 @@ class CLI(object):
             self.thresholds can be used to pass the thresholds during epilogue
         """
         logging.error("`do` method not implemented")
-        raise Exception("Not implemented")
+        raise NotImplementedError("Not implemented")
         return "Not implemented"
 
     def make_time(self):
@@ -375,14 +375,13 @@ class CLI(object):
                 _, timestamp = convert_timestamp(current_time)
                 write_timestamp(self.options.timestamp_file, timestamp)
             except Exception as err:
-                txt = "Writing timestamp %s to %s failed: %s" % (timestamp, self.options.timestamp_file, err)
+                txt = f"Writing timestamp {timestamp} to {self.options.timestamp_file} failed: {err}"
                 self.critical_exception(txt, err)
 
     def final(self):
         """
         Run as finally block in main
         """
-        pass
 
     def main(self):
         """
@@ -406,14 +405,12 @@ class CLI(object):
 
         self.post(errors)
 
-        self.fulloptions.epilogue("%s complete" % msg, self.thresholds)
-
+        self.fulloptions.epilogue(f"{msg} complete", self.thresholds)
 
 
 class NrpeCLI(CLI):
-
     def __init__(self, name=None, default_options=None):
-        super(NrpeCLI, self).__init__(name=name, default_options=default_options)
+        super().__init__(name=name, default_options=default_options)
 
     def ok(self, msg):
         """
