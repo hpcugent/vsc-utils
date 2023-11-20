@@ -1,5 +1,3 @@
-
-# -*- encoding: utf-8 -*-
 #
 # Copyright 2012-2023 Ghent University
 #
@@ -143,7 +141,7 @@ def exit_from_errorcode(errorcode, msg, error_map=None):
         unknown_exit(f"{msg} (errorcode {errorcode} not found in {e_map}")
 
 
-class NagiosRange(object):
+class NagiosRange:
     """Implement Nagios ranges"""
     DEFAULT_START = 0
     def __init__(self, nrange):
@@ -244,7 +242,7 @@ class NagiosRange(object):
         return not self.range_fn(test)
 
 
-class NagiosReporter(object):
+class NagiosReporter:
     """Reporting class for Nagios/Icinga reports.
 
     Can cache the result in a gzipped JSON file and print the result out at some later point.
@@ -282,7 +280,7 @@ class NagiosReporter(object):
         """
         try:
             nagios_cache = FileCache(self.filename, True)
-        except (IOError, OSError):
+        except OSError:
             self.log.critical("Error opening file %s for reading", self.filename)
             unknown_exit(f"{self.header} nagios gzipped JSON file unavailable ({self.filename})")
 
@@ -309,7 +307,7 @@ class NagiosReporter(object):
             nagios_cache.update('nagios', (nagios_exit, nagios_message), 0)  # always update
             nagios_cache.close()
             self.log.info("Wrote nagios check cache file %s at about %s", self.filename, time.ctime(time.time()))
-        except (IOError, OSError) as exc:
+        except OSError as exc:
             # raising an error is ok, since we usually do this as the very last thing in the script
             msg = f"Cannot save to the nagios gzipped JSON file ({self.filename})"
             self.log.exception(msg)
@@ -336,7 +334,7 @@ class NagiosReporter(object):
         return True
 
 
-class NagiosResult(object):
+class NagiosResult:
     """Class representing the results of an Icinga/Nagios check.
 
     It will contain a field with the message to be printed.  And the
@@ -370,7 +368,7 @@ class NagiosResult(object):
     Nagios checks, please refer to
     U{http://docs.icinga.org/latest/en/perfdata.html}
     """
-    RESERVED_WORDS = set(['message'])
+    RESERVED_WORDS = {'message'}
     NAME_REG = re.compile(r'^(?P<name>.*?)(?:_(?P<option>warning|critical))?$')
 
     def __init__(self, message, **kwargs):
@@ -442,8 +440,8 @@ class SimpleNagios(NagiosResult):
     """
 
     USE_HEADER = True
-    RESERVED_WORDS = set(['message', 'ok', 'warning', 'critical', 'unknown',
-                         '_exit', '_cache', '_cache_user', '_final', '_final_state', '_report', '_threshold'])
+    RESERVED_WORDS = {'message', 'ok', 'warning', 'critical', 'unknown',
+                         '_exit', '_cache', '_cache_user', '_final', '_final_state', '_report', '_threshold'}
 
     def __init__(self, **kwargs):
         """Initialise message and perfdata"""

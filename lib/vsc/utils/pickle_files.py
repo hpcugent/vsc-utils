@@ -40,7 +40,7 @@ import os
 import stat
 import pickle
 
-class TimestampPickle(object):
+class TimestampPickle:
     """Stores a timestamp in some format in a file."""
 
     def __init__(self, filename):
@@ -59,7 +59,7 @@ class TimestampPickle(object):
         try:
             with open (self.filename, "rb") as fih:
                 timestamp = pickle.load(fih)
-        except (IOError, OSError, FileNotFoundError):
+        except (OSError, FileNotFoundError):
             logging.exception("Failed to load timestamp pickle from filename %s.", self.filename)
             return None
 

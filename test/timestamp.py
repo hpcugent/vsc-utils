@@ -73,7 +73,7 @@ class TestTimestamp(TestCase):
 
 
     def test_convert_to_unix_timestamp(self):
-        ec, out = run(['date', '+%s'])
+        _, out = run(['date', '+%s'])
         nowts = convert_to_unix_timestamp()
         self.assertTrue(abs(nowts - int(out.strip())) < 2)
 
