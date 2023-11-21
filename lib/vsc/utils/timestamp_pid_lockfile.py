@@ -41,12 +41,10 @@ from lockfile.linklockfile import LockBase, LockFailed, NotLocked, NotMyLock
 
 class LockFileReadError(Exception):
     '''Exception raised when we cannot get the expected information from the lock file.'''
-    pass
 
 
 class TimestampedPidLockfile(LockBase):
-    '''Basic lock file implementation.
-    '''
+    '''Basic lock file implementation.'''
 
     def __init__(self, path, threshold=60):
         '''Intializer.'''
