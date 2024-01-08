@@ -34,12 +34,13 @@ This module provides functions to run at the beginning and end of commonly used 
 import os
 import sys
 
+from configargparse import ConfigArgParser
 from copy import deepcopy
 
 import logging
 from vsc.utils import fancylogger
 from vsc.utils.availability import proceed_on_ha_service
-from vsc.utils.generaloption import SimpleOption
+from vsc.utils.generaloption import SimpleOption as GOSimpleOption
 from vsc.utils.lock import lock_or_bork, release_or_bork, LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE
 from vsc.utils.nagios import (
     SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE, exit_from_errorcode,
@@ -56,6 +57,7 @@ DEFAULT_CLI_OPTIONS = {
 }
 MAX_DELTA = 3
 MAX_RTT = 2 * MAX_DELTA + 1
+
 
 
 def _script_name(full_name):
@@ -102,7 +104,26 @@ def _merge_options(options):
     return opts
 
 
-class ExtendedSimpleOption(SimpleOption):
+class ConfigOption:
+    """
+    Allow using ConfigArgParser instead of GeneralOption but with the same
+    options-specifying syntax
+    """
+
+    def __init__(self, options, config_files=None):
+        self.parser = ConfigArgParser(auto_env_var_prefix='')
+
+        if config_files:
+            self.parser.config_file_parser(config_files)
+
+        for option, (help_str, type_, action, default_value) in options.items():
+            self.parser.add_argument(f'--{option}', help=help_str, type=type_, action=action, default=default_value)
+
+        self.options = self.parser.parse_args()
+
+
+
+class ExtendedSimpleOption(ConfigOption):
     """
     Extends the SimpleOption class to allow other checks to occur at script prologue and epilogue.
 
@@ -225,6 +246,8 @@ class ExtendedSimpleOption(SimpleOption):
         self.log.debug("traceback %s", traceback)
         message = f"Script failure: {tp} - {value}"
         self.critical(message)
+
+
 
 
 class CLI:
