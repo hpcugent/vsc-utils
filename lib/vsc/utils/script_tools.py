@@ -116,10 +116,9 @@ class ConfigOption:
             self.parser.config_file_parser(config_files)
 
         for option, (help_str, type_, action, default_value) in options.items():
-            self.parser.add_argument(f'--{option}', help=help_str, type=type_, action=action, default=default_value)
+            self.parser.add(f'--{option}', help=help_str, type=type_, action=action, default=default_value)
 
         self.options = self.parser.parse_args()
-
 
 
 class ExtendedSimpleOption(ConfigOption):
