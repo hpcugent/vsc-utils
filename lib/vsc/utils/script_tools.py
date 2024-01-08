@@ -34,7 +34,7 @@ This module provides functions to run at the beginning and end of commonly used 
 import os
 import sys
 
-from configargparse import ConfigArgParser
+from configargparse import ArgParser
 from copy import deepcopy
 
 import logging
@@ -105,12 +105,12 @@ def _merge_options(options):
 
 class ConfigOption:
     """
-    Allow using ConfigArgParser instead of GeneralOption but with the same
+    Allow using configargparse.ArgParser instead of GeneralOption but with the same
     options-specifying syntax
     """
 
     def __init__(self, options, config_files=None):
-        self.parser = ConfigArgParser(auto_env_var_prefix='')
+        self.parser = ArgParser(auto_env_var_prefix='')
 
         if config_files:
             self.parser.config_file_parser(config_files)
