@@ -29,6 +29,7 @@ Utilities for sending data like netcat utility.
 @author Wouter Depypere (Ghent University)
 """
 
+import logging
 import socket
 
 def connect_and_send(host, port, data, timeout=10):
@@ -50,5 +51,7 @@ def connect_and_send(host, port, data, timeout=10):
     if isinstance(data, str):
         data = data.encode('utf-8')
 
+    logging.debug("connection to %s:%s with a timeout of %s", host, port, timeout)
     with socket.create_connection((host, port), timeout=timeout) as sock:
+        logging.debug("sending data: %s", data)
         sock.sendall(data)
