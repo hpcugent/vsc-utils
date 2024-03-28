@@ -38,15 +38,10 @@ def connect_and_send(host, port, data, timeout=10):
     data can be:
      - bytes
      - string
-     - list of strings
 
     timeout value is counted for the entire connection so includes
     sending of data.
     """
-    # convert list to string if needed
-    if isinstance(data, list):
-        data = "\n".join(data)
-
     # make sure data is bytes
     if isinstance(data, str):
         data = data.encode('utf-8')
