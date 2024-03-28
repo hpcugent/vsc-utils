@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-##
-# Copyright 2012-2020 Ghent University
+#
+# Copyright 2024-2024 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -9,7 +8,7 @@
 # the Flemish Research Foundation (FWO) (http://www.fwo.be/en)
 # and the Department of Economy, Science and Innovation (EWI) (http://www.ewi-vlaanderen.be/en).
 #
-# http://github.com/hpcugent/vsc-utils
+# https://github.com/hpcugent/vsc-utils
 #
 # vsc-utils is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Library General Public License as
@@ -23,33 +22,31 @@
 #
 # You should have received a copy of the GNU Library General Public License
 # along with vsc-utils. If not, see <http://www.gnu.org/licenses/>.
-##
+#
 """
-vsc-utils base distribution setup.py
+Utilities for sending data like netcat utility.
 
-@author: Stijn De Weirdt (Ghent University)
-@author: Andy Georges (Ghent University)
+@author Wouter Depypere (Ghent University)
 """
-import vsc.install.shared_setup as shared_setup
-from vsc.install.shared_setup import ag, sdw
 
-install_requires = [
-    'vsc-base >= 3.2.4',
-    'lockfile >= 0.9.1',
-    'netifaces',
-    'jsonpickle',
-]
+import logging
+import socket
 
-PACKAGE = {
-    'version': '2.2.7',
-    'author': [ag, sdw],
-    'maintainer': [ag, sdw],
-    'excluded_pkgs_rpm': ['vsc', 'vsc.utils'],  # vsc is default, vsc.utils is provided by vsc-base
-    'tests_require': ['mock'],
-    'install_requires': install_requires,
-    'setup_requires': ['vsc-install >= 0.15.1'],
-    'zip_safe': False,
-}
+def connect_and_send(host, port, data, timeout=10):
+    """
+    connect to a host with given timeout and write data to it.
+    data can be:
+     - bytes
+     - string
 
-if __name__ == '__main__':
-    shared_setup.action_target(PACKAGE)
+    timeout value is counted for the entire connection so includes
+    sending of data.
+    """
+    # make sure data is bytes
+    if isinstance(data, str):
+        data = data.encode('utf-8')
+
+    logging.debug("connection to %s:%s with a timeout of %s", host, port, timeout)
+    with socket.create_connection((host, port), timeout=timeout) as sock:
+        logging.debug("sending data: %s", data)
+        sock.sendall(data)
