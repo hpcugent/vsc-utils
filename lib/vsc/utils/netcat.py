@@ -45,7 +45,7 @@ def connect_and_send(host, port, data, timeout=10):
     """
     # convert list to string if needed
     if isinstance(data, list):
-        data = "".join(data)
+        data = "\n".join(data)
 
     # make sure data is bytes
     if isinstance(data, str):
