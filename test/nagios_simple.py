@@ -109,13 +109,13 @@ class TestSimpleNagios(TestCase):
         self._basic_test_single_instance(kwargs, 'OK hello | value1=5;5;10;', NAGIOS_EXIT_OK)
         # goutside warning range, perfdata with warning in message
         kwargs['value1'] = 7
-        self._basic_test_single_instance(kwargs, 'WARNING value1 | value1=7;5;10;', NAGIOS_EXIT_WARNING)
+        self._basic_test_single_instance(kwargs, 'WARNING value1, hello | value1=7;5;10;', NAGIOS_EXIT_WARNING)
         # outside critical range?
         kwargs['value1'] = 10
-        self._basic_test_single_instance(kwargs, 'WARNING value1 | value1=10;5;10;', NAGIOS_EXIT_WARNING)
+        self._basic_test_single_instance(kwargs, 'WARNING value1, hello | value1=10;5;10;', NAGIOS_EXIT_WARNING)
         # greater
         kwargs['value1'] = 15
-        self._basic_test_single_instance(kwargs, 'CRITICAL value1 | value1=15;5;10;', NAGIOS_EXIT_CRITICAL)
+        self._basic_test_single_instance(kwargs, 'CRITICAL value1, hello | value1=15;5;10;', NAGIOS_EXIT_CRITICAL)
 
         # mixed
         kwargsmore = {
