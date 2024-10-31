@@ -523,7 +523,8 @@ class SimpleNagios(NagiosResult):
                 if "warning" in v and NagiosRange(v['warning']).alert(v['value']):
                     warn = True
                     msg.append(k)
-
+        if self.message:
+            msg.append(self.message)
         return warn, crit, ', '.join(msg)
 
     def _eval_and_exit(self, **kwargs):
