@@ -144,7 +144,7 @@ class TestSimpleNagios(TestCase):
 
         # no warning/critical; so regular message
         kwargs['value2'] = 5
-        self._basic_test_single_instance(kwargs, 'OK hello, hello | value0=3;5;10; value1=5;5;10; value2=5;5;10;',
+        self._basic_test_single_instance(kwargs, 'OK hello | value0=3;5;10; value1=5;5;10; value2=5;5;10;',
                                          NAGIOS_EXIT_OK)
 
 
