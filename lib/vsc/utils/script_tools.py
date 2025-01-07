@@ -34,6 +34,7 @@ This module provides functions to run at the beginning and end of commonly used 
 import os
 import sys
 
+from configargparse import ConfigArgParse
 from copy import deepcopy
 
 import logging
@@ -50,6 +51,7 @@ from vsc.utils.timestamp_pid_lockfile import TimestampedPidLockfile
 
 DEFAULT_TIMESTAMP = "20140101000000Z"
 TIMESTAMP_FILE_OPTION = "timestamp_file"
+
 DEFAULT_CLI_OPTIONS = {
     "start_timestamp": ("The timestamp form which to start, otherwise use the cached value", None, "store", None),
     TIMESTAMP_FILE_OPTION: ("Location to cache the start timestamp", None, "store", None),
@@ -81,6 +83,205 @@ DEFAULT_OPTIONS = {
     'nagios-user': ('user nagios runs as', 'string', 'store', 'nrpe'),
     'nagios-world-readable-check': ('make the nagios check data file world readable', None, 'store_true', False),
 }
+
+CLI_BASE_OPTIONS = {
+    'disable-locking': ('do NOT protect this script by a file-based lock', None, 'store_true', False),
+    'dry-run': ('do not make any updates whatsoever', None, 'store_true', False),
+    'ha': ('high-availability master IP address', None, 'store', None),
+}
+
+TIMESTAMP_MIXIN_OPTIONS = {
+    "start_timestamp": ("The timestamp form which to start, otherwise use the cached value", None, "store", None),
+    TIMESTAMP_FILE_OPTION: ("Location to cache the start timestamp", None, "store", None),
+}
+
+NAGIOS_MIXIN_OPTIONS = {
+    'nagios-report': ('print out nagios information', None, 'store_true', False, 'n'),
+    'nagios-check-filename': ('filename of where the nagios check data is stored', 'string', 'store',
+                              os.path.join(NAGIOS_CACHE_DIR,
+                                           NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
+    'nagios-check-interval-threshold': ('threshold of nagios checks timing out', 'int', 'store', 0),
+    'nagios-user': ('user nagios runs as', 'string', 'store', 'nrpe'),
+    'nagios-world-readable-check': ('make the nagios check data file world readable', None, 'store_true', False),
+}
+
+
+def populate_config_parser(parser, options):
+    """
+    Populates or updates a ConfigArgParse parser with options from a dictionary.
+
+    Args:
+        parser (configargparse.ArgParser): The parser to populate or update.
+        options (dict): A dictionary of options where each key is the argument name and the value is a tuple
+                        containing (help, type, action, default, optional short flag).
+
+    Returns:
+        configargparse.ArgParser: The populated or updated parser.
+    """
+    existing_args = {action.dest: action for action in parser._actions}
+
+    for arg_name, config in options.items():
+        # Extract the tuple components with fallback to None for optional elements
+        help_text = config[0]
+        type_ = config[1] if len(config) > 1 else None
+        action = config[2] if len(config) > 2 else None
+        default = config[3] if len(config) > 3 else None
+        short_flag = f"-{config[4]}" if len(config) > 4 else None
+
+        # Prepare argument details
+        kwargs = {
+            "help": help_text,
+            "default": default,
+        }
+        if type_:
+            kwargs["type"] = eval(type_)  # Convert string type (e.g., 'int', 'string') to actual type
+        if action:
+            kwargs["action"] = action
+
+        long_flag = f"--{arg_name.replace('_', '-')}"
+
+        # Check if the argument already exists
+        if arg_name in existing_args:
+            # Update existing argument
+            action = existing_args[arg_name]
+            if "help" in kwargs:
+                action.help = kwargs["help"]
+            if "default" in kwargs:
+                action.default = kwargs["default"]
+            if "type" in kwargs:
+                action.type = kwargs["type"]
+            if "action" in kwargs:
+                action.action = kwargs["action"]
+        else:
+            # Add new argument
+            if short_flag:
+                parser.add_argument(short_flag, long_flag, **kwargs)
+            else:
+                parser.add_argument(long_flag, **kwargs)
+
+    return parser
+
+
+class TimestampMixin:
+    """
+    A mixin class providing methods for timestamp handling.
+
+    Requires:
+        - The inheriting class must provide `self.options` with attributes:
+            - `start_timestamp`
+            - `TIMESTAMP_FILE_OPTION`
+    """
+    def make_time(self):
+        """
+        Get start time (from commandline or cache), return current time
+        """
+        try:
+            (start_timestamp, current_time) = retrieve_timestamp_with_default(
+                getattr(self.options, TIMESTAMP_FILE_OPTION),
+                start_timestamp=self.options.start_timestamp,
+                default_timestamp=DEFAULT_TIMESTAMP,
+                delta=-MAX_RTT,  # make the default delta explicit, current_time = now - MAX_RTT seconds
+            )
+        except Exception as err:
+            self.critical_exception("Failed to retrieve timestamp", err)
+
+        logging.info("Using start timestamp %s", start_timestamp)
+        logging.info("Using current time %s", current_time)
+        self.start_timestamp = start_timestamp
+        self.current_time = current_time
+
+
+class NagiosStatusMixin:
+    """
+    A mixin class providing methods for Nagios status codes.
+    """
+
+    def ok(self, msg):
+        """
+        Convenience method that exits with Nagios OK exit code.
+        """
+        exit_from_errorcode(0, msg)
+
+    def warning(self, msg):
+        """
+        Convenience method that exits with Nagios WARNING exit code.
+        """
+        exit_from_errorcode(1, msg)
+
+    def critical(self, msg):
+        """
+        Convenience method that exits with Nagios CRITICAL exit code.
+        """
+        exit_from_errorcode(2, msg)
+
+    def unknown(self, msg):
+        """
+        Convenience method that exits with Nagios UNKNOWN exit code.
+        """
+        exit_from_errorcode(3, msg)
+
+
+class CLIBase:
+
+    def do(self, dryrun=False):
+        """
+        Method to add actual work to do.
+        The method is executed in main method in a generic try/except/finally block
+        You can return something, that, when it evals to true, is considered fatal
+        """
+        logging.error("`do` method not implemented")
+        raise NotImplementedError("Not implemented")
+        return "Not Implemented"
+
+    def main(self):
+        """
+        The main method.
+        """
+        errors = []
+
+        argparser = ConfigArgParse()
+        argparser = populate_config_parser(argparser, CLI_BASE_OPTIONS)
+
+        if isinstance(self, TimestampMixin):
+            argperser = populate_config_parser(argparser, TIMESTAMP_MIXIN_OPTIONS)
+
+        if isinstance(self, LockMixin):
+            argparser = populate_config_parser(argparser, LOCK_MIXIN_OPTIONS)
+
+        if isinstance(self, NagiosStatusMixin):
+            argparser = populate_config_parser(argparser, NAGIOS_MIXIN_OPTIONS)
+
+
+        self.options = argparser.parse_args()
+
+        msg = self.name
+        if self.options.dry_run:
+            msg += " (dry-run)"
+        logging.info("%s started.", msg)
+
+        # Call prologue if LockMixin is inherited
+        if isinstance(self, LockMixin):
+            self.lock_prologue()
+
+        if isinstance(self, TimestampMixin):
+            self.make_time()
+
+        try:
+            errors = self.do(self.options.dry_run)
+        except Exception as err:
+            self.critical_exception("Script failed in a horrible way", err)
+        finally:
+            self.final()
+            # Call epilogue_unlock if LockMixin is inherited
+            if isinstance(self, LockMixin):
+                self.lock_epilogue()
+
+        self.post(errors)
+
+        # Call epilogue if NagiosStatusMixin is inherited
+        if isinstance(self, NagiosStatusMixin):
+            self.nagios_epilogue()
+
 
 
 def _merge_options(options):
@@ -225,7 +426,6 @@ class ExtendedSimpleOption(SimpleOption):
         self.log.debug("traceback %s", traceback)
         message = f"Script failure: {tp} - {value}"
         self.critical(message)
-
 
 class CLI:
     """
@@ -408,30 +608,8 @@ class CLI:
         self.fulloptions.epilogue(f"{msg} complete", self.thresholds)
 
 
-class NrpeCLI(CLI):
+
+
+class NrpeCLI(NagiosStatusMixin, CLI):
     def __init__(self, name=None, default_options=None):
         super().__init__(name=name, default_options=default_options)
-
-    def ok(self, msg):
-        """
-        Convenience method that exists with nagios OK exitcode
-        """
-        exit_from_errorcode(0, msg)
-
-    def warning(self, msg):
-        """
-        Convenience method exists with nagios warning exitcode
-        """
-        exit_from_errorcode(1, msg)
-
-    def critical(self, msg):
-        """
-        Convenience method that exists with nagios critical exitcode
-        """
-        exit_from_errorcode(2, msg)
-
-    def unknown(self, msg):
-        """
-        Convenience method that exists with nagios unknown exitcode
-        """
-        exit_from_errorcode(3, msg)
