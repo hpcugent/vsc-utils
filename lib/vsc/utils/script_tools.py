@@ -85,21 +85,39 @@ DEFAULT_OPTIONS = {
 }
 
 CLI_BASE_OPTIONS = {
-    'disable-locking': ('do NOT protect this script by a file-based lock', None, 'store_true', False),
     'dry-run': ('do not make any updates whatsoever', None, 'store_true', False),
     'ha': ('high-availability master IP address', None, 'store', None),
 }
 
+HA_MIXIN_OPTIONS = {
+    'ha': ('high-availability master IP address', None, 'store', None),
+}
+
+LOCK_MIXIN_OPTIONS = {
+    'disable-locking': ('do NOT protect this script by a file-based lock', None, 'store_true', False),
+    'locking-filename':
+        ( 'file that will serve as a lock', None, 'store',
+            os.path.join(
+                LOCKFILE_DIR,
+                LOCKFILE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),)
+            )
+        ),
+}
+
 TIMESTAMP_MIXIN_OPTIONS = {
     "start_timestamp": ("The timestamp form which to start, otherwise use the cached value", None, "store", None),
-    TIMESTAMP_FILE_OPTION: ("Location to cache the start timestamp", None, "store", None),
+    "timestamnp_file": ("Location to cache the start timestamp", None, "store", None),
 }
 
 NAGIOS_MIXIN_OPTIONS = {
     'nagios-report': ('print out nagios information', None, 'store_true', False, 'n'),
-    'nagios-check-filename': ('filename of where the nagios check data is stored', 'string', 'store',
-                              os.path.join(NAGIOS_CACHE_DIR,
-                                           NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
+    'nagios-check-filename':
+        ('filename of where the nagios check data is stored', 'string', 'store',
+            os.path.join(
+                NAGIOS_CACHE_DIR,
+                NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),)
+            )
+        ),
     'nagios-check-interval-threshold': ('threshold of nagios checks timing out', 'int', 'store', 0),
     'nagios-user': ('user nagios runs as', 'string', 'store', 'nrpe'),
     'nagios-world-readable-check': ('make the nagios check data file world readable', None, 'store_true', False),
@@ -161,6 +179,17 @@ def populate_config_parser(parser, options):
 
     return parser
 
+class HAMixin:
+    """
+    A mixin class providing methods for high-availability check.
+    """
+    pass
+
+class LockMixin:
+    """
+    A mixin class providing methods for file locking.
+    """
+    pass
 
 class TimestampMixin:
     """
@@ -223,6 +252,16 @@ class NagiosStatusMixin:
 
 class CLIBase:
 
+    CLI_OPTIONS = {}
+
+    def get_options(self):
+        # Gather options from the current class and its hierarchy
+        options = {}
+        for cls in reversed(self.__class__.mro()):
+            if hasattr(cls, "CLI_OPTIONS"):
+                options.update(cls.OPTIONS)
+        return options
+
     def do(self, dryrun=False):
         """
         Method to add actual work to do.
@@ -239,11 +278,14 @@ class CLIBase:
         """
         errors = []
 
-        argparser = ConfigArgParse()
+        argparser = ArgParser()
         argparser = populate_config_parser(argparser, CLI_BASE_OPTIONS)
 
+        if isinstance(self, HAMixin):
+            argparser = populate_config_parser(argparser, HA_MIXIN_OPTIONS)
+
         if isinstance(self, TimestampMixin):
-            argperser = populate_config_parser(argparser, TIMESTAMP_MIXIN_OPTIONS)
+            argparser = populate_config_parser(argparser, TIMESTAMP_MIXIN_OPTIONS)
 
         if isinstance(self, LockMixin):
             argparser = populate_config_parser(argparser, LOCK_MIXIN_OPTIONS)
@@ -251,6 +293,7 @@ class CLIBase:
         if isinstance(self, NagiosStatusMixin):
             argparser = populate_config_parser(argparser, NAGIOS_MIXIN_OPTIONS)
 
+        argparser = populate_config_parser(argparser, self.get_options())
 
         self.options = argparser.parse_args()
 
@@ -321,7 +364,7 @@ class ConfigOption:
         self.options = self.parser.parse_args()
 
 
-class ExtendedSimpleOption(ConfigOption):
+class ExtendedSimpleOption(SimpleOption):
     """
     Extends the SimpleOption class to allow other checks to occur at script prologue and epilogue.
 
