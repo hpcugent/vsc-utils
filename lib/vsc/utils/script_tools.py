@@ -36,15 +36,18 @@ import sys
 
 from configargparse import ArgParser
 from copy import deepcopy
+from vsc.utils import deprecated_class, _script_name
 
 import logging
+from lockfile.linklockfile import LockFailed
 from vsc.utils import fancylogger
 from vsc.utils.availability import proceed_on_ha_service
 from vsc.utils.generaloption import SimpleOption
 from vsc.utils.lock import lock_or_bork, release_or_bork, LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE
 from vsc.utils.nagios import (
-    SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE, exit_from_errorcode,
+    NAGIOS_CRITICAL, SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE, exit_from_errorcode,
     NAGIOS_EXIT_OK, NAGIOS_EXIT_WARNING, NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_UNKNOWN,
+    NagiosStatusMixin
 )
 from vsc.utils.timestamp import convert_timestamp, write_timestamp, retrieve_timestamp_with_default
 from vsc.utils.timestamp_pid_lockfile import TimestampedPidLockfile
@@ -60,67 +63,23 @@ MAX_DELTA = 3
 MAX_RTT = 2 * MAX_DELTA + 1
 
 
-
-def _script_name(full_name):
-    """Return the script name without .py extension if any. This assumes that the script name does not contain a
-    dot in case of lacking an extension.
-    """
-    (name, _) = os.path.splitext(full_name)
-    return os.path.basename(name)
-
-
 DEFAULT_OPTIONS = {
     'disable-locking': ('do NOT protect this script by a file-based lock', None, 'store_true', False),
     'dry-run': ('do not make any updates whatsoever', None, 'store_true', False),
     'ha': ('high-availability master IP address', None, 'store', None),
-    'locking-filename': ('file that will serve as a lock', None, 'store',
-                         os.path.join(LOCKFILE_DIR,
-                                      LOCKFILE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
+    'locking-filename': (
+        'file that will serve as a lock', None, 'store',
+            os.path.join(
+                LOCKFILE_DIR,
+                LOCKFILE_FILENAME_TEMPLATE % (_script_name(sys.argv[0])),
+            )
+    ),
     'nagios-report': ('print out nagios information', None, 'store_true', False, 'n'),
-    'nagios-check-filename': ('filename of where the nagios check data is stored', 'string', 'store',
+    'nagios-check-filename': ('filename of where the nagios check data is stored', 'str', 'store',
                               os.path.join(NAGIOS_CACHE_DIR,
                                            NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
     'nagios-check-interval-threshold': ('threshold of nagios checks timing out', 'int', 'store', 0),
-    'nagios-user': ('user nagios runs as', 'string', 'store', 'nrpe'),
-    'nagios-world-readable-check': ('make the nagios check data file world readable', None, 'store_true', False),
-}
-
-CLI_BASE_OPTIONS = {
-    'dry-run': ('do not make any updates whatsoever', None, 'store_true', False),
-    'ha': ('high-availability master IP address', None, 'store', None),
-}
-
-HA_MIXIN_OPTIONS = {
-    'ha': ('high-availability master IP address', None, 'store', None),
-}
-
-LOCK_MIXIN_OPTIONS = {
-    'disable-locking': ('do NOT protect this script by a file-based lock', None, 'store_true', False),
-    'locking-filename':
-        ( 'file that will serve as a lock', None, 'store',
-            os.path.join(
-                LOCKFILE_DIR,
-                LOCKFILE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),)
-            )
-        ),
-}
-
-TIMESTAMP_MIXIN_OPTIONS = {
-    "start_timestamp": ("The timestamp form which to start, otherwise use the cached value", None, "store", None),
-    "timestamnp_file": ("Location to cache the start timestamp", None, "store", None),
-}
-
-NAGIOS_MIXIN_OPTIONS = {
-    'nagios-report': ('print out nagios information', None, 'store_true', False, 'n'),
-    'nagios-check-filename':
-        ('filename of where the nagios check data is stored', 'string', 'store',
-            os.path.join(
-                NAGIOS_CACHE_DIR,
-                NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),)
-            )
-        ),
-    'nagios-check-interval-threshold': ('threshold of nagios checks timing out', 'int', 'store', 0),
-    'nagios-user': ('user nagios runs as', 'string', 'store', 'nrpe'),
+    'nagios-user': ('user nagios runs as', 'str', 'store', 'nrpe'),
     'nagios-world-readable-check': ('make the nagios check data file world readable', None, 'store_true', False),
 }
 
@@ -153,7 +112,7 @@ def populate_config_parser(parser, options):
             "default": default,
         }
         if type_:
-            kwargs["type"] = eval(type_)  # Convert string type (e.g., 'int', 'string') to actual type
+            kwargs["type"] = eval(type_)
         if action:
             kwargs["action"] = action
 
@@ -180,17 +139,75 @@ def populate_config_parser(parser, options):
 
     return parser
 
+class HAException(Exception):
+    pass
+
+class LockException(Exception):
+    pass
+
+class NagiosException(Exception):
+    pass
+
+class TimestampException(Exception):
+    pass
+
 class HAMixin:
     """
     A mixin class providing methods for high-availability check.
     """
-    pass
+    HA_MIXIN_OPTIONS = {
+        'ha': ('high-availability master IP address', None, 'store', None),
+    }
+
+    def ha_prologue(self):
+        """
+        Check if we are running on the HA master
+        """
+        if not proceed_on_ha_service(self.options.ha):
+            raise HAException(f"Not running on the target host {self.options.ha} in the HA setup")
+
+    def ha_epilogue(self):
+        """
+        Nothing to do here
+        """
+
 
 class LockMixin:
     """
     A mixin class providing methods for file locking.
     """
-    pass
+    LOCK_MIXIN_OPTIONS = {
+        'disable-locking': ('do NOT protect this script by a file-based lock', None, 'store_true', False),
+        'locking-filename':
+            ( 'file that will serve as a lock', None, 'store',
+                os.path.join(
+                    LOCKFILE_DIR,
+                    LOCKFILE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),)
+                )
+            ),
+    }
+
+    def lock_prologue(self):
+        """
+        Take a lock on the file
+        """
+        self.lockfile = TimestampedPidLockfile(
+            self.options.locking_filename, threshold=self.options.nagios_check_interval_threshold * 2
+        )
+        try:
+            self.lockfile.acquire()
+        except LockFailed as err:
+            raise LockException(f"Failed to acquire lock on {self.options.locking_filename}") from err
+
+    def lock_epilogue(self):
+        """
+        Release the lock on the file
+        """
+        try:
+            self.lockfile.release()
+        except Exception as err:
+            raise LockException("Failed to release lock") from err
+
 
 class TimestampMixin:
     """
@@ -201,7 +218,12 @@ class TimestampMixin:
             - `start_timestamp`
             - `TIMESTAMP_FILE_OPTION`
     """
-    def make_time(self):
+    TIMESTAMP_MIXIN_OPTIONS = {
+        "start_timestamp": ("The timestamp form which to start, otherwise use the cached value", None, "store", None),
+        "timestamnp_file": ("Location to cache the start timestamp", None, "store", None),
+    }
+
+    def timestamp_prologue(self):
         """
         Get start time (from commandline or cache), return current time
         """
@@ -213,57 +235,54 @@ class TimestampMixin:
                 delta=-MAX_RTT,  # make the default delta explicit, current_time = now - MAX_RTT seconds
             )
         except Exception as err:
-            self.critical_exception("Failed to retrieve timestamp", err)
+            raise TimestampException("Failed to retrieve timestamp") from err
 
         logging.info("Using start timestamp %s", start_timestamp)
         logging.info("Using current time %s", current_time)
         self.start_timestamp = start_timestamp
         self.current_time = current_time
 
-
-class NagiosStatusMixin:
-    """
-    A mixin class providing methods for Nagios status codes.
-    """
-
-    def ok(self, msg):
+    def timestamp_epilogue(self):
         """
-        Convenience method that exits with Nagios OK exit code.
+        Write the new timestamp to the file
         """
-        exit_from_errorcode(0, msg)
-
-    def warning(self, msg):
-        """
-        Convenience method that exits with Nagios WARNING exit code.
-        """
-        exit_from_errorcode(1, msg)
-
-    def critical(self, msg):
-        """
-        Convenience method that exits with Nagios CRITICAL exit code.
-        """
-        exit_from_errorcode(2, msg)
-
-    def unknown(self, msg):
-        """
-        Convenience method that exits with Nagios UNKNOWN exit code.
-        """
-        exit_from_errorcode(3, msg)
+        try:
+            write_timestamp(self.options.timestamp_file, self.current_time)
+        except Exception as err:
+            raise TimestampException("Failed to write timestamp") from err
 
 
 class CLIBase:
 
     CLI_OPTIONS = {}
+    CLI_BASE_OPTIONS = {
+        'dry-run': ('do not make any updates whatsoever', None, 'store_true', False),
+    }
+
+    def __init__(self, name):
+        self.name = name
+
+    def critical(self, msg):
+        if isinstance(self, NagiosStatusMixin):
+            self.nagios_epilogue(NAGIOS_CRITICAL, msg)
+        else:
+            logging.error(msg)
+            sys.exit(1)
 
     def get_options(self):
         # Gather options from the current class and its hierarchy
         options = {}
         for cls in reversed(self.__class__.mro()):
             if hasattr(cls, "CLI_OPTIONS"):
-                options.update(cls.OPTIONS)
+                options.update(cls.CLI_OPTIONS)
         return options
 
-    def do(self, dryrun=False):
+    def final(self):
+        """
+        Run as finally block in main
+        """
+
+    def do(self, dryrun=False):   # pylint: disable=unused-argument
         """
         Method to add actual work to do.
         The method is executed in main method in a generic try/except/finally block
@@ -277,22 +296,23 @@ class CLIBase:
         """
         The main method.
         """
-        errors = []
+        #errors = []
 
+        # Set all the options
         argparser = ArgParser()
-        argparser = populate_config_parser(argparser, CLI_BASE_OPTIONS)
+        argparser = populate_config_parser(argparser, self.__class__.CLI_BASE_OPTIONS)
 
         if isinstance(self, HAMixin):
-            argparser = populate_config_parser(argparser, HA_MIXIN_OPTIONS)
+            argparser = populate_config_parser(argparser, self.__class__.HA_MIXIN_OPTIONS)
 
         if isinstance(self, TimestampMixin):
-            argparser = populate_config_parser(argparser, TIMESTAMP_MIXIN_OPTIONS)
+            argparser = populate_config_parser(argparser, self.__class__.TIMESTAMP_MIXIN_OPTIONS)
 
         if isinstance(self, LockMixin):
-            argparser = populate_config_parser(argparser, LOCK_MIXIN_OPTIONS)
+            argparser = populate_config_parser(argparser, self.__class__.LOCK_MIXIN_OPTIONS)
 
         if isinstance(self, NagiosStatusMixin):
-            argparser = populate_config_parser(argparser, NAGIOS_MIXIN_OPTIONS)
+            argparser = populate_config_parser(argparser, self.__class__.NAGIOS_MIXIN_OPTIONS)
 
         argparser = populate_config_parser(argparser, self.get_options())
 
@@ -303,26 +323,47 @@ class CLIBase:
             msg += " (dry-run)"
         logging.info("%s started.", msg)
 
-        # Call prologue if LockMixin is inherited
-        if isinstance(self, LockMixin):
-            self.lock_prologue()
-
-        if isinstance(self, TimestampMixin):
-            self.make_time()
+        # Call mixin prologue methods
+        # We must fiorst call the Nagios prologue, as it may exit the script immedoately when a report is asked
+        try:
+            if isinstance(self, NagiosStatusMixin):
+                self.nagios_prologue()
+        except NagiosException as err:
+            self.critical(str(err))
 
         try:
-            errors = self.do(self.options.dry_run)
+            if isinstance(self, LockMixin):
+                self.lock_prologue()
+
+            if isinstance(self, TimestampMixin):
+                self.timestamp_prologue()
+
+            if isinstance(self, HAMixin):
+                self.ha_prologue()
+
+        except (LockException, HAException, TimestampException) as err:
+            self.critical(str(err))
+
+
+        try:
+            self.do(self.options.dry_run)
         except Exception as err:
-            self.critical_exception("Script failed in a horrible way", err)
+            self.critical(f"Script failed in an unrecoverable way: {err}")
         finally:
             self.final()
             # Call epilogue_unlock if LockMixin is inherited
             if isinstance(self, LockMixin):
                 self.lock_epilogue()
 
-        self.post(errors)
+        #self.post(errors)
 
-        # Call epilogue if NagiosStatusMixin is inherited
+        # Call mixin epilogue methods
+        if isinstance(self, TimestampMixin):
+            self.timestamp_epilogue()
+
+        if isinstance(self, LockMixin):
+            self.lock_epilogue()
+
         if isinstance(self, NagiosStatusMixin):
             self.nagios_epilogue()
 
@@ -347,24 +388,7 @@ def _merge_options(options):
     return opts
 
 
-class ConfigOption:
-    """
-    Allow using configargparse.ArgParser instead of GeneralOption but with the same
-    options-specifying syntax
-    """
-
-    def __init__(self, options, config_files=None):
-        self.parser = ArgParser(auto_env_var_prefix='')
-
-        if config_files:
-            self.parser.config_file_parser(config_files)
-
-        for option, (help_str, type_, action, default_value) in options.items():
-            self.parser.add(f'--{option}', help=help_str, type=type_, action=action, default=default_value)
-
-        self.options = self.parser.parse_args()
-
-
+@deprecated_class("Base your scripts on the CLIBase class instead")
 class ExtendedSimpleOption(SimpleOption):
     """
     Extends the SimpleOption class to allow other checks to occur at script prologue and epilogue.
@@ -490,8 +514,7 @@ class ExtendedSimpleOption(SimpleOption):
         self.critical(message)
 
 
-
-
+@deprecated_class("Base your scripts on the CLIBase class instead")
 class CLI:
     """
     Base class to implement cli tools that require timestamps, nagios checks, etc.
@@ -673,8 +696,31 @@ class CLI:
         self.fulloptions.epilogue(f"{msg} complete", self.thresholds)
 
 
-
-
-class NrpeCLI(NagiosStatusMixin, CLI):
+@deprecated_class("Base your scripts on the CLIBase class instead")
+class NrpeCLI(CLI):
     def __init__(self, name=None, default_options=None):
         super().__init__(name=name, default_options=default_options)
+
+    def ok(self, msg):
+        """
+        Convenience method that exists with nagios OK exitcode
+        """
+        exit_from_errorcode(0, msg)
+
+    def warning(self, msg):
+        """
+        Convenience method exists with nagios warning exitcode
+        """
+        exit_from_errorcode(1, msg)
+
+    def critical(self, msg):
+        """
+        Convenience method that exists with nagios critical exitcode
+        """
+        exit_from_errorcode(2, msg)
+
+    def unknown(self, msg):
+        """
+        Convenience method that exists with nagios unknown exitcode
+        """
+        exit_from_errorcode(3, msg)
