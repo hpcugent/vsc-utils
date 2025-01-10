@@ -1,5 +1,5 @@
 #
-# Copyright 2012-2024 Ghent University
+# Copyright 2012-2025 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -143,7 +143,13 @@ class FileCache:
 
         @returns: (timestamp, data) if there is data for the given key, None otherwise.
         """
-        return self.new_shelf.get(key, None) or self.shelf.get(key, None)
+        result = None
+        if self.new_shelf is not None:
+            result = self.new_shelf.get(key, None)
+        if result is None and self.shelf is not None:
+            return self.shelf.get(key, None)
+
+        return result
 
     def retain(self):
         """Retain non-updated data on close."""
@@ -163,6 +169,8 @@ class FileCache:
                 self.log.error('cannot open the file cache at %s for writing', self.filename)
             else:
                 if self.retain_old:
+                    if self.shelf is None:
+                        self.shelf = {}
                     self.shelf.update(self.new_shelf)
                     self.new_shelf = self.shelf
 
