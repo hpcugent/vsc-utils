@@ -143,7 +143,13 @@ class FileCache:
 
         @returns: (timestamp, data) if there is data for the given key, None otherwise.
         """
-        return self.new_shelf.get(key, None) or self.shelf.get(key, None)
+        result = None
+        if self.new_shelf is not None:
+            result = self.new_shelf.get(key, None)
+        if result is None and self.shelf is not None:
+            return self.shelf.get(key, None)
+
+        return result
 
     def retain(self):
         """Retain non-updated data on close."""
