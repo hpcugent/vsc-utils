@@ -169,6 +169,8 @@ class FileCache:
                 self.log.error('cannot open the file cache at %s for writing', self.filename)
             else:
                 if self.retain_old:
+                    if self.shelf is None:
+                        self.shelf = {}
                     self.shelf.update(self.new_shelf)
                     self.new_shelf = self.shelf
 
