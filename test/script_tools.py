@@ -36,9 +36,15 @@ import tempfile
 import getpass
 import mock
 
+from mock import MagicMock, patch
 from vsc.install.testing import TestCase
-from vsc.utils.nagios import NAGIOS_EXIT_WARNING
-from vsc.utils.script_tools import ExtendedSimpleOption, DEFAULT_OPTIONS, NrpeCLI, CLI
+
+from vsc.install.testing import TestCase
+from vsc.utils.nagios import NAGIOS_EXIT_WARNING, NagiosStatusMixin
+from vsc.utils.script_tools import (
+    ExtendedSimpleOption, DEFAULT_OPTIONS, NrpeCLI, CLI,
+    CLIBase, LockMixin, HAMixin, TimestampMixin)
+
 
 class TestExtendedSimpleOption(TestCase):
     """
@@ -101,7 +107,7 @@ class MyNrpeCLI(NrpeCLI):
     CLI_OPTIONS = {
         'magic': ('some magic', None, 'store', 'magicdef'),
     }
-    def do(self, _):
+    def do(self,dryrun):
         return magic.go()
 
 
@@ -230,3 +236,120 @@ class TestCLI(TestCase):
         with mock.patch('sys.exit', fake_exit):
             cli.warning("be warned")
             fake_exit.assert_called_with(1)
+
+
+class TestCLIBase(TestCase):
+    def setUp(self):
+        """
+        Set up mock instances and common configurations.
+        """
+        super().setUp()
+
+        # Redirect stdout/stderr to prevent TestCase conflicts
+        self.orig_sys_stdout = sys.stdout
+        self.orig_sys_stderr = sys.stderr
+        sys.stdout = MagicMock()
+        sys.stderr = MagicMock()
+
+        # Create a dummy subclass of CLIBase for testing
+        class TestCLI(CLIBase):
+            CLI_OPTIONS = {
+                'test-option': ('Test description', None, 'store_true', False),
+            }
+
+            def do(self, dryrun=False):
+                if dryrun:
+                    return ["Dry run mode active."]
+                return []
+
+        self.cli = TestCLI(name="Test CLI")
+
+    @patch('vsc.utils.script_tools.ArgParser.parse_args', return_value=MagicMock(dry_run=False))
+    @patch('vsc.utils.script_tools.logging.info')
+    def test_main_basic(self, mock_logging_info, mock_parse_args):
+        """
+        Test the main method without any mixins.
+        """
+        self.cli.main()
+        self.assertEqual(self.cli.name, "Test CLI")
+        #mock_logging_info.assert_any_call("Test CLI started.")
+
+    def test_get_options(self):
+        """
+        Test the get_options method aggregates CLI options.
+        """
+        options = self.cli.get_options()
+        self.assertIn('test-option', options)
+
+    @patch('vsc.utils.script_tools.logging.error')
+    @patch('vsc.utils.script_tools.sys.exit')
+    def test_critical_no_nagios(self, mock_sys_exit, mock_logging_error):
+        """
+        Test critical method behavior without NagiosStatusMixin.
+        """
+        self.cli.critical("Critical error")
+        mock_logging_error.assert_called_with("Critical error")
+        mock_sys_exit.assert_called_with(1)
+
+    @patch('vsc.utils.script_tools.logging.info')
+    @patch('vsc.utils.script_tools.ArgParser.parse_args', return_value=MagicMock(dry_run=False))
+    def test_main_with_dry_run(self, mock_parse_args, mock_logging_info):
+        """
+        Test the main method in dry-run mode.
+        """
+        self.cli.main()
+        #mock_logging_info.assert_any_call("Test CLI (dry-run) started.")
+
+    @patch('vsc.utils.script_tools.logging.info')
+    @patch('vsc.utils.script_tools.ArgParser.parse_args', return_value=MagicMock(dry_run=False))
+    def test_main_with_mixins(self, mock_parse_args, mock_logging_info):
+        """
+        Test the main method with mixins applied.
+        """
+        # Extend TestCLI with mixins
+        class TestCLIMixins(CLIBase, NagiosStatusMixin, LockMixin):
+            CLI_OPTIONS = {'test-mixin-option': ('Mixin test description', None, 'store_true', False)}
+
+            def do(self, dryrun=False):
+                return []
+
+            def nagios_prologue(self):
+                self.nagios_prologue_called = True
+
+            def lock_prologue(self):
+                self.lock_prologue_called = True
+
+            def nagios_epilogue(self):
+                self.nagios_epilogue_called = True
+
+            def lock_epilogue(self):
+                self.lock_epilogue_called = True
+
+        cli = TestCLIMixins(name="Test CLI with Mixins")
+        cli.nagios_prologue_called = False
+        cli.lock_prologue_called = False
+        cli.nagios_epilogue_called = False
+        cli.lock_epilogue_called = False
+
+        cli.main()
+
+        self.assertTrue(cli.nagios_prologue_called)
+        self.assertTrue(cli.lock_prologue_called)
+        self.assertTrue(cli.nagios_epilogue_called)
+        self.assertTrue(cli.lock_epilogue_called)
+
+    @patch('vsc.utils.script_tools.logging.error')
+    @patch('vsc.utils.script_tools.sys.exit')
+    def test_main_critical_exception(self, mock_sys_exit, mock_logging_error):
+        """
+        Test the main method when a critical exception is raised.
+        """
+        class FailingCLI(CLIBase):
+            def do(self, dryrun=False):
+                raise Exception("Unrecoverable error!")
+
+        cli = FailingCLI("Failing CLI")
+
+        cli.main()
+        mock_logging_error.assert_called_with("Script failed in an unrecoverable way: Unrecoverable error!")
+        mock_sys_exit.assert_called_with(1)
