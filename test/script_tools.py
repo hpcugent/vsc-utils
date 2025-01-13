@@ -120,7 +120,7 @@ class MyCLI(CLI):
         'magic': ('some magic', None, 'store', 'magicdef'),
         'nagios_check_filename': ('bla', None, 'store', TESTFILE),
         'locking_filename': ('test', None, 'store', TESTFILE2),
-        'nagios_user': ('user nagios runs as', 'string', 'store', getpass.getuser()),
+        'nagios_user': ('user nagios runs as', 'str', 'store', getpass.getuser()),
     }
     def do(self, _):
         return magic.go()
@@ -172,6 +172,9 @@ class TestNrpeCLI(TestCase):
     @mock.patch('vsc.utils.script_tools.ExtendedSimpleOption.prologue')
     def test_exit(self, _):
 
+        self.original_argv = sys.argv
+        sys.argv = ["somecli"]
+
         cli = MyNrpeCLI()
 
         fake_exit = mock.MagicMock()
@@ -186,7 +189,7 @@ class TestCLI(TestCase):
     @mock.patch('vsc.utils.script_tools.ExtendedSimpleOption.prologue')
     def test_opts(self, _):
         sys.argv = ['abc']
-        ms = MyCLI()
+        ms = MyCLI(name="MyCLI")
 
         logging.debug("options %s %s %s", ms.options, dir(ms.options), vars(ms.options))
 
@@ -222,18 +225,22 @@ class TestCLI(TestCase):
             'magic': 'magicdef',
         }
         myopts.update(extsimpopts)
-        ms = MyCLI(default_options={})
+        ms = MyCLI(name="mycli", default_options={})
         logging.debug("options wo default sync options %s", ms.options)
         self.assertEqual(ms.options.__dict__, myopts)
 
     @mock.patch('vsc.utils.script_tools.lock_or_bork')
     @mock.patch('vsc.utils.script_tools.release_or_bork')
     def test_exit(self, locklock, releaselock):
+        original_argv = sys.argv
+        sys.argv = ["mycli"]
 
-        cli = MyCLI()
+        cli = MyCLI(
+            name="MyCLI",
+        )
 
         fake_exit = mock.MagicMock()
-        with mock.patch('sys.exit', fake_exit):
+        with mock.patch('vsc.utils.script_tools.sys.exit', fake_exit):
             cli.warning("be warned")
             fake_exit.assert_called_with(1)
 
@@ -250,6 +257,9 @@ class TestCLIBase(TestCase):
         self.orig_sys_stderr = sys.stderr
         sys.stdout = MagicMock()
         sys.stderr = MagicMock()
+
+        self.original_argv = sys.argv
+        sys.argv = ["somecli"]
 
         # Create a dummy subclass of CLIBase for testing
         class TestCLI(CLIBase):
