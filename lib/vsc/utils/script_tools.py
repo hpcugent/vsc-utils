@@ -220,7 +220,7 @@ class TimestampMixin:
     """
     TIMESTAMP_MIXIN_OPTIONS = {
         "start_timestamp": ("The timestamp form which to start, otherwise use the cached value", None, "store", None),
-        "timestamnp_file": ("Location to cache the start timestamp", None, "store", None),
+        "timestamp_file": ("Location to cache the start timestamp", None, "store", None),
     }
 
     def timestamp_prologue(self):
@@ -251,16 +251,69 @@ class TimestampMixin:
         except Exception as err:
             raise TimestampException("Failed to write timestamp") from err
 
+class LogMixin:
+    """
+    A mixin class providing methods for logging.
+    """
+    LOG_MIXIN_OPTIONS = {
+        'debug': ("Enable debug log mode", None, "store_true", False),
+        'info': ("Enable info log mode", None, "store_true", False),
+        'quiet': ("Enable quiet/warning log mode", None, "store_true", False),
+    }
+
+    def log_prologue(self):
+        """
+        Set the log level
+        """
+        if self.options.quiet:
+            logging.basicConfig(level=logging.WARNING)
+        elif self.options.info:
+            logging.basicConfig(level=logging.INFO)
+        elif self.options.debug:
+            logging.basicConfig(level=logging.DEBUG)
+        else:
+            logging.basicConfig(level=logging.ERROR)
+
+    def log_epilogue(self):
+        """
+        Nothing to do here
+        """
 
 class CLIBase:
 
     CLI_OPTIONS = {}
     CLI_BASE_OPTIONS = {
         'dry-run': ('do not make any updates whatsoever', None, 'store_true', False),
+        'configfiles': ('config file to read', 'str', 'store', None),
+        'help': ('show this help message and exit', None, 'help', None),
+        'ignoreconfigfiles': ('do not read any config files', None, 'store', None),
     }
 
-    def __init__(self, name):
+    def __init__(self, name=None):
         self.name = name
+        # Set all the options
+        argparser = ArgParser()
+        argparser = populate_config_parser(argparser, self.__class__.CLI_BASE_OPTIONS)
+
+        if isinstance(self, HAMixin):
+            argparser = populate_config_parser(argparser, self.__class__.HA_MIXIN_OPTIONS)
+
+        if isinstance(self, TimestampMixin):
+            argparser = populate_config_parser(argparser, self.__class__.TIMESTAMP_MIXIN_OPTIONS)
+
+        if isinstance(self, LockMixin):
+            argparser = populate_config_parser(argparser, self.__class__.LOCK_MIXIN_OPTIONS)
+
+        if isinstance(self, LogMixin):
+            argparser = populate_config_parser(argparser, self.__class__.LOG_MIXIN_OPTIONS)
+
+        if isinstance(self, NagiosStatusMixin):
+            argparser = populate_config_parser(argparser, self.__class__.NAGIOS_MIXIN_OPTIONS)
+
+        argparser = populate_config_parser(argparser, self.get_options())
+
+        self.options = argparser.parse_args()
+
 
     def critical(self, msg):
         if isinstance(self, NagiosStatusMixin):
@@ -298,26 +351,6 @@ class CLIBase:
         """
         #errors = []
 
-        # Set all the options
-        argparser = ArgParser()
-        argparser = populate_config_parser(argparser, self.__class__.CLI_BASE_OPTIONS)
-
-        if isinstance(self, HAMixin):
-            argparser = populate_config_parser(argparser, self.__class__.HA_MIXIN_OPTIONS)
-
-        if isinstance(self, TimestampMixin):
-            argparser = populate_config_parser(argparser, self.__class__.TIMESTAMP_MIXIN_OPTIONS)
-
-        if isinstance(self, LockMixin):
-            argparser = populate_config_parser(argparser, self.__class__.LOCK_MIXIN_OPTIONS)
-
-        if isinstance(self, NagiosStatusMixin):
-            argparser = populate_config_parser(argparser, self.__class__.NAGIOS_MIXIN_OPTIONS)
-
-        argparser = populate_config_parser(argparser, self.get_options())
-
-        self.options = argparser.parse_args()
-
         msg = self.name
         if self.options.dry_run:
             msg += " (dry-run)"
@@ -332,6 +365,9 @@ class CLIBase:
             self.critical(str(err))
 
         try:
+            if isinstance(self, LogMixin):
+                self.log_prologue()
+
             if isinstance(self, LockMixin):
                 self.lock_prologue()
 
@@ -367,6 +403,11 @@ class CLIBase:
         if isinstance(self, NagiosStatusMixin):
             self.nagios_epilogue()
 
+
+class FullCLIBase(HAMixin, LockMixin, TimestampMixin, LogMixin, NagiosStatusMixin, CLIBase):
+    """
+    A class for command line scripts with all mixins, i.e., what you usually want.
+    """
 
 
 def _merge_options(options):
@@ -514,8 +555,13 @@ class ExtendedSimpleOption(SimpleOption):
         self.critical(message)
 
 
+class CLI(FullCLIBase):
+
+    def __init__(self, name=None, default_options=None):  # pylint: disable=unused-argument
+        super().__init__(name)
+
 @deprecated_class("Base your scripts on the CLIBase class instead")
-class CLI:
+class OldCLI:
     """
     Base class to implement cli tools that require timestamps, nagios checks, etc.
     """
@@ -701,26 +747,27 @@ class NrpeCLI(CLI):
     def __init__(self, name=None, default_options=None):
         super().__init__(name=name, default_options=default_options)
 
-    def ok(self, msg):
-        """
-        Convenience method that exists with nagios OK exitcode
-        """
-        exit_from_errorcode(0, msg)
-
-    def warning(self, msg):
-        """
-        Convenience method exists with nagios warning exitcode
-        """
-        exit_from_errorcode(1, msg)
-
-    def critical(self, msg):
-        """
-        Convenience method that exists with nagios critical exitcode
-        """
-        exit_from_errorcode(2, msg)
-
-    def unknown(self, msg):
-        """
-        Convenience method that exists with nagios unknown exitcode
-        """
-        exit_from_errorcode(3, msg)
+#    def ok(self, msg):
+#        """
+#        Convenience method that exists with nagios OK exitcode
+#        """
+#        exit_from_errorcode(0, msg)
+#
+#    def warning(self, msg):
+#        """
+#        Convenience method exists with nagios warning exitcode
+#        """
+#        exit_from_errorcode(1, msg)
+#
+#    def critical(self, msg):
+#        """
+#        Convenience method that exists with nagios critical exitcode
+#        """
+#        exit_from_errorcode(2, msg)
+#
+#    def unknown(self, msg):
+#        """
+#        Convenience method that exists with nagios unknown exitcode
+#        """
+#        exit_from_errorcode(3, msg)
+#
