@@ -55,7 +55,7 @@ def store_on_gpfs(user_name, path, key, information, gpfs, login_mount_point, gp
     @type dry_run: boolean
     """
 
-    if user_name and user_name.startswith('vsc4'):
+    if user_name and (user_name.startswith('vsc4') or user_name.startswith('vsc5')):
         logger.debug("Storing %s information for user %s", key, user_name)
         logger.debug("information: %s", information)
         logger.debug("path for storing information would be %s", path)
