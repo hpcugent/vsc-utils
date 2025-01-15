@@ -49,7 +49,10 @@ from vsc.utils.nagios import (
     NAGIOS_EXIT_OK, NAGIOS_EXIT_WARNING, NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_UNKNOWN,
     NagiosStatusMixin
 )
-from vsc.utils.timestamp import convert_timestamp, write_timestamp, retrieve_timestamp_with_default
+from vsc.utils.timestamp import (
+    convert_timestamp, write_timestamp, retrieve_timestamp_with_default, TIMESTAMP_DIR,
+    TIMESTAMP_FILENAME_TEMPLATE
+)
 from vsc.utils.timestamp_pid_lockfile import TimestampedPidLockfile
 
 DEFAULT_TIMESTAMP = "20140101000000Z"
@@ -220,7 +223,13 @@ class TimestampMixin:
     """
     TIMESTAMP_MIXIN_OPTIONS = {
         "start_timestamp": ("The timestamp form which to start, otherwise use the cached value", None, "store", None),
-        "timestamp_file": ("Location to cache the start timestamp", None, "store", None),
+        "timestamp_file": (
+            "Location to cache the start timestamp", None, "store",
+            os.path.join(
+                TIMESTAMP_DIR,
+                TIMESTAMP_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),)
+            )
+        ),
     }
 
     def timestamp_prologue(self):

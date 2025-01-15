@@ -40,6 +40,8 @@ LDAP_DATETIME_TIMEFORMAT = "%Y%m%d%H%M%SZ"
 
 DEFAULT_TIMESTAMP = "20140101000000Z"
 
+TIMESTAMP_DIR = "/var/cache"
+TIMESTAMP_FILENAME_TEMPLATE = "%s.timestamp"
 
 def convert_to_datetime(timestamp=None):
     """
