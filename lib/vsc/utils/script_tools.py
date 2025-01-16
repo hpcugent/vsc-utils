@@ -307,14 +307,14 @@ class CLIBase:
         if isinstance(self, HAMixin):
             argparser = populate_config_parser(argparser, self.__class__.HA_MIXIN_OPTIONS)
 
+        if isinstance(self, LogMixin):
+            argparser = populate_config_parser(argparser, self.__class__.LOG_MIXIN_OPTIONS)
+
         if isinstance(self, TimestampMixin):
             argparser = populate_config_parser(argparser, self.__class__.TIMESTAMP_MIXIN_OPTIONS)
 
         if isinstance(self, LockMixin):
             argparser = populate_config_parser(argparser, self.__class__.LOCK_MIXIN_OPTIONS)
-
-        if isinstance(self, LogMixin):
-            argparser = populate_config_parser(argparser, self.__class__.LOG_MIXIN_OPTIONS)
 
         if isinstance(self, NagiosStatusMixin):
             argparser = populate_config_parser(argparser, self.__class__.NAGIOS_MIXIN_OPTIONS)
@@ -322,7 +322,6 @@ class CLIBase:
         argparser = populate_config_parser(argparser, self.get_options())
 
         self.options = argparser.parse_args()
-
 
     def critical(self, msg):
         if isinstance(self, NagiosStatusMixin):
@@ -361,7 +360,7 @@ class CLIBase:
         #errors = []
 
         msg = self.name
-        if self.options.dry_run:
+        if msg and self.options.dry_run:
             msg += " (dry-run)"
         logging.info("%s started.", msg)
 
@@ -412,6 +411,9 @@ class CLIBase:
         if isinstance(self, NagiosStatusMixin):
             self.nagios_epilogue()
 
+        if isinstance(self, LogMixin):
+            self.log_epilogue()
+
 
 class FullCLIBase(HAMixin, LockMixin, TimestampMixin, LogMixin, NagiosStatusMixin, CLIBase):
     """
@@ -436,6 +438,12 @@ def _merge_options(options):
             opts[k] = v
 
     return opts
+
+
+class CLI(FullCLIBase):
+
+    def __init__(self, name=None, default_options=None):  # pylint: disable=unused-argument
+        super().__init__(name)
 
 
 @deprecated_class("Base your scripts on the CLIBase class instead")
@@ -563,11 +571,6 @@ class ExtendedSimpleOption(SimpleOption):
         message = f"Script failure: {tp} - {value}"
         self.critical(message)
 
-
-class CLI(FullCLIBase):
-
-    def __init__(self, name=None, default_options=None):  # pylint: disable=unused-argument
-        super().__init__(name)
 
 @deprecated_class("Base your scripts on the CLIBase class instead")
 class OldCLI:
