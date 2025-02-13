@@ -357,7 +357,6 @@ class CLIBase:
         """
         The main method.
         """
-        #errors = []
 
         msg = self.name
         if msg and self.options.dry_run:
@@ -365,7 +364,7 @@ class CLIBase:
         logging.info("%s started.", msg)
 
         # Call mixin prologue methods
-        # We must fiorst call the Nagios prologue, as it may exit the script immedoately when a report is asked
+        # We must first call the Nagios prologue, as it may exit the script immedoately when a report is asked
         try:
             if isinstance(self, NagiosStatusMixin):
                 self.nagios_prologue()
