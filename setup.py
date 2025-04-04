@@ -38,6 +38,7 @@ install_requires = [
     'lockfile >= 0.9.1',
     'netifaces',
     'jsonpickle',
+    'configargparse',
 ]
 
 PACKAGE = {
