@@ -37,6 +37,8 @@ import tempfile
 import getpass
 import mock
 
+from pathlib import Path
+
 from mock import MagicMock, patch
 from vsc.install.testing import TestCase
 
@@ -208,7 +210,7 @@ class TestNrpeCLI(TestCase):
             'ignoreconfigfiles': None,
             'info': False,
             'locking_filename': '/var/lock/setup.lock',
-            'nagios_check_filename': '/var/cache/setup.nagios.json.gz',
+            'nagios_check_filename': Path('/var/cache/setup.nagios.json.gz'),
             'nagios_check_interval_threshold': 0,
             'nagios_report': False,
             'nagios_user': 'nrpe',
@@ -352,7 +354,7 @@ class TestBaseNoTimestamp(TestCase):
             'ignoreconfigfiles': None,
             'info': False,
             'locking_filename': '/var/lock/setup.lock',
-            'nagios_check_filename': '/var/cache/setup.nagios.json.gz',
+            'nagios_check_filename': Path('/var/cache/setup.nagios.json.gz'),
             'nagios_check_interval_threshold': 0,
             'nagios_report': False,
             'nagios_user': 'nrpe',

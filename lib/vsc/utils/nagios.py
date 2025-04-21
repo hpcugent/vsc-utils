@@ -39,6 +39,7 @@ interpreted by nagios/icinga.
 @author: Luis Fernando Muñoz Mejías (Ghent University)
 """
 
+import logging
 import operator
 import os
 import pwd
@@ -47,11 +48,13 @@ import stat
 import sys
 import time
 
+from pathlib import Path
+
 from vsc.utils import _script_name
 from vsc.utils.cache import FileCache
 from vsc.utils.fancylogger import getLogger
 
-log = getLogger(__name__)
+#log = getLogger(__name__)
 
 NAGIOS_CACHE_DIR = '/var/cache'
 NAGIOS_CACHE_FILENAME = 'cache.nagios.json.gz'
@@ -87,7 +90,7 @@ def _real_exit(message, code, metrics=''):
         metrics = f'|{message[1]}'
     if len(msg) > NAGIOS_MAX_MESSAGE_LENGTH:
         # log long message but print truncated message
-        log.info("Nagios report %s: %s%s", exit_text, msg, metrics)
+        logging.info("Nagios report %s: %s%s", exit_text, msg, metrics)
         msg = msg[:NAGIOS_MAX_MESSAGE_LENGTH-3] + '...'
 
     print(f"{exit_text} {msg}{metrics}")
@@ -205,7 +208,7 @@ class NagiosRange:
             self.log.debug("parse: start %s end %s neg %s", start, end, neg)
         else:
             msg = f"parse: invalid nrange {nrange}."
-            self.log.Error(msg)
+            self.log.error(msg)
             raise ValueError(nrange)
 
         def range_fn(test):
@@ -256,10 +259,7 @@ class NagiosStatusMixin:
         'nagios-report': ('print out nagios information', None, 'store_true', False, 'n'),
         'nagios-check-filename':
             ('filename of where the nagios check data is stored', 'str', 'store',
-                os.path.join(
-                    NAGIOS_CACHE_DIR,
-                    NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),)
-                )
+                Path(NAGIOS_CACHE_DIR) / (NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))
             ),
         'nagios-check-interval-threshold': ('threshold of nagios checks timing out', 'int', 'store', 0),
         'nagios-user': ('user nagios runs as', 'str', 'store', 'nrpe'),
