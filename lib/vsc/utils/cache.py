@@ -30,13 +30,11 @@ Caching utilities.
 """
 
 import gzip
+import logging
 import os
 import time
 import pickle
 import jsonpickle
-
-
-from vsc.utils import fancylogger
 
 
 class FileCache:
@@ -69,13 +67,12 @@ class FileCache:
         @param filename: (absolute) path to the cache file.
         """
 
-        self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
         self.filename = filename
         self.retain_old = retain_old
 
         self.new_shelf = {}
         if not retain_old:
-            self.log.info("Starting with a new empty cache, not retaining previous info if any.")
+            logging.info("Starting with a new empty cache, not retaining previous info if any.")
             self.shelf = {}
             return
 
@@ -85,33 +82,33 @@ class FileCache:
                     g = gzip.GzipFile(mode="rb", fileobj=f)  # no context manager available in python 26 yet
                     s = g.read()
                 except OSError as _:
-                    self.log.error("Cannot load data from cache file %s as gzipped json", self.filename)
+                    logging.error("Cannot load data from cache file %s as gzipped json", self.filename)
                     try:
                         f.seek(0)
                         self.shelf = pickle.load(f)
                     except pickle.UnpicklingError as err:
                         msg = f"Problem loading pickle data from {self.filename} (corrupt data)"
                         if raise_unpickable:
-                            self.log.raiseException(msg)
+                            raise (msg)
                         else:
-                            self.log.error("%s. Continue with empty shelf: %s", msg, err)
+                            logging.error("%s. Continue with empty shelf: %s", msg, err)
                             self.shelf = {}
                     except OSError:
-                        self.log.raiseException("Could not load pickle data from %s", self.filename)
+                        raise ("Could not load pickle data from %s", self.filename)
                 else:
                     try:
                         self.shelf = jsonpickle.decode(s)
                     except ValueError as err:
-                        self.log.error("Cannot decode JSON from %s [%s]", self.filename, err)
-                        self.log.info("Cache in %s starts with an empty shelf", self.filename)
+                        logging.error("Cannot decode JSON from %s [%s]", self.filename, err)
+                        logging.info("Cache in %s starts with an empty shelf", self.filename)
                         self.shelf = {}
                 finally:
                     g.close()
 
         except (OSError, ValueError, FileNotFoundError) as err:
-            self.log.warning("Could not access the file cache at %s [%s]", self.filename, err)
+            logging.warning("Could not access the file cache at %s [%s]", self.filename, err)
             self.shelf = {}
-            self.log.info("Cache in %s starts with an empty shelf", (self.filename,))
+            logging.info("Cache in %s starts with an empty shelf", (self.filename,))
 
     def update(self, key, data, threshold):
         """Update the given data if the existing data is older than the given threshold.
@@ -168,7 +165,7 @@ class FileCache:
             os.makedirs(dirname)
         with open(self.filename, "wb") as fih:
             if not fih:
-                self.log.error("cannot open the file cache at %s for writing", self.filename)
+                logging.error("cannot open the file cache at %s for writing", self.filename)
             else:
                 if self.retain_old:
                     if self.shelf is None:
@@ -181,4 +178,4 @@ class FileCache:
                     # .encode() is required in Python 3, since we need to pass a bytestring
                     zipf.write(pickled.encode())
 
-                self.log.info("closing the file cache at %s", self.filename)
+                logging.info("closing the file cache at %s", self.filename)
