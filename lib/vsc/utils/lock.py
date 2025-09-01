@@ -28,15 +28,16 @@ Utilities for locks.
 
 @author Andy Georges (Ghent University)
 """
+
 import sys
 
 from lockfile import LockFailed, NotLocked, NotMyLock, LockError
 from vsc.utils.fancylogger import getLogger
 from vsc.utils.nagios import NAGIOS_EXIT_CRITICAL
 
-logger = getLogger('vsc.utils.lock')
+logger = getLogger("vsc.utils.lock")
 
-LOCKFILE_DIR = '/var/lock'
+LOCKFILE_DIR = "/var/lock"
 LOCKFILE_FILENAME_TEMPLATE = "%s.lock"
 
 
@@ -54,7 +55,7 @@ def lock_or_bork(lockfile, simple_nagios):
     try:
         lockfile.acquire()
     except LockFailed:
-        logger.critical('Unable to obtain lock: lock failed')
+        logger.critical("Unable to obtain lock: lock failed")
         simple_nagios.critical(f"failed to take lock on {lockfile.path}")
         sys.exit(NAGIOS_EXIT_CRITICAL)
     except LockError:
@@ -64,7 +65,7 @@ def lock_or_bork(lockfile, simple_nagios):
 
 
 def release_or_bork(lockfile, simple_nagios):
-    """ Release the lock on the given lockfile.
+    """Release the lock on the given lockfile.
 
     @type lockfile: A LockFile instance
     @type simple_nagios: SimpleNagios instance
@@ -78,10 +79,10 @@ def release_or_bork(lockfile, simple_nagios):
     try:
         lockfile.release()
     except NotLocked:
-        logger.critical('Lock release failed: was not locked.')
+        logger.critical("Lock release failed: was not locked.")
         simple_nagios.critical(f"Lock release failed on {lockfile.path}")
         sys.exit(NAGIOS_EXIT_CRITICAL)
     except NotMyLock:
-        logger.error('Lock release failed: not my lock')
+        logger.error("Lock release failed: not my lock")
         simple_nagios.critical(f"Lock release failed on {lockfile.path}")
         sys.exit(NAGIOS_EXIT_CRITICAL)

@@ -26,12 +26,15 @@
 """
 Allow other packages to extend this namespace, zip safe setuptools style
 """
+
 import pkg_resources
+
 pkg_resources.declare_namespace(__name__)
 
 import os
 import warnings
 from functools import wraps
+
 
 def _script_name(full_name):
     """Return the script name without .py extension if any. This assumes that the script name does not contain a
@@ -51,8 +54,10 @@ def deprecated_class(message=None):
                     stacklevel=2,
                 )
                 super().__init__(*args, **kwargs)
+
         Wrapped.__name__ = cls.__name__
         Wrapped.__doc__ = cls.__doc__
         Wrapped.__module__ = cls.__module__
         return Wrapped
+
     return decorator

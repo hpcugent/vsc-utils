@@ -43,6 +43,7 @@ DEFAULT_TIMESTAMP = "20140101000000Z"
 TIMESTAMP_DIR = "/var/cache"
 TIMESTAMP_FILENAME_TEMPLATE = "%s.timestamp"
 
+
 def convert_to_datetime(timestamp=None):
     """
     Convert a string or datetime.datime instance to a datetime.datetime with UTC tzinfo

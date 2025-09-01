@@ -31,6 +31,7 @@ This module provides functions to run at the beginning and end of commonly used 
 
 @author: Andy Georges
 """
+
 import os
 import sys
 
@@ -45,13 +46,23 @@ from vsc.utils.availability import proceed_on_ha_service
 from vsc.utils.generaloption import SimpleOption
 from vsc.utils.lock import lock_or_bork, release_or_bork, LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE
 from vsc.utils.nagios import (
-    NAGIOS_CRITICAL, SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE, exit_from_errorcode,
-    NAGIOS_EXIT_OK, NAGIOS_EXIT_WARNING, NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_UNKNOWN,
-    NagiosStatusMixin
+    NAGIOS_CRITICAL,
+    SimpleNagios,
+    NAGIOS_CACHE_DIR,
+    NAGIOS_CACHE_FILENAME_TEMPLATE,
+    exit_from_errorcode,
+    NAGIOS_EXIT_OK,
+    NAGIOS_EXIT_WARNING,
+    NAGIOS_EXIT_CRITICAL,
+    NAGIOS_EXIT_UNKNOWN,
+    NagiosStatusMixin,
 )
 from vsc.utils.timestamp import (
-    convert_timestamp, write_timestamp, retrieve_timestamp_with_default, TIMESTAMP_DIR,
-    TIMESTAMP_FILENAME_TEMPLATE
+    convert_timestamp,
+    write_timestamp,
+    retrieve_timestamp_with_default,
+    TIMESTAMP_DIR,
+    TIMESTAMP_FILENAME_TEMPLATE,
 )
 from vsc.utils.timestamp_pid_lockfile import TimestampedPidLockfile
 
@@ -67,23 +78,28 @@ MAX_RTT = 2 * MAX_DELTA + 1
 
 
 DEFAULT_OPTIONS = {
-    'disable-locking': ('do NOT protect this script by a file-based lock', None, 'store_true', False),
-    'dry-run': ('do not make any updates whatsoever', None, 'store_true', False),
-    'ha': ('high-availability master IP address', None, 'store', None),
-    'locking-filename': (
-        'file that will serve as a lock', None, 'store',
-            os.path.join(
-                LOCKFILE_DIR,
-                LOCKFILE_FILENAME_TEMPLATE % (_script_name(sys.argv[0])),
-            )
+    "disable-locking": ("do NOT protect this script by a file-based lock", None, "store_true", False),
+    "dry-run": ("do not make any updates whatsoever", None, "store_true", False),
+    "ha": ("high-availability master IP address", None, "store", None),
+    "locking-filename": (
+        "file that will serve as a lock",
+        None,
+        "store",
+        os.path.join(
+            LOCKFILE_DIR,
+            LOCKFILE_FILENAME_TEMPLATE % (_script_name(sys.argv[0])),
+        ),
     ),
-    'nagios-report': ('print out nagios information', None, 'store_true', False, 'n'),
-    'nagios-check-filename': ('filename of where the nagios check data is stored', 'str', 'store',
-                              os.path.join(NAGIOS_CACHE_DIR,
-                                           NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
-    'nagios-check-interval-threshold': ('threshold of nagios checks timing out', 'int', 'store', 0),
-    'nagios-user': ('user nagios runs as', 'str', 'store', 'nrpe'),
-    'nagios-world-readable-check': ('make the nagios check data file world readable', None, 'store_true', False),
+    "nagios-report": ("print out nagios information", None, "store_true", False, "n"),
+    "nagios-check-filename": (
+        "filename of where the nagios check data is stored",
+        "str",
+        "store",
+        os.path.join(NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),)),
+    ),
+    "nagios-check-interval-threshold": ("threshold of nagios checks timing out", "int", "store", 0),
+    "nagios-user": ("user nagios runs as", "str", "store", "nrpe"),
+    "nagios-world-readable-check": ("make the nagios check data file world readable", None, "store_true", False),
 }
 
 
@@ -142,24 +158,30 @@ def populate_config_parser(parser, options):
 
     return parser
 
+
 class HAException(Exception):
     pass
+
 
 class LockException(Exception):
     pass
 
+
 class NagiosException(Exception):
     pass
 
+
 class TimestampException(Exception):
     pass
+
 
 class HAMixin:
     """
     A mixin class providing methods for high-availability check.
     """
+
     HA_MIXIN_OPTIONS = {
-        'ha': ('high-availability master IP address', None, 'store', None),
+        "ha": ("high-availability master IP address", None, "store", None),
     }
 
     def ha_prologue(self):
@@ -179,15 +201,15 @@ class LockMixin:
     """
     A mixin class providing methods for file locking.
     """
+
     LOCK_MIXIN_OPTIONS = {
-        'disable-locking': ('do NOT protect this script by a file-based lock', None, 'store_true', False),
-        'locking-filename':
-            ( 'file that will serve as a lock', None, 'store',
-                os.path.join(
-                    LOCKFILE_DIR,
-                    LOCKFILE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),)
-                )
-            ),
+        "disable-locking": ("do NOT protect this script by a file-based lock", None, "store_true", False),
+        "locking-filename": (
+            "file that will serve as a lock",
+            None,
+            "store",
+            os.path.join(LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),)),
+        ),
     }
 
     def lock_prologue(self):
@@ -221,14 +243,14 @@ class TimestampMixin:
             - `start_timestamp`
             - `TIMESTAMP_FILE_OPTION`
     """
+
     TIMESTAMP_MIXIN_OPTIONS = {
         "start_timestamp": ("The timestamp form which to start, otherwise use the cached value", None, "store", None),
         "timestamp_file": (
-            "Location to cache the start timestamp", None, "store",
-            os.path.join(
-                TIMESTAMP_DIR,
-                TIMESTAMP_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),)
-            )
+            "Location to cache the start timestamp",
+            None,
+            "store",
+            os.path.join(TIMESTAMP_DIR, TIMESTAMP_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),)),
         ),
     }
 
@@ -260,14 +282,16 @@ class TimestampMixin:
         except Exception as err:
             raise TimestampException("Failed to write timestamp") from err
 
+
 class LogMixin:
     """
     A mixin class providing methods for logging.
     """
+
     LOG_MIXIN_OPTIONS = {
-        'debug': ("Enable debug log mode", None, "store_true", False),
-        'info': ("Enable info log mode", None, "store_true", False),
-        'quiet': ("Enable quiet/warning log mode", None, "store_true", False),
+        "debug": ("Enable debug log mode", None, "store_true", False),
+        "info": ("Enable info log mode", None, "store_true", False),
+        "quiet": ("Enable quiet/warning log mode", None, "store_true", False),
     }
 
     def log_prologue(self):
@@ -288,14 +312,14 @@ class LogMixin:
         Nothing to do here
         """
 
-class CLIBase:
 
+class CLIBase:
     CLI_OPTIONS = {}
     CLI_BASE_OPTIONS = {
-        'dry-run': ('do not make any updates whatsoever', None, 'store_true', False),
-        'configfiles': ('config file to read', 'str', 'store', None),
-        'help': ('show this help message and exit', None, 'help', None),
-        'ignoreconfigfiles': ('do not read any config files', None, 'store', None),
+        "dry-run": ("do not make any updates whatsoever", None, "store_true", False),
+        "configfiles": ("config file to read", "str", "store", None),
+        "help": ("show this help message and exit", None, "help", None),
+        "ignoreconfigfiles": ("do not read any config files", None, "store", None),
     }
 
     def __init__(self, name=None):
@@ -343,7 +367,7 @@ class CLIBase:
         Run as finally block in main
         """
 
-    def do(self, dryrun=False):   # pylint: disable=unused-argument
+    def do(self, dryrun=False):  # pylint: disable=unused-argument
         """
         Method to add actual work to do.
         The method is executed in main method in a generic try/except/finally block
@@ -387,7 +411,6 @@ class CLIBase:
         except (LockException, HAException, TimestampException) as err:
             self.critical(str(err))
 
-
         try:
             self.do(self.options.dry_run)
         except Exception as err:
@@ -398,7 +421,7 @@ class CLIBase:
             if isinstance(self, LockMixin):
                 self.lock_epilogue()
 
-        #self.post(errors)
+        # self.post(errors)
 
         # Call mixin epilogue methods
         if isinstance(self, TimestampMixin):
@@ -429,7 +452,7 @@ def _merge_options(options):
     """
 
     opts = deepcopy(options)
-    for (k, v) in DEFAULT_OPTIONS.items():
+    for k, v in DEFAULT_OPTIONS.items():
         if k in opts:
             v_ = v[:3] + (opts[k],) + v[4:]
             opts[k] = v_
@@ -440,7 +463,6 @@ def _merge_options(options):
 
 
 class CLI(FullCLIBase):
-
     def __init__(self, name=None, default_options=None):  # pylint: disable=unused-argument
         super().__init__(name)
 
@@ -757,6 +779,7 @@ class OldCLI:
 class NrpeCLI(CLI):
     def __init__(self, name=None, default_options=None):
         super().__init__(name=name, default_options=default_options)
+
 
 #    def ok(self, msg):
 #        """
