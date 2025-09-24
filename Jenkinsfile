@@ -9,15 +9,16 @@ node {
         sh 'git clean -fxd'
     }
     stage ('ruff') {
-        sh 'curl --proto '=https' --tlsv1.2 -LsSf https://github.com/astral-sh/ruff/releases/download/0.13.1/ruff-installer.sh | sh'
-        sh 'ruff --version'
-        sh 'ruff format --check .'
+        sh 'curl -L --silent https://github.com/astral-sh/ruff/releases/download/0.13.1/ruff-x86_64-unknown-linux-gnu.tar.gz --output - | tar -xzv'
+        sh 'cp ruff-x86_64-unknown-linux-gnu/ruff .'
+        sh './ruff --version'
+        sh './ruff format --check .'
     }
     stage ('ruff') {
-        sh 'curl --proto '=https' --tlsv1.2 -LsSf https://github.com/astral-sh/ruff/releases/download/0.13.1/ruff-installer.sh | sh'
-        curl --proto '=https' --tlsv1.2 -LsSf https://github.com/astral-sh/ruff/releases/download/0.13.1/ruff-installer.sh | sh
-        sh 'ruff --version'
-        sh 'ruff check .'
+        sh 'curl -L --silent https://github.com/astral-sh/ruff/releases/download/0.13.1/ruff-x86_64-unknown-linux-gnu.tar.gz --output - | tar -xzv'
+        sh 'cp ruff-x86_64-unknown-linux-gnu/ruff .'
+        sh './ruff --version'
+        sh './ruff check .'
     }
     stage('test') {
         sh 'pip3 install --ignore-installed --prefix $PWD/.vsc-tox tox'
