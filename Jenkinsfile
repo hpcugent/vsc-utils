@@ -8,6 +8,16 @@ node {
         // remove untracked files (*.pyc for example)
         sh 'git clean -fxd'
     }
+    stage ('ruff') {
+        sh 'pip install ruff'
+        sh 'ruff --version'
+        sh 'ruff format --check .'
+    }
+    stage ('ruff') {
+        sh 'pip install ruff'
+        sh 'ruff --version'
+        sh 'ruff check .'
+    }
     stage('test') {
         sh 'pip3 install --ignore-installed --prefix $PWD/.vsc-tox tox'
         sh 'export PATH=$PWD/.vsc-tox/bin:$PATH && export PYTHONPATH=$PWD/.vsc-tox/lib/python$(python3 -c "import sys; print(\\"%s.%s\\" % sys.version_info[:2])")/site-packages:$PYTHONPATH && tox -v -c tox.ini'
