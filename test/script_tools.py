@@ -30,7 +30,6 @@ Tests for the classes and functions in vsc.utils.scrip_tools
 """
 
 import logging
-import os
 import random
 import sys
 import tempfile
@@ -42,17 +41,26 @@ from pathlib import Path
 from mock import MagicMock, patch
 from vsc.install.testing import TestCase
 
-from vsc.install.testing import TestCase
 from vsc.utils.nagios import NAGIOS_EXIT_WARNING, NagiosStatusMixin
 from vsc.utils.script_tools import (
-    ExtendedSimpleOption, DEFAULT_OPTIONS, NrpeCLI, CLI, OldCLI,
-    CLIBase, LockMixin, HAMixin, TimestampMixin, LogMixin)
+    ExtendedSimpleOption,
+    DEFAULT_OPTIONS,
+    NrpeCLI,
+    CLI,
+    OldCLI,
+    CLIBase,
+    LockMixin,
+    HAMixin,
+    TimestampMixin,
+    LogMixin,
+)
 
 
 class TestExtendedSimpleOption(TestCase):
     """
     Tests for the ExtendedSimpleOption class.
     """
+
     def setUp(self):
         """Backup sys.argv"""
         super(TestCase, self).setUp()
@@ -65,27 +73,27 @@ class TestExtendedSimpleOption(TestCase):
         super(TestCase, self).tearDown()
         sys.argv = self._old_argv
 
-    @mock.patch('vsc.utils.script_tools.TimestampedPidLockfile')
-    @mock.patch('vsc.utils.script_tools.lock_or_bork')
-    @mock.patch('vsc.utils.script_tools.proceed_on_ha_service')
+    @mock.patch("vsc.utils.script_tools.TimestampedPidLockfile")
+    @mock.patch("vsc.utils.script_tools.lock_or_bork")
+    @mock.patch("vsc.utils.script_tools.proceed_on_ha_service")
     def test_threshold_default_setting(self, mock_proceed, _, mock_lockfile):
         """Test if the default value is set"""
         mock_proceed.return_value = True
         mock_lockfile.return_value = mock.MagicMock()
 
         opts = ExtendedSimpleOption(options={})
-        self.assertEqual(opts.options.nagios_check_interval_threshold,
-                         DEFAULT_OPTIONS['nagios-check-interval-threshold'][3])
-        self.assertEqual(opts.nagios_reporter._threshold,
-                         DEFAULT_OPTIONS['nagios-check-interval-threshold'][3])
-        self.assertEqual(opts.nagios_reporter._cache_user, 'nrpe')
-        self.assertEqual(opts.options.nagios_user, 'nrpe')
+        self.assertEqual(
+            opts.options.nagios_check_interval_threshold, DEFAULT_OPTIONS["nagios-check-interval-threshold"][3]
+        )
+        self.assertEqual(opts.nagios_reporter._threshold, DEFAULT_OPTIONS["nagios-check-interval-threshold"][3])
+        self.assertEqual(opts.nagios_reporter._cache_user, "nrpe")
+        self.assertEqual(opts.options.nagios_user, "nrpe")
         self.assertFalse(opts.nagios_reporter._world_readable)
         self.assertFalse(opts.options.nagios_world_readable_check)
 
-    @mock.patch('vsc.utils.script_tools.TimestampedPidLockfile')
-    @mock.patch('vsc.utils.script_tools.lock_or_bork')
-    @mock.patch('vsc.utils.script_tools.proceed_on_ha_service')
+    @mock.patch("vsc.utils.script_tools.TimestampedPidLockfile")
+    @mock.patch("vsc.utils.script_tools.lock_or_bork")
+    @mock.patch("vsc.utils.script_tools.proceed_on_ha_service")
     def test_threshold_custom_setting(self, mock_proceed, _, mock_lockfile):
         """Test if a custom value is passed on correctly"""
         mock_proceed.return_value = True
@@ -93,17 +101,20 @@ class TestExtendedSimpleOption(TestCase):
 
         threshold = random.uniform(1, 1000)
 
-        opts = ExtendedSimpleOption({'nagios-check-interval-threshold': threshold,
-                                     'nagios-user': 'nrpe',
-                                     'nagios-world-readable-check': True})
+        opts = ExtendedSimpleOption({
+            "nagios-check-interval-threshold": threshold,
+            "nagios-user": "nrpe",
+            "nagios-world-readable-check": True,
+        })
         self.assertEqual(opts.options.nagios_check_interval_threshold, threshold)
-        self.assertEqual(opts.options.nagios_user, 'nrpe')
-        self.assertEqual(opts.nagios_reporter._cache_user, 'nrpe')
+        self.assertEqual(opts.options.nagios_user, "nrpe")
+        self.assertEqual(opts.nagios_reporter._cache_user, "nrpe")
         self.assertTrue(opts.nagios_reporter._world_readable)
         self.assertTrue(opts.options.nagios_world_readable_check)
 
 
-magic = mock.MagicMock(name='magic')
+magic = mock.MagicMock(name="magic")
+
 
 class MyOldCLI(OldCLI):
     TIMESTAMP_MANDATORY = False  # mainly for testing, you really should need this in production
@@ -111,68 +122,67 @@ class MyOldCLI(OldCLI):
     TESTFILE2 = tempfile.mkstemp()[1]
 
     CLI_OPTIONS = {
-        'magic': ('some magic', None, 'store', 'magicdef'),
-        'nagios_check_filename': ('bla', None, 'store', TESTFILE),
-        'locking_filename': ('test', None, 'store', TESTFILE2),
-        'nagios_user': ('user nagios runs as', 'string', 'store', getpass.getuser()),
+        "magic": ("some magic", None, "store", "magicdef"),
+        "nagios_check_filename": ("bla", None, "store", TESTFILE),
+        "locking_filename": ("test", None, "store", TESTFILE2),
+        "nagios_user": ("user nagios runs as", "string", "store", getpass.getuser()),
     }
+
     def do(self, _):
         return magic.go()
+
 
 class TestOldCLI(TestCase):
     """Tests for the OldCLI base class"""
 
-    @mock.patch('vsc.utils.script_tools.ExtendedSimpleOption.prologue')
+    @mock.patch("vsc.utils.script_tools.ExtendedSimpleOption.prologue")
     def test_opts(self, _):
-        sys.argv = ['abc']
+        sys.argv = ["abc"]
         ms = MyOldCLI()
 
         logging.debug("options %s %s %s", ms.options, dir(ms.options), vars(ms.options))
 
-
-
         extsimpopts = {
-            'configfiles': None,
-            'debug': False,
-            'disable_locking': False,
-            'dry_run': False,
-            'ha': None,
-            'help': None,
-            'ignoreconfigfiles': None,
-            'info': False,
-            'locking_filename': ms.TESTFILE2,
-            'nagios_check_filename': ms.TESTFILE,
-            'nagios_check_interval_threshold': 0,
-            'nagios_report': False,
-            'nagios_user': getpass.getuser(),
-            'nagios_world_readable_check': False,
-            'quiet': False,
+            "configfiles": None,
+            "debug": False,
+            "disable_locking": False,
+            "dry_run": False,
+            "ha": None,
+            "help": None,
+            "ignoreconfigfiles": None,
+            "info": False,
+            "locking_filename": ms.TESTFILE2,
+            "nagios_check_filename": ms.TESTFILE,
+            "nagios_check_interval_threshold": 0,
+            "nagios_report": False,
+            "nagios_user": getpass.getuser(),
+            "nagios_world_readable_check": False,
+            "quiet": False,
         }
 
         myopts = {
-            'magic': 'magicdef',
-            'start_timestamp': None,
-            'timestamp_file': '/var/cache/abc.timestamp',
+            "magic": "magicdef",
+            "start_timestamp": None,
+            "timestamp_file": "/var/cache/abc.timestamp",
         }
         myopts.update(extsimpopts)
         self.assertEqual(ms.options.__dict__, myopts)
 
         myopts = {
-            'magic': 'magicdef',
+            "magic": "magicdef",
         }
         myopts.update(extsimpopts)
         ms = MyOldCLI(default_options={})
         logging.debug("options wo default sync options %s", ms.options)
         self.assertEqual(ms.options.__dict__, myopts)
 
-    @mock.patch('vsc.utils.script_tools.lock_or_bork')
-    @mock.patch('vsc.utils.script_tools.release_or_bork')
+    @mock.patch("vsc.utils.script_tools.lock_or_bork")
+    @mock.patch("vsc.utils.script_tools.release_or_bork")
     def test_exit(self, locklock, releaselock):
-
         cli = MyOldCLI()
 
         fake_exit = mock.MagicMock()
-        with mock.patch('sys.exit', fake_exit):
+        with mock.patch("sys.exit", fake_exit):
             cli.warning("be warned")
             fake_exit.assert_called_with(1)
 
@@ -184,10 +194,11 @@ class TestNrpeCLI(TestCase):
         super().setUp()
 
         sys.argv = ["abc"]
+
         class MyNrpeCLI(NrpeCLI):
             TIMESTAMP_MANDATORY = False  # mainly for testing, you really should need this in production
             CLI_OPTIONS = {
-                'magic': ('some magic', None, 'store', 'magicdef'),
+                "magic": ("some magic", None, "store", "magicdef"),
             }
 
             def do(self, dry_run):
@@ -195,45 +206,43 @@ class TestNrpeCLI(TestCase):
 
         self.cli = MyNrpeCLI(name="abc")
 
-    @mock.patch('vsc.utils.script_tools.ExtendedSimpleOption.prologue')
+    @mock.patch("vsc.utils.script_tools.ExtendedSimpleOption.prologue")
     def test_opts(self, _):
-
         logging.debug("options %s %s %s", self.cli.options, dir(self.cli.options), vars(self.cli.options))
 
         extsimpopts = {
-            'configfiles': None,
-            'debug': False,
-            'disable_locking': False,
-            'dry_run': False,
-            'ha': None,
-            'help': None,
-            'ignoreconfigfiles': None,
-            'info': False,
-            'locking_filename': '/var/lock/setup.lock',
-            'nagios_check_filename': Path('/var/cache/setup.nagios.json.gz'),
-            'nagios_check_interval_threshold': 0,
-            'nagios_report': False,
-            'nagios_user': 'nrpe',
-            'nagios_world_readable_check': False,
-            'quiet': False,
+            "configfiles": None,
+            "debug": False,
+            "disable_locking": False,
+            "dry_run": False,
+            "ha": None,
+            "help": None,
+            "ignoreconfigfiles": None,
+            "info": False,
+            "locking_filename": "/var/lock/setup.lock",
+            "nagios_check_filename": Path("/var/cache/setup.nagios.json.gz"),
+            "nagios_check_interval_threshold": 0,
+            "nagios_report": False,
+            "nagios_user": "nrpe",
+            "nagios_world_readable_check": False,
+            "quiet": False,
         }
 
         myopts = {
-            'magic': 'magicdef',
-            'start_timestamp': None,
-            'timestamp_file': '/var/cache/setup.timestamp',
+            "magic": "magicdef",
+            "start_timestamp": None,
+            "timestamp_file": "/var/cache/setup.timestamp",
         }
         myopts.update(extsimpopts)
         self.assertEqual(self.cli.options.__dict__, myopts)
 
-    @mock.patch('vsc.utils.script_tools.ExtendedSimpleOption.prologue')
+    @mock.patch("vsc.utils.script_tools.ExtendedSimpleOption.prologue")
     def test_exit(self, _):
-
         self.original_argv = sys.argv
         sys.argv = ["somecli"]
 
         fake_exit = mock.MagicMock()
-        with mock.patch('vsc.utils.nagios._real_exit', fake_exit):
+        with mock.patch("vsc.utils.nagios._real_exit", fake_exit):
             self.cli.warning("be warned")
             fake_exit.assert_called_with("be warned", NAGIOS_EXIT_WARNING)
 
@@ -252,10 +261,10 @@ class TestCLI(TestCase):
             NAGIOS_TESTFILE = tempfile.mkstemp()[1]
 
             CLI_OPTIONS = {
-                'magic': ('some magic', None, 'store', 'magicdef'),
-                'nagios_check_filename': ('bla', None, 'store', NAGIOS_TESTFILE),
-                'locking_filename': ('test', None, 'store', LOCKING_TESTFILE),
-                'nagios_user': ('user nagios runs as', 'str', 'store', getpass.getuser()),
+                "magic": ("some magic", None, "store", "magicdef"),
+                "nagios_check_filename": ("bla", None, "store", NAGIOS_TESTFILE),
+                "locking_filename": ("test", None, "store", LOCKING_TESTFILE),
+                "nagios_user": ("user nagios runs as", "str", "store", getpass.getuser()),
             }
 
             def do(self, dry_run):
@@ -263,9 +272,8 @@ class TestCLI(TestCase):
 
         self.ms = MyCLI(name="abc")
 
-    @mock.patch('vsc.utils.script_tools.ExtendedSimpleOption.prologue')
+    @mock.patch("vsc.utils.script_tools.ExtendedSimpleOption.prologue")
     def test_opts(self, _):
-
         self.assertTrue(isinstance(self.ms, LogMixin))
         self.assertTrue(isinstance(self.ms, HAMixin))
         self.assertTrue(isinstance(self.ms, LockMixin))
@@ -275,43 +283,41 @@ class TestCLI(TestCase):
         logging.debug("options %s %s %s", self.ms.options, dir(self.ms.options), vars(self.ms.options))
 
         extsimpopts = {
-            'configfiles': None,
-            'debug': False,
-            'disable_locking': False,
-            'dry_run': False,
-            'ha': None,
-            'help': None,
-            'ignoreconfigfiles': None,
-            'info': False,
-            'locking_filename': self.ms.LOCKING_TESTFILE,
-            'nagios_check_filename': self.ms.NAGIOS_TESTFILE,
-            'nagios_check_interval_threshold': 0,
-            'nagios_report': False,
-            'nagios_user': getpass.getuser(),
-            'nagios_world_readable_check': False,
-            'quiet': False,
+            "configfiles": None,
+            "debug": False,
+            "disable_locking": False,
+            "dry_run": False,
+            "ha": None,
+            "help": None,
+            "ignoreconfigfiles": None,
+            "info": False,
+            "locking_filename": self.ms.LOCKING_TESTFILE,
+            "nagios_check_filename": self.ms.NAGIOS_TESTFILE,
+            "nagios_check_interval_threshold": 0,
+            "nagios_report": False,
+            "nagios_user": getpass.getuser(),
+            "nagios_world_readable_check": False,
+            "quiet": False,
         }
 
         myopts = {
-            'magic': 'magicdef',
-            'start_timestamp': None,
-            'timestamp_file': '/var/cache/setup.timestamp',
+            "magic": "magicdef",
+            "start_timestamp": None,
+            "timestamp_file": "/var/cache/setup.timestamp",
         }
         myopts.update(extsimpopts)
         self.assertEqual(self.ms.options.__dict__, myopts)
 
-    @mock.patch('vsc.utils.script_tools.lock_or_bork')
-    @mock.patch('vsc.utils.script_tools.release_or_bork')
+    @mock.patch("vsc.utils.script_tools.lock_or_bork")
+    @mock.patch("vsc.utils.script_tools.release_or_bork")
     def test_exit(self, locklock, releaselock):
-
         fake_exit = mock.MagicMock()
-        with mock.patch('vsc.utils.script_tools.sys.exit', fake_exit):
+        with mock.patch("vsc.utils.script_tools.sys.exit", fake_exit):
             self.ms.warning("be warned")
             fake_exit.assert_called_with(1)
 
 
 class TestBaseNoTimestamp(TestCase):
-
     def setUp(self):
         super().setUp()
 
@@ -319,8 +325,9 @@ class TestBaseNoTimestamp(TestCase):
 
         class NoTimeStampCLI(HAMixin, LockMixin, LogMixin, NagiosStatusMixin, CLIBase):
             CLI_OPTIONS = {
-                'magic': ('magicdef', None, 'store', 'magicdef'),
+                "magic": ("magicdef", None, "store", "magicdef"),
             }
+
             def do(self, dry_run):
                 return magic.go()
 
@@ -331,50 +338,47 @@ class TestBaseNoTimestamp(TestCase):
         else:
             logging.warning("LogMixin is not part of this instance")
 
-
         if isinstance(self.ms, TimestampMixin):
             logging.warning("TimestampMixin is part of this instance")
         else:
             logging.warning("TimestampMixin is not part of this instance")
 
     def test_without_timestamp_mixin(self):
-
         self.assertTrue(isinstance(self.ms, LogMixin))
         self.assertTrue(isinstance(self.ms, HAMixin))
         self.assertTrue(isinstance(self.ms, LockMixin))
         self.assertTrue(isinstance(self.ms, NagiosStatusMixin))
 
         extsimpopts = {
-            'configfiles': None,
-            'debug': False,
-            'disable_locking': False,
-            'dry_run': False,
-            'ha': None,
-            'help': None,
-            'ignoreconfigfiles': None,
-            'info': False,
-            'locking_filename': '/var/lock/setup.lock',
-            'nagios_check_filename': Path('/var/cache/setup.nagios.json.gz'),
-            'nagios_check_interval_threshold': 0,
-            'nagios_report': False,
-            'nagios_user': 'nrpe',
-            'nagios_world_readable_check': False,
-            'quiet': False,
+            "configfiles": None,
+            "debug": False,
+            "disable_locking": False,
+            "dry_run": False,
+            "ha": None,
+            "help": None,
+            "ignoreconfigfiles": None,
+            "info": False,
+            "locking_filename": "/var/lock/setup.lock",
+            "nagios_check_filename": Path("/var/cache/setup.nagios.json.gz"),
+            "nagios_check_interval_threshold": 0,
+            "nagios_report": False,
+            "nagios_user": "nrpe",
+            "nagios_world_readable_check": False,
+            "quiet": False,
         }
 
         myopts = {
-            'magic': 'magicdef',
+            "magic": "magicdef",
         }
         myopts.update(extsimpopts)
         logging.warning("options wo default sync options %s", self.ms.options)
         self.assertEqual(self.ms.options.__dict__, myopts)
 
-    @mock.patch('vsc.utils.script_tools.lock_or_bork')
-    @mock.patch('vsc.utils.script_tools.release_or_bork')
+    @mock.patch("vsc.utils.script_tools.lock_or_bork")
+    @mock.patch("vsc.utils.script_tools.release_or_bork")
     def test_exit(self, locklock, releaselock):
-
         fake_exit = mock.MagicMock()
-        with mock.patch('vsc.utils.script_tools.sys.exit', fake_exit):
+        with mock.patch("vsc.utils.script_tools.sys.exit", fake_exit):
             self.ms.warning("be warned")
             fake_exit.assert_called_with(1)
 
@@ -398,7 +402,7 @@ class TestCLIBase(TestCase):
         # Create a dummy subclass of CLIBase for testing
         class TestCLI(CLIBase):
             CLI_OPTIONS = {
-                'test-option': ('Test description', None, 'store_true', False),
+                "test-option": ("Test description", None, "store_true", False),
             }
 
             def do(self, dryrun=False):
@@ -408,25 +412,25 @@ class TestCLIBase(TestCase):
 
         self.cli = TestCLI(name="Test CLI")
 
-    @patch('vsc.utils.script_tools.ArgParser.parse_args', return_value=MagicMock(dry_run=False))
-    @patch('vsc.utils.script_tools.logging.info')
+    @patch("vsc.utils.script_tools.ArgParser.parse_args", return_value=MagicMock(dry_run=False))
+    @patch("vsc.utils.script_tools.logging.info")
     def test_main_basic(self, mock_logging_info, mock_parse_args):
         """
         Test the main method without any mixins.
         """
         self.cli.main()
         self.assertEqual(self.cli.name, "Test CLI")
-        #mock_logging_info.assert_any_call("Test CLI started.")
+        # mock_logging_info.assert_any_call("Test CLI started.")
 
     def test_get_options(self):
         """
         Test the get_options method aggregates CLI options.
         """
         options = self.cli.get_options()
-        self.assertIn('test-option', options)
+        self.assertIn("test-option", options)
 
-    @patch('vsc.utils.script_tools.logging.error')
-    @patch('vsc.utils.script_tools.sys.exit')
+    @patch("vsc.utils.script_tools.logging.error")
+    @patch("vsc.utils.script_tools.sys.exit")
     def test_critical_no_nagios(self, mock_sys_exit, mock_logging_error):
         """
         Test critical method behavior without NagiosStatusMixin.
@@ -435,24 +439,25 @@ class TestCLIBase(TestCase):
         mock_logging_error.assert_called_with("Critical error")
         mock_sys_exit.assert_called_with(1)
 
-    @patch('vsc.utils.script_tools.logging.info')
-    @patch('vsc.utils.script_tools.ArgParser.parse_args', return_value=MagicMock(dry_run=False))
+    @patch("vsc.utils.script_tools.logging.info")
+    @patch("vsc.utils.script_tools.ArgParser.parse_args", return_value=MagicMock(dry_run=False))
     def test_main_with_dry_run(self, mock_parse_args, mock_logging_info):
         """
         Test the main method in dry-run mode.
         """
         self.cli.main()
-        #mock_logging_info.assert_any_call("Test CLI (dry-run) started.")
+        # mock_logging_info.assert_any_call("Test CLI (dry-run) started.")
 
-    @patch('vsc.utils.script_tools.logging.info')
-    @patch('vsc.utils.script_tools.ArgParser.parse_args', return_value=MagicMock(dry_run=False))
+    @patch("vsc.utils.script_tools.logging.info")
+    @patch("vsc.utils.script_tools.ArgParser.parse_args", return_value=MagicMock(dry_run=False))
     def test_main_with_mixins(self, mock_parse_args, mock_logging_info):
         """
         Test the main method with mixins applied.
         """
+
         # Extend TestCLI with mixins
         class TestCLIMixins(CLIBase, NagiosStatusMixin, LockMixin):
-            CLI_OPTIONS = {'test-mixin-option': ('Mixin test description', None, 'store_true', False)}
+            CLI_OPTIONS = {"test-mixin-option": ("Mixin test description", None, "store_true", False)}
 
             def do(self, dryrun=False):
                 return []
@@ -482,12 +487,13 @@ class TestCLIBase(TestCase):
         self.assertTrue(cli.nagios_epilogue_called)
         self.assertTrue(cli.lock_epilogue_called)
 
-    @patch('vsc.utils.script_tools.logging.error')
-    @patch('vsc.utils.script_tools.sys.exit')
+    @patch("vsc.utils.script_tools.logging.error")
+    @patch("vsc.utils.script_tools.sys.exit")
     def test_main_critical_exception(self, mock_sys_exit, mock_logging_error):
         """
         Test the main method when a critical exception is raised.
         """
+
         class FailingCLI(CLIBase):
             def do(self, dryrun=False):
                 raise Exception("Unrecoverable error!")

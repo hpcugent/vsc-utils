@@ -28,6 +28,7 @@ Tests for the NagiosResult class in the vsc.utils.nagios module
 
 @author: Stijn De Weirdt (Ghent University)
 """
+
 import os
 import tempfile
 import sys
@@ -98,62 +99,65 @@ class TestSimpleNagios(TestCase):
     def test_simple_single_instance(self):
         """Test what is generated when performance data is given, but not critical/warning"""
         kwargs = {
-            'message': 'hello',
-            'value1': 3,
-            'value1_warning': 5,
-            'value1_critical': 10,
+            "message": "hello",
+            "value1": 3,
+            "value1_warning": 5,
+            "value1_critical": 10,
         }
-        self._basic_test_single_instance(kwargs, 'OK hello | value1=3;5;10;', NAGIOS_EXIT_OK)
+        self._basic_test_single_instance(kwargs, "OK hello | value1=3;5;10;", NAGIOS_EXIT_OK)
         # outside warning range
-        kwargs['value1'] = 5
-        self._basic_test_single_instance(kwargs, 'OK hello | value1=5;5;10;', NAGIOS_EXIT_OK)
+        kwargs["value1"] = 5
+        self._basic_test_single_instance(kwargs, "OK hello | value1=5;5;10;", NAGIOS_EXIT_OK)
         # goutside warning range, perfdata with warning in message
-        kwargs['value1'] = 7
-        self._basic_test_single_instance(kwargs, 'WARNING value1, hello | value1=7;5;10;', NAGIOS_EXIT_WARNING)
+        kwargs["value1"] = 7
+        self._basic_test_single_instance(kwargs, "WARNING value1, hello | value1=7;5;10;", NAGIOS_EXIT_WARNING)
         # outside critical range?
-        kwargs['value1'] = 10
-        self._basic_test_single_instance(kwargs, 'WARNING value1, hello | value1=10;5;10;', NAGIOS_EXIT_WARNING)
+        kwargs["value1"] = 10
+        self._basic_test_single_instance(kwargs, "WARNING value1, hello | value1=10;5;10;", NAGIOS_EXIT_WARNING)
         # greater
-        kwargs['value1'] = 15
-        self._basic_test_single_instance(kwargs, 'CRITICAL value1, hello | value1=15;5;10;', NAGIOS_EXIT_CRITICAL)
+        kwargs["value1"] = 15
+        self._basic_test_single_instance(kwargs, "CRITICAL value1, hello | value1=15;5;10;", NAGIOS_EXIT_CRITICAL)
 
         # mixed
         kwargsmore = {
-            'value0': 3,
-            'value0_warning': 5,
-            'value0_critical': 10,
-            'value2': 7,
-            'value2_warning': 5,
-            'value2_critical': 10,
+            "value0": 3,
+            "value0_warning": 5,
+            "value0_critical": 10,
+            "value2": 7,
+            "value2_warning": 5,
+            "value2_critical": 10,
         }
         kwargs.update(kwargsmore)
 
         # critical value in message
-        self._basic_test_single_instance(kwargs, 'CRITICAL value1, hello | value0=3;5;10; value1=15;5;10; value2=7;5;10;',
-                                         NAGIOS_EXIT_CRITICAL)
+        self._basic_test_single_instance(
+            kwargs, "CRITICAL value1, hello | value0=3;5;10; value1=15;5;10; value2=7;5;10;", NAGIOS_EXIT_CRITICAL
+        )
 
         # all warning values in message
-        kwargs['value1'] = 7
+        kwargs["value1"] = 7
         self._basic_test_single_instance(
-            kwargs, 'WARNING value1, value2, hello | value0=3;5;10; value1=7;5;10; value2=7;5;10;', NAGIOS_EXIT_WARNING)
+            kwargs, "WARNING value1, value2, hello | value0=3;5;10; value1=7;5;10; value2=7;5;10;", NAGIOS_EXIT_WARNING
+        )
 
         # warning in message
-        kwargs['value1'] = 5
-        self._basic_test_single_instance(kwargs, 'WARNING value2, hello | value0=3;5;10; value1=5;5;10; value2=7;5;10;',
-                                         NAGIOS_EXIT_WARNING)
+        kwargs["value1"] = 5
+        self._basic_test_single_instance(
+            kwargs, "WARNING value2, hello | value0=3;5;10; value1=5;5;10; value2=7;5;10;", NAGIOS_EXIT_WARNING
+        )
 
         # no warning/critical; so regular message
-        kwargs['value2'] = 5
-        self._basic_test_single_instance(kwargs, 'OK hello | value0=3;5;10; value1=5;5;10; value2=5;5;10;',
-                                         NAGIOS_EXIT_OK)
-
+        kwargs["value2"] = 5
+        self._basic_test_single_instance(
+            kwargs, "OK hello | value0=3;5;10; value1=5;5;10; value2=5;5;10;", NAGIOS_EXIT_OK
+        )
 
     def test_simple_nagios_instance_and_nagios_exit(self):
         """Test the basic ok/warning/critical/unknown"""
-        self._basic_test_single_instance_and_exit('ok', 'hello', 'OK hello', NAGIOS_EXIT_OK)
-        self._basic_test_single_instance_and_exit('warning', 'hello', 'WARNING hello', NAGIOS_EXIT_WARNING)
-        self._basic_test_single_instance_and_exit('critical', 'hello', 'CRITICAL hello', NAGIOS_EXIT_CRITICAL)
-        self._basic_test_single_instance_and_exit('unknown', 'hello', 'UNKNOWN hello', NAGIOS_EXIT_UNKNOWN)
+        self._basic_test_single_instance_and_exit("ok", "hello", "OK hello", NAGIOS_EXIT_OK)
+        self._basic_test_single_instance_and_exit("warning", "hello", "WARNING hello", NAGIOS_EXIT_WARNING)
+        self._basic_test_single_instance_and_exit("critical", "hello", "CRITICAL hello", NAGIOS_EXIT_CRITICAL)
+        self._basic_test_single_instance_and_exit("unknown", "hello", "UNKNOWN hello", NAGIOS_EXIT_UNKNOWN)
 
     def test_cache(self):
         """Test the caching"""
@@ -170,7 +174,7 @@ class TestSimpleNagios(TestCase):
 
         raised_exception = None
         try:
-            reporter_test = NagiosReporter('test_cache', filename, -1, self.nagios_user)
+            reporter_test = NagiosReporter("test_cache", filename, -1, self.nagios_user)
             reporter_test.report_and_exit()
         except SystemExit as err:
             raised_exception = err
@@ -193,7 +197,7 @@ class TestSimpleNagios(TestCase):
         os.close(handle)
 
         try:
-            reporter_test = NagiosReporter('test_cache', filename, -1, self.nagios_user)
+            reporter_test = NagiosReporter("test_cache", filename, -1, self.nagios_user)
             reporter_test.report_and_exit()
         except SystemExit:
             pass
@@ -222,13 +226,13 @@ class TestNagiosExits(TestCase):
     def test_exit_from_errorcode(self):
         """test calling the correct exit function."""
 
-        for (ec, expected) in [
-                (0, NAGIOS_EXIT_OK),
-                (1, NAGIOS_EXIT_WARNING),
-                (2, NAGIOS_EXIT_CRITICAL),
-                (3, NAGIOS_EXIT_UNKNOWN),
-                (101, NAGIOS_EXIT_UNKNOWN),
-                ]:
+        for ec, expected in [
+            (0, NAGIOS_EXIT_OK),
+            (1, NAGIOS_EXIT_WARNING),
+            (2, NAGIOS_EXIT_CRITICAL),
+            (3, NAGIOS_EXIT_UNKNOWN),
+            (101, NAGIOS_EXIT_UNKNOWN),
+        ]:
             try:
                 exit_from_errorcode(ec, "boem")
             except SystemExit as err:

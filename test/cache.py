@@ -61,11 +61,11 @@ class TestCache(TestCase):
         data, threshold = get_rand_data()
 
         # create a tempfilename
-        (handle, filename) = tempfile.mkstemp(dir='/tmp')
+        (handle, filename) = tempfile.mkstemp(dir="/tmp")
         os.unlink(filename)
         os.close(handle)
         cache = FileCache(filename)
-        for (key, value) in data.items():
+        for key, value in data.items():
             cache.update(key, value, threshold)
 
         now = time.time()
@@ -86,7 +86,7 @@ class TestCache(TestCase):
         os.close(handle)
         shutil.rmtree(tempdir)
         cache = FileCache(filename)
-        for (key, value) in data.items():
+        for key, value in data.items():
             cache.update(key, value, threshold)
         cache.close()
 
@@ -107,24 +107,24 @@ class TestCache(TestCase):
         tempdir = tempfile.mkdtemp()
         # create a tempfilename
         (handle, filename) = tempfile.mkstemp(dir=tempdir)
-        f = os.fdopen(handle, 'w')
-        f.write('blabla;not gz')
+        f = os.fdopen(handle, "w")
+        f.write("blabla;not gz")
         f.close()
         FileCache(filename)
         shutil.rmtree(tempdir)
 
-    @mock.patch('vsc.utils.cache.jsonpickle.decode')
+    @mock.patch("vsc.utils.cache.jsonpickle.decode")
     def test_value_error(self, mock_decode):
         "Test to see that a ValueError upon decoding gets caught correctly"
         tempdir = tempfile.mkdtemp()
         # create a tempfilename
         (handle, filename) = tempfile.mkstemp(dir=tempdir)
-        f = os.fdopen(handle, 'wb')
-        g = gzip.GzipFile(mode='wb', fileobj=f)
-        g.write(b'blabla no json gzip stuffz')
+        f = os.fdopen(handle, "wb")
+        g = gzip.GzipFile(mode="wb", fileobj=f)
+        g.write(b"blabla no json gzip stuffz")
         g.close()
 
-        e = ValueError('unable to find valid JSON')
+        e = ValueError("unable to find valid JSON")
         mock_decode.side_effect = e
 
         fc = FileCache(filename)

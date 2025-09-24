@@ -28,6 +28,7 @@ Tests for the vsc.utils.nagios module.
 
 @author: Andy Georges (Ghent University)
 """
+
 import os
 import tempfile
 import time
@@ -68,13 +69,13 @@ class TestNagios(TestCase):
         exit_code = random.randint(0, 3)
         threshold = random.randint(0, 10)
 
-        message = ''.join(random.choice(string.printable) for x in range(length))
+        message = "".join(random.choice(string.printable) for x in range(length))
         message = message.rstrip()
 
         (handle, filename) = tempfile.mkstemp()
         os.unlink(filename)
         os.close(handle)
-        reporter = NagiosReporter('test_cache', filename, threshold, self.nagios_user)
+        reporter = NagiosReporter("test_cache", filename, threshold, self.nagios_user)
 
         nagios_exit = [NAGIOS_EXIT_OK, NAGIOS_EXIT_WARNING, NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_UNKNOWN][exit_code]
 
@@ -87,7 +88,7 @@ class TestNagios(TestCase):
         try:
             buffer = StringIO()
             sys.stdout = buffer
-            reporter_test = NagiosReporter('test_cache', filename, threshold, self.nagios_user)
+            reporter_test = NagiosReporter("test_cache", filename, threshold, self.nagios_user)
             reporter_test.report_and_exit()
         except SystemExit as err:
             line = buffer.getvalue().rstrip()
@@ -102,12 +103,12 @@ class TestNagios(TestCase):
         """Test the threshold borking mechanism in the reporter."""
         message = message.rstrip()
         threshold = 1
-        if message == '':
+        if message == "":
             return
 
         (handle, filename) = tempfile.mkstemp()
         os.unlink(filename)
-        reporter = NagiosReporter('test_cache', filename, threshold, self.nagios_user)
+        reporter = NagiosReporter("test_cache", filename, threshold, self.nagios_user)
 
         # redirect stdout
         old_stdout = sys.stdout
@@ -120,17 +121,16 @@ class TestNagios(TestCase):
 
         raised_exception = None
         try:
-            reporter_test = NagiosReporter('test_cache', filename, threshold, self.nagios_user)
+            reporter_test = NagiosReporter("test_cache", filename, threshold, self.nagios_user)
             reporter_test.report_and_exit()
         except SystemExit as err:
             raised_exception = err
-        self.assertEqual(raised_exception.code, NAGIOS_EXIT_OK[0],
-                         "Exit with status when the cached data is recent")
+        self.assertEqual(raised_exception.code, NAGIOS_EXIT_OK[0], "Exit with status when the cached data is recent")
         # restore stdout
         buff.close()
         sys.stdout = old_stdout
 
-        reporter = NagiosReporter('test_cache', filename, threshold, self.nagios_user)
+        reporter = NagiosReporter("test_cache", filename, threshold, self.nagios_user)
         reporter.cache(nagios_exit, message)
         time.sleep(threshold + 1)
         # redirect stdout
@@ -140,7 +140,7 @@ class TestNagios(TestCase):
 
         raised_exception = None
         try:
-            reporter_test = NagiosReporter('test_cache', filename, threshold, self.nagios_user)
+            reporter_test = NagiosReporter("test_cache", filename, threshold, self.nagios_user)
             reporter_test.report_and_exit()
         except SystemExit as err:
             raised_exception = err
@@ -149,8 +149,7 @@ class TestNagios(TestCase):
         # restore stdout
         buff.close()
         sys.stdout = old_stdout
-        self.assertEqual(raised_exception.code, NAGIOS_EXIT_UNKNOWN[0],
-                         "Too old caches lead to unknown status")
+        self.assertEqual(raised_exception.code, NAGIOS_EXIT_UNKNOWN[0], "Too old caches lead to unknown status")
         self.assertTrue(line.startswith(f"{NAGIOS_EXIT_UNKNOWN[1]} test_cache gzipped JSON file too old (timestamp ="))
 
         os.unlink(filename)

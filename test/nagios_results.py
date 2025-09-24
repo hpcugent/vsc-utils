@@ -28,6 +28,7 @@ Tests for the NagiosResult class in the vsc.utils.nagios module
 
 @author: Luis Fernando Muñoz Mejías (Ghent University)
 """
+
 from vsc.install.testing import TestCase
 
 from vsc.utils.nagios import NagiosResult, NagiosRange
@@ -38,30 +39,27 @@ class TestNagiosResult(TestCase):
 
     def test_no_perfdata(self):
         """Test what is generated when no performance data is given"""
-        n = NagiosResult('hello')
-        self.assertEqual(n.message, 'hello', 'Class correctly filled in')
-        self.assertEqual(len(n.__dict__.keys()), 1, 'Nothing gets added with no performance data')
-        self.assertEqual(str(n), n.message, 'Correct stringification with no performance data')
+        n = NagiosResult("hello")
+        self.assertEqual(n.message, "hello", "Class correctly filled in")
+        self.assertEqual(len(n.__dict__.keys()), 1, "Nothing gets added with no performance data")
+        self.assertEqual(str(n), n.message, "Correct stringification with no performance data")
 
     def test_perfdata_no_thresholds(self):
         """Test what is generated when performance data with no thresholds is given"""
-        n = NagiosResult('hello', a_metric=1)
-        self.assertEqual(n.message, 'hello', 'Class message correctly filled in')
+        n = NagiosResult("hello", a_metric=1)
+        self.assertEqual(n.message, "hello", "Class message correctly filled in")
         self.assertEqual(n.a_metric, 1, "Performance data correctly filled in")
         self.assertEqual(len(n.__dict__.keys()), 2, "No extra fields added")
-        self.assertEqual(str(n), 'hello | a_metric=1;;;',
-                         'Performance data with no thresholds correctly stringified')
+        self.assertEqual(str(n), "hello | a_metric=1;;;", "Performance data with no thresholds correctly stringified")
 
     def test_perfdata_with_thresholds(self):
         """Test what is generated when performance AND thresholds are given"""
-        n = NagiosResult('hello', a_metric=1, a_metric_critical=2)
+        n = NagiosResult("hello", a_metric=1, a_metric_critical=2)
         self.assertEqual(n.a_metric_critical, 2, "Threshold for a perfdata is a normal key")
         self.assertEqual(len(n.__dict__.keys()), 3, "All keys correctly stored in the object")
-        self.assertTrue(str(n).endswith('a_metric=1;;2;'),
-                        "Critical threshold in correct position")
+        self.assertTrue(str(n).endswith("a_metric=1;;2;"), "Critical threshold in correct position")
         n.a_metric_warning = 5
-        self.assertTrue(str(n).endswith('a_metric=1;5;2;'),
-                        "Warning threshold in correct position")
+        self.assertTrue(str(n).endswith("a_metric=1;5;2;"), "Warning threshold in correct position")
 
     def test_nagios_range(self):
         """Test the nagios range parser"""

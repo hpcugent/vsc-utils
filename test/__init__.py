@@ -23,5 +23,4 @@
 # You should have received a copy of the GNU Library General Public License
 # along with vsc-utils. If not, see <http://www.gnu.org/licenses/>.
 #
-"""
-"""
+""" """
