@@ -9,11 +9,12 @@ node {
         sh 'git clean -fxd'
     }
     stage ('ruff') {
-        curl --proto '=https' --tlsv1.2 -LsSf https://github.com/astral-sh/ruff/releases/download/0.13.1/ruff-installer.sh | sh
+        sh 'curl --proto '=https' --tlsv1.2 -LsSf https://github.com/astral-sh/ruff/releases/download/0.13.1/ruff-installer.sh | sh'
         sh 'ruff --version'
         sh 'ruff format --check .'
     }
     stage ('ruff') {
+        sh 'curl --proto '=https' --tlsv1.2 -LsSf https://github.com/astral-sh/ruff/releases/download/0.13.1/ruff-installer.sh | sh'
         curl --proto '=https' --tlsv1.2 -LsSf https://github.com/astral-sh/ruff/releases/download/0.13.1/ruff-installer.sh | sh
         sh 'ruff --version'
         sh 'ruff check .'
