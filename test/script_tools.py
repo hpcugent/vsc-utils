@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2023 Ghent University
+# Copyright 2016-2024 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -28,13 +28,14 @@ Tests for the classes and functions in vsc.utils.scrip_tools
 
 @author: Andy Georges
 """
-import mock
+
 import logging
 import os
 import random
 import sys
 import tempfile
 import getpass
+import mock
 
 from vsc.install.testing import TestCase
 from vsc.utils.nagios import NAGIOS_EXIT_WARNING
@@ -59,7 +60,7 @@ class TestExtendedSimpleOption(TestCase):
     @mock.patch('vsc.utils.script_tools.TimestampedPidLockfile')
     @mock.patch('vsc.utils.script_tools.lock_or_bork')
     @mock.patch('vsc.utils.script_tools.proceed_on_ha_service')
-    def test_threshold_default_setting(self, mock_proceed, mock_lock, mock_lockfile):
+    def test_threshold_default_setting(self, mock_proceed, _, mock_lockfile):
         """Test if the default value is set"""
         mock_proceed.return_value = True
         mock_lockfile.return_value = mock.MagicMock()
@@ -77,7 +78,7 @@ class TestExtendedSimpleOption(TestCase):
     @mock.patch('vsc.utils.script_tools.TimestampedPidLockfile')
     @mock.patch('vsc.utils.script_tools.lock_or_bork')
     @mock.patch('vsc.utils.script_tools.proceed_on_ha_service')
-    def test_threshold_custom_setting(self, mock_proceed, mock_lock, mock_lockfile):
+    def test_threshold_custom_setting(self, mock_proceed, _, mock_lockfile):
         """Test if a custom value is passed on correctly"""
         mock_proceed.return_value = True
         mock_lockfile.return_value = mock.MagicMock()
@@ -101,7 +102,7 @@ class MyNrpeCLI(NrpeCLI):
     CLI_OPTIONS = {
         'magic': ('some magic', None, 'store', 'magicdef'),
     }
-    def do(self, dry_run):
+    def do(self, _):
         return magic.go()
 
 
@@ -116,14 +117,14 @@ class MyCLI(CLI):
         'locking_filename': ('test', None, 'store', TESTFILE2),
         'nagios_user': ('user nagios runs as', 'string', 'store', getpass.getuser()),
     }
-    def do(self, dry_run):
+    def do(self, _):
         return magic.go()
 
 class TestNrpeCLI(TestCase):
     """Tests for the CLI base class"""
 
     @mock.patch('vsc.utils.script_tools.ExtendedSimpleOption.prologue')
-    def test_opts(self, prol):
+    def test_opts(self, _):
         sys.argv = ['abc']
         ms = MyNrpeCLI()
 
@@ -164,7 +165,7 @@ class TestNrpeCLI(TestCase):
         self.assertEqual(ms.options.__dict__, myopts)
 
     @mock.patch('vsc.utils.script_tools.ExtendedSimpleOption.prologue')
-    def test_exit(self, mock_prologue):
+    def test_exit(self, _):
 
         cli = MyNrpeCLI()
 
@@ -178,7 +179,7 @@ class TestCLI(TestCase):
     """Tests for the CLI base class"""
 
     @mock.patch('vsc.utils.script_tools.ExtendedSimpleOption.prologue')
-    def test_opts(self, prol):
+    def test_opts(self, _):
         sys.argv = ['abc']
         ms = MyCLI()
 
@@ -230,5 +231,3 @@ class TestCLI(TestCase):
         with mock.patch('sys.exit', fake_exit):
             cli.warning("be warned")
             fake_exit.assert_called_with(1)
-
-

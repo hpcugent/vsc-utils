@@ -1,6 +1,5 @@
-# encoding: utf-8
 #
-# Copyright 2012-2023 Ghent University
+# Copyright 2012-2024 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -42,7 +41,7 @@ class TestNagiosResult(TestCase):
         n = NagiosResult('hello')
         self.assertEqual(n.message, 'hello', 'Class correctly filled in')
         self.assertEqual(len(n.__dict__.keys()), 1, 'Nothing gets added with no performance data')
-        self.assertEqual(n.__str__(), n.message, 'Correct stringification with no performance data')
+        self.assertEqual(str(n), n.message, 'Correct stringification with no performance data')
 
     def test_perfdata_no_thresholds(self):
         """Test what is generated when performance data with no thresholds is given"""
@@ -50,7 +49,7 @@ class TestNagiosResult(TestCase):
         self.assertEqual(n.message, 'hello', 'Class message correctly filled in')
         self.assertEqual(n.a_metric, 1, "Performance data correctly filled in")
         self.assertEqual(len(n.__dict__.keys()), 2, "No extra fields added")
-        self.assertEqual(n.__str__(), 'hello | a_metric=1;;;',
+        self.assertEqual(str(n), 'hello | a_metric=1;;;',
                          'Performance data with no thresholds correctly stringified')
 
     def test_perfdata_with_thresholds(self):
@@ -58,10 +57,10 @@ class TestNagiosResult(TestCase):
         n = NagiosResult('hello', a_metric=1, a_metric_critical=2)
         self.assertEqual(n.a_metric_critical, 2, "Threshold for a perfdata is a normal key")
         self.assertEqual(len(n.__dict__.keys()), 3, "All keys correctly stored in the object")
-        self.assertTrue(n.__str__().endswith('a_metric=1;;2;'),
+        self.assertTrue(str(n).endswith('a_metric=1;;2;'),
                         "Critical threshold in correct position")
         n.a_metric_warning = 5
-        self.assertTrue(n.__str__().endswith('a_metric=1;5;2;'),
+        self.assertTrue(str(n).endswith('a_metric=1;5;2;'),
                         "Warning threshold in correct position")
 
     def test_nagios_range(self):

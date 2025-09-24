@@ -1,5 +1,5 @@
 #
-# Copyright 2012-2023 Ghent University
+# Copyright 2012-2025 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -41,12 +41,10 @@ from lockfile.linklockfile import LockBase, LockFailed, NotLocked, NotMyLock
 
 class LockFileReadError(Exception):
     '''Exception raised when we cannot get the expected information from the lock file.'''
-    pass
 
 
-class TimestampedPidLockfile(LockBase, object):
-    '''Basic lock file implementation.
-    '''
+class TimestampedPidLockfile(LockBase):
+    '''Basic lock file implementation.'''
 
     def __init__(self, path, threshold=60):
         '''Intializer.'''
@@ -124,20 +122,20 @@ def _read_pid_timestamp_file(path):
     Returns (pid :: Int, timestamp :: Int).
     '''
     try:
-        with open(path, 'r') as pidfp:
-            pidLine = pidfp.readline().strip()
-            timestampLine = pidfp.readline().strip()
-            pid = int(pidLine)
-            timestamp = int(timestampLine)
+        with open(path, encoding='utf8') as pidfp:
+            pidline = pidfp.readline().strip()
+            timestampline = pidfp.readline().strip()
+            pid = int(pidline)
+            timestamp = int(timestampline)
             return (pid, timestamp)
 
-    except IOError as err:
+    except OSError as err:
         if err.errno == errno.ENOENT:
             return None
         else:
             raise LockFileReadError('Cannot get the information from the pid file.')
     except ValueError:
-        raise LockFileReadError("Contents of pid file %s invalid" % (path))
+        raise LockFileReadError(f"Contents of pid file {path} invalid")
 
 
 def _write_pid_timestamp_file(path):
@@ -147,7 +145,7 @@ def _write_pid_timestamp_file(path):
     '''
     pidfp = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
     pidfile = os.fdopen(pidfp, 'w')
-    pidfile.write("%s\n%d\n" % (os.getpid(), int(time.time())))
+    pidfile.write(f"{os.getpid()}\n{int(int(time.time()))}\n")
     pidfile.flush()
     pidfile.close()
 
@@ -156,8 +154,8 @@ def _find_and_kill(pid):
     '''See if the process corresponding to the given PID is still running. If so,
     kill it (gently).
     '''
-    for psLine in os.popen('ps ax'):
-        fields = psLine.split()
+    for psline in os.popen('ps ax'):
+        fields = psline.split()
         if fields[0] == pid:
             os.kill(pid, signal.SIGHUP)
             return True

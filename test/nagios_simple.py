@@ -1,5 +1,5 @@
 #
-# Copyright 2012-2023 Ghent University
+# Copyright 2012-2024 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -42,7 +42,7 @@ from vsc.install.testing import TestCase
 
 from vsc.utils.nagios import SimpleNagios, NAGIOS_EXIT_OK, NAGIOS_EXIT_CRITICAL
 from vsc.utils.nagios import NAGIOS_EXIT_WARNING, NAGIOS_EXIT_UNKNOWN, NagiosReporter
-from vsc.utils.nagios import exit_from_errorcode, ok_exit, warning_exit, critical_exit, unknown_exit
+from vsc.utils.nagios import exit_from_errorcode
 
 
 class TestSimpleNagios(TestCase):
@@ -112,13 +112,13 @@ class TestSimpleNagios(TestCase):
         self._basic_test_single_instance(kwargs, 'OK hello | value1=5;5;10;', NAGIOS_EXIT_OK)
         # goutside warning range, perfdata with warning in message
         kwargs['value1'] = 7
-        self._basic_test_single_instance(kwargs, 'WARNING value1 | value1=7;5;10;', NAGIOS_EXIT_WARNING)
+        self._basic_test_single_instance(kwargs, 'WARNING value1, hello | value1=7;5;10;', NAGIOS_EXIT_WARNING)
         # outside critical range?
         kwargs['value1'] = 10
-        self._basic_test_single_instance(kwargs, 'WARNING value1 | value1=10;5;10;', NAGIOS_EXIT_WARNING)
+        self._basic_test_single_instance(kwargs, 'WARNING value1, hello | value1=10;5;10;', NAGIOS_EXIT_WARNING)
         # greater
         kwargs['value1'] = 15
-        self._basic_test_single_instance(kwargs, 'CRITICAL value1 | value1=15;5;10;', NAGIOS_EXIT_CRITICAL)
+        self._basic_test_single_instance(kwargs, 'CRITICAL value1, hello | value1=15;5;10;', NAGIOS_EXIT_CRITICAL)
 
         # mixed
         kwargsmore = {
@@ -132,17 +132,17 @@ class TestSimpleNagios(TestCase):
         kwargs.update(kwargsmore)
 
         # critical value in message
-        self._basic_test_single_instance(kwargs, 'CRITICAL value1 | value0=3;5;10; value1=15;5;10; value2=7;5;10;',
+        self._basic_test_single_instance(kwargs, 'CRITICAL value1, hello | value0=3;5;10; value1=15;5;10; value2=7;5;10;',
                                          NAGIOS_EXIT_CRITICAL)
 
         # all warning values in message
         kwargs['value1'] = 7
-        self._basic_test_single_instance(kwargs, 'WARNING value1, value2 | value0=3;5;10; value1=7;5;10; value2=7;5;10;',
-                                         NAGIOS_EXIT_WARNING)
+        self._basic_test_single_instance(
+            kwargs, 'WARNING value1, value2, hello | value0=3;5;10; value1=7;5;10; value2=7;5;10;', NAGIOS_EXIT_WARNING)
 
         # warning in message
         kwargs['value1'] = 5
-        self._basic_test_single_instance(kwargs, 'WARNING value2 | value0=3;5;10; value1=5;5;10; value2=7;5;10;',
+        self._basic_test_single_instance(kwargs, 'WARNING value2, hello | value0=3;5;10; value1=5;5;10; value2=7;5;10;',
                                          NAGIOS_EXIT_WARNING)
 
         # no warning/critical; so regular message
@@ -242,4 +242,3 @@ class TestNagiosExits(TestCase):
             except SystemExit as err:
                 print(err)
                 self.assertTrue(err.code == expected[0])
-

@@ -1,5 +1,5 @@
 #
-# Copyright 2012-2023 Ghent University
+# Copyright 2012-2024 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -53,7 +53,7 @@ class TestNagios(TestCase):
     def setUp(self):
         user = getpwuid(os.getuid())
         self.nagios_user = user.pw_name
-        super(TestNagios, self).setUp()
+        super().setUp()
 
     def test_eval(self):
         """Test the evaluation of the warning/critical level."""

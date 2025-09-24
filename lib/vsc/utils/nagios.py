@@ -1,7 +1,5 @@
-
-# -*- encoding: utf-8 -*-
 #
-# Copyright 2012-2023 Ghent University
+# Copyright 2012-2025 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -83,13 +81,13 @@ def _real_exit(message, code, metrics=''):
     message = message.split('|')
     msg = message[0]
     if len(message) > 1:
-        metrics = '|%s' % message[1]
+        metrics = f'|{message[1]}'
     if len(msg) > NAGIOS_MAX_MESSAGE_LENGTH:
         # log long message but print truncated message
         logging.info("Nagios report %s: %s%s", exit_text, msg, metrics)
         msg = msg[:NAGIOS_MAX_MESSAGE_LENGTH-3] + '...'
 
-    print("%s %s%s" % (exit_text, msg, metrics))
+    print(f"{exit_text} {msg}{metrics}")
     sys.exit(exit_code)
 
 
@@ -139,10 +137,10 @@ def exit_from_errorcode(errorcode, msg, error_map=None):
     try:
         NAGIOS_EXIT_MAP[e_map[errorcode]](msg)
     except (IndexError, KeyError):
-        unknown_exit(msg + " (errorcode {0} not found in {1}".format(errorcode, e_map))
+        unknown_exit(f"{msg} (errorcode {errorcode} not found in {e_map}")
 
 
-class NagiosRange(object):
+class NagiosRange:
     """Implement Nagios ranges"""
     DEFAULT_START = 0
     def __init__(self, nrange):
@@ -236,7 +234,7 @@ class NagiosRange(object):
         return not self.range_fn(test)
 
 
-class NagiosReporter(object):
+class NagiosReporter:
     """Reporting class for Nagios/Icinga reports.
 
     Can cache the result in a gzipped JSON file and print the result out at some later point.
@@ -334,7 +332,7 @@ class NagiosReporter(object):
         return True
 
 
-class NagiosResult(object):
+class NagiosResult:
     """Class representing the results of an Icinga/Nagios check.
 
     It will contain a field with the message to be printed.  And the
@@ -368,7 +366,7 @@ class NagiosResult(object):
     Nagios checks, please refer to
     U{http://docs.icinga.org/latest/en/perfdata.html}
     """
-    RESERVED_WORDS = set(['message'])
+    RESERVED_WORDS = {'message'}
     NAME_REG = re.compile(r'^(?P<name>.*?)(?:_(?P<option>warning|critical))?$')
 
     def __init__(self, message, **kwargs):
@@ -413,11 +411,10 @@ class NagiosResult(object):
         perf = []
         for k, v in sorted(processed_dict.items()):
             if ' ' in k:
-                k = "'%s'" % k
-            perf.append("%s=%s%s;%s;%s;" % (k, v.get('value', ''), v.get('unit', ''),
-                                          v.get('warning', ''), v.get('critical', '')))
+                k = f"'{k}'"
+            perf.append(f"{k}={v.get('value', '')}{v.get('unit', '')};{v.get('warning', '')};{v.get('critical', '')};")
 
-        return "%s | %s" % (self.message, ' '.join(perf))
+        return f"{self.message} | {' '.join(perf)}"
 
 
 class SimpleNagios(NagiosResult):
@@ -441,8 +438,8 @@ class SimpleNagios(NagiosResult):
     """
 
     USE_HEADER = True
-    RESERVED_WORDS = set(['message', 'ok', 'warning', 'critical', 'unknown',
-                         '_exit', '_cache', '_cache_user', '_final', '_final_state', '_report', '_threshold'])
+    RESERVED_WORDS = {'message', 'ok', 'warning', 'critical', 'unknown',
+                         '_exit', '_cache', '_cache_user', '_final', '_final_state', '_report', '_threshold'}
 
     def __init__(self, **kwargs):
         """Initialise message and perfdata"""
@@ -524,7 +521,8 @@ class SimpleNagios(NagiosResult):
                 if "warning" in v and NagiosRange(v['warning']).alert(v['value']):
                     warn = True
                     msg.append(k)
-
+        if self.message:
+            msg.append(self.message)
         return warn, crit, ', '.join(msg)
 
     def _eval_and_exit(self, **kwargs):

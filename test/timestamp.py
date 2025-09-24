@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2023 Ghent University
+# Copyright 2018-2024 Ghent University
 #
 # This file is part of vsc-utils,
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -73,7 +73,7 @@ class TestTimestamp(TestCase):
 
 
     def test_convert_to_unix_timestamp(self):
-        ec, out = run(['date', '+%s'])
+        _, out = run(['date', '+%s'])
         nowts = convert_to_unix_timestamp()
         self.assertTrue(abs(nowts - int(out.strip())) < 2)
 
