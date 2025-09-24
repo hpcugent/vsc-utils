@@ -28,12 +28,11 @@ Allow other packages to extend this namespace, zip safe setuptools style
 """
 
 import pkg_resources
-
-pkg_resources.declare_namespace(__name__)
-
 import os
 import warnings
-from functools import wraps
+
+
+pkg_resources.declare_namespace(__name__)
 
 
 def _script_name(full_name):
