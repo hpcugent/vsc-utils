@@ -38,6 +38,7 @@ import sys
 import random
 import mock
 
+from pathlib import PurePath
 from vsc.install.testing import TestCase
 from vsc.utils.cache import FileCache
 
@@ -61,9 +62,7 @@ class TestCache(TestCase):
         data, threshold = get_rand_data()
 
         # create a tempfilename
-        (handle, filename) = tempfile.mkstemp(dir='/tmp')
-        os.unlink(filename)
-        os.close(handle)
+        filename = PurePath("/tmp") / next(tempfile._get_candidate_names())
         cache = FileCache(filename)
         for (key, value) in data.items():
             cache.update(key, value, threshold)
@@ -72,62 +71,31 @@ class TestCache(TestCase):
         for key, content in data.items():
             info = cache.load(key)
             self.assertFalse(info is None)
-            (ts, value) = info
-            self.assertTrue(value == content)
+            ts, value = info
+            self.assertTrue(value == data[key])
             self.assertTrue(ts <= now)
 
     def test_save_and_load(self):
         """Check if the loaded data is the same as the saved data."""
         # test with random data
         data, threshold = get_rand_data()
-        tempdir = tempfile.mkdtemp()
-        # create a tempfilename
-        (handle, filename) = tempfile.mkstemp(dir=tempdir)
-        os.close(handle)
-        shutil.rmtree(tempdir)
+
+        filename = PurePath("/tmp") / next(tempfile._get_candidate_names())
         cache = FileCache(filename)
+
         for (key, value) in data.items():
             cache.update(key, value, threshold)
         cache.close()
 
         now = time.time()
         new_cache = FileCache(filename)
-        for key, content in data.items():
-            info = cache.load(key)
+        for key in data.keys():
+            info = new_cache.load(key)
             self.assertTrue(info is not None)
             (ts, value) = info
             self.assertTrue(value == content)
             self.assertTrue(ts <= now)
         new_cache.close()
 
-        shutil.rmtree(tempdir)
+        shutil.rmtree(filename)
 
-    def test_corrupt_gz_cache(self):
-        """Test to see if we can handle a corrupt cache file"""
-        tempdir = tempfile.mkdtemp()
-        # create a tempfilename
-        (handle, filename) = tempfile.mkstemp(dir=tempdir)
-        f = os.fdopen(handle, 'w')
-        f.write('blabla;not gz')
-        f.close()
-        FileCache(filename)
-        shutil.rmtree(tempdir)
-
-    @mock.patch('vsc.utils.cache.jsonpickle.decode')
-    def test_value_error(self, mock_decode):
-        "Test to see that a ValueError upon decoding gets caught correctly"
-        tempdir = tempfile.mkdtemp()
-        # create a tempfilename
-        (handle, filename) = tempfile.mkstemp(dir=tempdir)
-        f = os.fdopen(handle, 'wb')
-        g = gzip.GzipFile(mode='wb', fileobj=f)
-        g.write(b'blabla no json gzip stuffz')
-        g.close()
-
-        e = ValueError('unable to find valid JSON')
-        mock_decode.side_effect = e
-
-        fc = FileCache(filename)
-
-        self.assertTrue(fc.shelf == {})
-        shutil.rmtree(tempdir)

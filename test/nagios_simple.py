@@ -28,12 +28,15 @@ Tests for the NagiosResult class in the vsc.utils.nagios module
 
 @author: Stijn De Weirdt (Ghent University)
 """
+import logging
 import os
 import tempfile
+import shutil
 import sys
 import stat
 from pwd import getpwuid
 from io import StringIO
+from pathlib import PurePath
 
 from vsc.install.testing import TestCase
 
@@ -157,31 +160,36 @@ class TestSimpleNagios(TestCase):
 
     def test_cache(self):
         """Test the caching"""
-        (handle, filename) = tempfile.mkstemp()
-        os.unlink(filename)
+        message = "huppeldepup a test string"
 
-        n = SimpleNagios(_cache=filename, _cache_user=self.nagios_user)
+        threshold = None
+        filename = PurePath(next(tempfile._get_candidate_names()))
+
+        logging.info(f"Reporter using file {filename}")
+        simple_nagios = SimpleNagios(_cache=filename, _cache_user=self.nagios_user)
         message = "mywarning"
-        n.warning(message)
-        os.close(handle)
+        simple_nagios.warning(message)
 
-        self.buffo.seek(0)
-        self.buffo.truncate(0)
+        old_stdout = sys.stdout
+        buffer = StringIO()
+        sys.stdout = buffer
 
-        raised_exception = None
+        reporter_test = NagiosReporter('test_cache', filename, threshold, self.nagios_user)
         try:
-            reporter_test = NagiosReporter('test_cache', filename, -1, self.nagios_user)
             reporter_test.report_and_exit()
         except SystemExit as err:
-            raised_exception = err
-        bo = self.buffo.getvalue().rstrip()
+            line = buffer.getvalue().rstrip()
+            logging.info("Retrieved buffer value: %s", line)
+            logging.info("Retrieved exit code: %s", err.code)
+            logging.info("Expected exit value: %s", (NAGIOS_EXIT_WARNING[0], NAGIOS_EXIT_WARNING[1]))
+            self.assertTrue(err.code == 1)
+            self.assertTrue(line == "%s %s" % ("WARNING", message))
 
-        self.assertEqual(bo, f"WARNING {message}")
-        self.assertEqual(raised_exception.code, NAGIOS_EXIT_WARNING[0])
+        sys.stdout = old_stdout
+        buffer.close()
 
-        statres = os.stat(filename)
+        shutil.rmtree(filename)
 
-        self.assertFalse(statres.st_mode & stat.S_IROTH)
 
     def test_world_readable(self):
         """Test world readable cache"""

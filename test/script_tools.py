@@ -30,6 +30,7 @@ Tests for the classes and functions in vsc.utils.scrip_tools
 """
 
 import logging
+import os
 import random
 import sys
 import tempfile
@@ -107,8 +108,8 @@ class MyNrpeCLI(NrpeCLI):
 
 class MyCLI(CLI):
     TIMESTAMP_MANDATORY = False  # mainly for testing, you really should need this in production
-    TESTFILE = tempfile.mkstemp()[1]
-    TESTFILE2 = tempfile.mkstemp()[1]
+    TESTFILE = os.path.join("/tmp", next(tempfile._get_candidate_names()))
+    TESTFILE2 = os.path.join("/tmp", next(tempfile._get_candidate_names()))
 
     CLI_OPTIONS = {
         'magic': ('some magic', None, 'store', 'magicdef'),
@@ -139,7 +140,7 @@ class TestNrpeCLI(TestCase):
             'ignoreconfigfiles': None,
             'info': False,
             'locking_filename': '/var/lock/setup.lock',
-            'nagios_check_filename': '/var/cache/setup.nagios.json.gz',
+            'nagios_check_filename': '/var/cache/setup.nagios',
             'nagios_check_interval_threshold': 0,
             'nagios_report': False,
             'nagios_user': 'nrpe',
