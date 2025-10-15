@@ -31,7 +31,7 @@ vsc-utils base distribution setup.py
 @author: Andy Georges (Ghent University)
 """
 
-import vsc.install.shared_setup as shared_setup
+from vsc.install import shared_setup
 from vsc.install.shared_setup import ag, sdw
 
 install_requires = [
