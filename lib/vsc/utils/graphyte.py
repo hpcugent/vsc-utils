@@ -42,9 +42,9 @@ import socket
 import threading
 import time
 
-__all__ = ['Sender', 'init', 'send']
+__all__ = ["Sender", "init", "send"]
 
-__version__ = '1.7.1'
+__version__ = "1.7.1"
 
 default_sender = None
 logger = logging.getLogger(__name__)
@@ -55,9 +55,20 @@ def _has_whitespace(value):
 
 
 class Sender:
-    def __init__(self, host, port=2003, prefix=None, timeout=5, interval=None,
-                 queue_size=None, log_sends=False, protocol='tcp',
-                 batch_size=1000, tags=None, raise_send_errors=False):
+    def __init__(
+        self,
+        host,
+        port=2003,
+        prefix=None,
+        timeout=5,
+        interval=None,
+        queue_size=None,
+        log_sends=False,
+        protocol="tcp",
+        batch_size=1000,
+        tags=None,
+        raise_send_errors=False,
+    ):
         """Initialize a Sender instance, starting the background thread to
         send messages at given interval (in seconds) if "interval" is not
         None. Send at most "batch_size" messages per socket send operation.
@@ -83,7 +94,7 @@ class Sender:
 
         if self.interval is not None:
             if raise_send_errors:
-                raise ValueError('raise_send_errors must be disabled when interval is set')
+                raise ValueError("raise_send_errors must be disabled when interval is set")
             if queue_size is None:
                 queue_size = int(round(interval)) * 100
             self._queue = queue.Queue(maxsize=queue_size)
@@ -111,19 +122,18 @@ class Sender:
         if _has_whitespace(metric):
             raise ValueError('"metric" must not have whitespace in it')
         if not isinstance(value, (int, float)):
-            raise TypeError('"value" must be an int or a float, not a %s',
-                type(value).__name__)
+            raise TypeError('"value" must be an int or a float, not a %s', type(value).__name__)
 
         all_tags = self.tags.copy()
         all_tags.update(tags)
-        tags_strs = [f';{k}={v}' for k, v in sorted(all_tags.items())]
+        tags_strs = [f";{k}={v}" for k, v in sorted(all_tags.items())]
         if any(_has_whitespace(t) for t in tags_strs):
             raise ValueError('"tags" keys and values must not have whitespace in them')
-        tags_suffix = ''.join(tags_strs)
+        tags_suffix = "".join(tags_strs)
 
-        prefix = self.prefix + '.' if self.prefix else ''
+        prefix = self.prefix + "." if self.prefix else ""
         message = f"{prefix}{metric}{tags_suffix} {value} {int(round(timestamp))}\n"
-        message = message.encode('utf-8')
+        message = message.encode("utf-8")
         return message
 
     def send(self, metric, value, timestamp=None, tags=None):
@@ -147,18 +157,18 @@ class Sender:
             try:
                 self._queue.put_nowait(message)
             except queue.Full:
-                logger.error('queue full when sending %s', message)
+                logger.error("queue full when sending %s", message)
 
     def send_message(self, message):
-        if self.protocol == 'tcp':
+        if self.protocol == "tcp":
             with socket.create_connection((self.host, self.port), self.timeout) as sock:
                 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 sock.sendall(message)
-        elif self.protocol == 'udp':
+        elif self.protocol == "udp":
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
                 sock.sendto(message, (self.host, self.port))
         else:
-            raise ValueError('"protocol" must be \'tcp\' or \'udp\', not %s', self.protocol)
+            raise ValueError("\"protocol\" must be 'tcp' or 'udp', not %s", self.protocol)
 
     def send_socket(self, message):
         """Low-level function to send message bytes to this Sender's socket.
@@ -172,12 +182,11 @@ class Sender:
         except Exception as error:
             if self.raise_send_errors:
                 raise
-            logger.error('error sending message %s: %s', message, error)
+            logger.error("error sending message %s: %s", message, error)
         else:
             if self.log_sends:
                 elapsed_time = time.time() - start_time
-                logger.info('sent message %s to %s:%s in %s seconds',
-                        message, self.host, self.port, elapsed_time)
+                logger.info("sent message %s to %s:%s in %s seconds", message, self.host, self.port, elapsed_time)
 
     def _thread_loop(self):
         """Background thread used when Sender is in asynchronous/interval mode."""
@@ -218,14 +227,15 @@ class Sender:
             if current_time - last_check_time >= self.interval:
                 last_check_time = current_time
                 for i in range(0, len(messages), self.batch_size):
-                    batch = messages[i:i + self.batch_size]
-                    self.send_socket(b''.join(batch))
+                    batch = messages[i : i + self.batch_size]
+                    self.send_socket(b"".join(batch))
                 messages = []
 
         # Send any final messages before exiting thread
         for i in range(0, len(messages), self.batch_size):
-            batch = messages[i:i + self.batch_size]
-            self.send_socket(b''.join(batch))
+            batch = messages[i : i + self.batch_size]
+            self.send_socket(b"".join(batch))
+
 
 def init(*args, **kwargs):
     """Initialize default Sender instance with given args."""
@@ -238,29 +248,23 @@ def send(*args, **kwargs):
     default_sender.send(*args, **kwargs)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('metric',
-                        help='name of metric to send')
-    parser.add_argument('value', type=float,
-                        help='numeric value to send')
-    parser.add_argument('-s', '--server', default='localhost',
-                        help='hostname of Graphite server to send to, default %(default)s')
-    parser.add_argument('-p', '--port', type=int, default=2003,
-                        help='port to send message to, default %(default)d')
-    parser.add_argument('-u', '--udp', action='store_true',
-                        help='send via UDP instead of TCP')
-    parser.add_argument('-t', '--timestamp', type=int,
-                        help='Unix timestamp for message (defaults to current time)')
-    parser.add_argument('-q', '--quiet', action='store_true',
-                        help="quiet mode (don't log send to stdout)")
+    parser.add_argument("metric", help="name of metric to send")
+    parser.add_argument("value", type=float, help="numeric value to send")
+    parser.add_argument(
+        "-s", "--server", default="localhost", help="hostname of Graphite server to send to, default %(default)s"
+    )
+    parser.add_argument("-p", "--port", type=int, default=2003, help="port to send message to, default %(default)d")
+    parser.add_argument("-u", "--udp", action="store_true", help="send via UDP instead of TCP")
+    parser.add_argument("-t", "--timestamp", type=int, help="Unix timestamp for message (defaults to current time)")
+    parser.add_argument("-q", "--quiet", action="store_true", help="quiet mode (don't log send to stdout)")
     args = parser.parse_args()
 
     if not args.quiet:
-        logging.basicConfig(level=logging.INFO, format='%(message)s')
+        logging.basicConfig(level=logging.INFO, format="%(message)s")
 
-    sender = Sender(args.server, port=args.port, log_sends=not args.quiet,
-                    protocol='udp' if args.udp else 'tcp')
+    sender = Sender(args.server, port=args.port, log_sends=not args.quiet, protocol="udp" if args.udp else "tcp")
     sender.send(args.metric, args.value, timestamp=args.timestamp)

@@ -52,13 +52,13 @@ from vsc.utils.fancylogger import getLogger
 
 log = getLogger(__name__)
 
-NAGIOS_CACHE_DIR = '/var/cache'
-NAGIOS_CACHE_FILENAME_TEMPLATE = '%s.nagios.json.gz'
+NAGIOS_CACHE_DIR = "/var/cache"
+NAGIOS_CACHE_FILENAME_TEMPLATE = "%s.nagios.json.gz"
 
-NAGIOS_OK = 'OK'
-NAGIOS_WARNING = 'WARNING'
-NAGIOS_CRITICAL = 'CRITICAL'
-NAGIOS_UNKNOWN = 'UNKNOWN'
+NAGIOS_OK = "OK"
+NAGIOS_WARNING = "WARNING"
+NAGIOS_CRITICAL = "CRITICAL"
+NAGIOS_UNKNOWN = "UNKNOWN"
 
 NAGIOS_EXIT_OK = (0, NAGIOS_OK)
 NAGIOS_EXIT_WARNING = (1, NAGIOS_WARNING)
@@ -67,7 +67,7 @@ NAGIOS_EXIT_UNKNOWN = (3, NAGIOS_UNKNOWN)
 NAGIOS_MAX_MESSAGE_LENGTH = 8192
 
 
-def _real_exit(message, code, metrics=''):
+def _real_exit(message, code, metrics=""):
     """Prints the code and first  message and exits accordingly.
 
     @type message: string
@@ -79,14 +79,14 @@ def _real_exit(message, code, metrics=''):
     @param metrics: Metrics for nagios, used to create graphs
     """
     (exit_code, exit_text) = code
-    message = message.split('|')
+    message = message.split("|")
     msg = message[0]
     if len(message) > 1:
-        metrics = f'|{message[1]}'
+        metrics = f"|{message[1]}"
     if len(msg) > NAGIOS_MAX_MESSAGE_LENGTH:
         # log long message but print truncated message
         log.info("Nagios report %s: %s%s", exit_text, msg, metrics)
-        msg = msg[:NAGIOS_MAX_MESSAGE_LENGTH-3] + '...'
+        msg = msg[: NAGIOS_MAX_MESSAGE_LENGTH - 3] + "..."
 
     print(f"{exit_text} {msg}{metrics}")
     sys.exit(exit_code)
@@ -143,11 +143,13 @@ def exit_from_errorcode(errorcode, msg, error_map=None):
 
 class NagiosRange:
     """Implement Nagios ranges"""
+
     DEFAULT_START = 0
+
     def __init__(self, nrange):
         """Initialisation
-            @param nrange: nrange in [@][start:][end] format. If it is not a string, it is converted to
-                          string and that string should allow conversion to float.
+        @param nrange: nrange in [@][start:][end] format. If it is not a string, it is converted to
+                      string and that string should allow conversion to float.
         """
         self.log = getLogger(self.__class__.__name__, fname=False)
 
@@ -160,7 +162,7 @@ class NagiosRange:
                 msg = (
                     f"nrange {str(nrange)} (type {type(nrange)}) is not valid after"
                     f" conversion to string (newnrange {newnrange})"
-                    )
+                )
                 self.log.exception(msg)
                 raise ValueError(msg) from exc
             nrange = newnrange
@@ -169,7 +171,7 @@ class NagiosRange:
 
     def parse(self, nrange):
         """Convert nrange string into nrange function.
-            range_fn tests if a value is inside the nrange
+        range_fn tests if a value is inside the nrange
         """
         reg = re.compile(r"^\s*(?P<neg>@)?((?P<start>(~|[0-9.-]+)):)?(?P<end>[0-9.-]+)?\s*$")
         r = reg.search(nrange)
@@ -177,10 +179,10 @@ class NagiosRange:
             res = r.groupdict()
             self.log.debug("parse: nrange %s gave %s", nrange, res)
 
-            start_txt = res['start']
+            start_txt = res["start"]
             if start_txt is None:
                 start = 0
-            elif start_txt == '~':
+            elif start_txt == "~":
                 start = None  # -inf
             else:
                 try:
@@ -190,7 +192,7 @@ class NagiosRange:
                     self.log.exception(msg)
                     raise ValueError(msg) from exc
 
-            end = res['end']
+            end = res["end"]
             if end is not None:
                 try:
                     end = float(end)
@@ -199,7 +201,7 @@ class NagiosRange:
                     self.log.exception("msg")
                     raise ValueError(msg) from exc
 
-            neg = res['neg'] is not None
+            neg = res["neg"] is not None
             self.log.debug("parse: start %s end %s neg %s", start, end, neg)
         else:
             msg = f"parse: invalid nrange {nrange}."
@@ -229,15 +231,16 @@ class NagiosRange:
             if neg:
                 tmp_res = operator.not_(tmp_res)
 
-            self.log.debug("range_fn: test %s start_res %s end_res %s result %s (neg %s)",
-                           test, start_res, end_res, tmp_res, neg)
+            self.log.debug(
+                "range_fn: test %s start_res %s end_res %s result %s (neg %s)", test, start_res, end_res, tmp_res, neg
+            )
             return tmp_res
 
         return range_fn
 
     def alert(self, test):
         """Return the inverse evaluation of the range function with value test.
-            Returns True if an alert should be raised, i.e. if test is outside nrange.
+        Returns True if an alert should be raised, i.e. if test is outside nrange.
         """
         return not self.range_fn(test)
 
@@ -284,7 +287,7 @@ class NagiosReporter:
             self.log.critical("Error opening file %s for reading", self.filename)
             unknown_exit(f"{self.header} nagios gzipped JSON file unavailable ({self.filename})")
 
-        (timestamp, ((nagios_exit_code, nagios_exit_string), nagios_message)) = nagios_cache.load('nagios')
+        (timestamp, ((nagios_exit_code, nagios_exit_string), nagios_message)) = nagios_cache.load("nagios")
 
         if self.threshold <= 0 or time.time() - timestamp < self.threshold:
             self.log.info("Nagios check cache file %s contents delivered: %s", self.filename, nagios_message)
@@ -304,7 +307,7 @@ class NagiosReporter:
         """
         try:
             nagios_cache = FileCache(self.filename)
-            nagios_cache.update('nagios', (nagios_exit, nagios_message), 0)  # always update
+            nagios_cache.update("nagios", (nagios_exit, nagios_message), 0)  # always update
             nagios_cache.close()
             self.log.info("Wrote nagios check cache file %s at about %s", self.filename, time.ctime(time.time()))
         except OSError as exc:
@@ -324,12 +327,15 @@ class NagiosReporter:
             if os.geteuid() == 0:
                 os.chown(self.filename, p.pw_uid, p.pw_gid)
             else:
-                self.log.warning("Not running as root: Cannot chown the nagios check file %s to %s",
-                              self.filename, self.nagios_username)
+                self.log.warning(
+                    "Not running as root: Cannot chown the nagios check file %s to %s",
+                    self.filename,
+                    self.nagios_username,
+                )
         except (OSError, FileNotFoundError) as exc:
             msg = f"Cannot chown the nagios check file {self.filename} to the nagios user"
             self.log.exception(msg)
-            raise(OSError(msg)) from exc
+            raise (OSError(msg)) from exc
 
         return True
 
@@ -347,13 +353,13 @@ class NagiosResult:
 
     For example:
 
-    >>> n = NagiosResult('msg', a=1)
+    >>> n = NagiosResult("msg", a=1)
     >>> print n
     msg | a=1;;;
-    >>> n = NagiosResult('msg', a=1, a_critical=2, a_warning=3)
+    >>> n = NagiosResult("msg", a=1, a_critical=2, a_warning=3)
     >>> print n
     msg | a=1;3;2;
-    >>> n = NagiosResult('msg')
+    >>> n = NagiosResult("msg")
     >>> print n
     msg
     >>> n.a = 5
@@ -368,8 +374,9 @@ class NagiosResult:
     Nagios checks, please refer to
     U{http://docs.icinga.org/latest/en/perfdata.html}
     """
-    RESERVED_WORDS = {'message'}
-    NAME_REG = re.compile(r'^(?P<name>.*?)(?:_(?P<option>warning|critical))?$')
+
+    RESERVED_WORDS = {"message"}
+    NAME_REG = re.compile(r"^(?P<name>.*?)(?:_(?P<option>warning|critical))?$")
 
     def __init__(self, message, **kwargs):
         """Class constructor.  Takes a message and an optional
@@ -393,11 +400,11 @@ class NagiosResult:
         processed_dict = dict()
 
         for key, value in self.__dict__.items():
-            if key in self.RESERVED_WORDS or key.startswith('_'):
+            if key in self.RESERVED_WORDS or key.startswith("_"):
                 continue
             processed_key = self.NAME_REG.search(key).groupdict()
-            t_name = processed_key.get('name')
-            t_key = processed_key.get('option', 'value') or 'value'
+            t_name = processed_key.get("name")
+            t_key = processed_key.get("option", "value") or "value"
             f = processed_dict.setdefault(t_name, dict())
             f[t_key] = value
 
@@ -412,7 +419,7 @@ class NagiosResult:
 
         perf = []
         for k, v in sorted(processed_dict.items()):
-            if ' ' in k:
+            if " " in k:
                 k = f"'{k}'"
             perf.append(f"{k}={v.get('value', '')}{v.get('unit', '')};{v.get('warning', '')};{v.get('critical', '')};")
 
@@ -440,8 +447,20 @@ class SimpleNagios(NagiosResult):
     """
 
     USE_HEADER = True
-    RESERVED_WORDS = {'message', 'ok', 'warning', 'critical', 'unknown',
-                         '_exit', '_cache', '_cache_user', '_final', '_final_state', '_report', '_threshold'}
+    RESERVED_WORDS = {
+        "message",
+        "ok",
+        "warning",
+        "critical",
+        "unknown",
+        "_exit",
+        "_cache",
+        "_cache_user",
+        "_final",
+        "_final_state",
+        "_report",
+        "_threshold",
+    }
 
     def __init__(self, **kwargs):
         """Initialise message and perfdata"""
@@ -464,10 +483,15 @@ class SimpleNagios(NagiosResult):
         if self._cache:
             # make a NagiosReporter instance that can be used for caching
             if self._cache_user:
-                cache = NagiosReporter('no header', self._cache, self._threshold, nagios_username=self._cache_user,
-                                       world_readable=self._world_readable)
+                cache = NagiosReporter(
+                    "no header",
+                    self._cache,
+                    self._threshold,
+                    nagios_username=self._cache_user,
+                    world_readable=self._world_readable,
+                )
             else:
-                cache = NagiosReporter('no header', self._cache, self._threshold, world_readable=self._world_readable)
+                cache = NagiosReporter("no header", self._cache, self._threshold, world_readable=self._world_readable)
             if self._report_and_exit:
                 cache.report_and_exit()
             else:
@@ -481,8 +505,8 @@ class SimpleNagios(NagiosResult):
 
     def _exit(self, nagios_exitcode, msg):
         """Save the last state before performing actual exit.
-            In case of caching, this allows to eg generate log message without rereading the cache file.
-            In case of regular exit, this code is not/cannot be used.
+        In case of caching, this allows to eg generate log message without rereading the cache file.
+        In case of regular exit, this code is not/cannot be used.
         """
         self._final_state = (nagios_exitcode, msg)
         self._final(nagios_exitcode, msg)
@@ -501,10 +525,10 @@ class SimpleNagios(NagiosResult):
 
     def _eval(self, **kwargs):
         """Evaluate the overall critical and warning level.
-            warning is not checked if critical is reached
-            returns warn,crit,msg
-                msg is the name of the perfdata that caused the
-                critical/warning level
+        warning is not checked if critical is reached
+        returns warn,crit,msg
+            msg is the name of the perfdata that caused the
+            critical/warning level
         """
         self.__dict__.update(kwargs)
 
@@ -514,18 +538,18 @@ class SimpleNagios(NagiosResult):
 
         warn, crit = None, None
         for k, v in sorted(processed_dict.items()):
-            if "critical" in v and NagiosRange(v['critical']).alert(v['value']):
+            if "critical" in v and NagiosRange(v["critical"]).alert(v["value"]):
                 crit = True
                 msg.append(k)
 
         if not crit:
             for k, v in sorted(processed_dict.items()):
-                if "warning" in v and NagiosRange(v['warning']).alert(v['value']):
+                if "warning" in v and NagiosRange(v["warning"]).alert(v["value"]):
                     warn = True
                     msg.append(k)
         if self.message:
             msg.append(self.message)
-        return warn, crit, ', '.join(msg)
+        return warn, crit, ", ".join(msg)
 
     def _eval_and_exit(self, **kwargs):
         """Based on provided performance data, exit with proper message and exitcode"""

@@ -28,6 +28,7 @@ Caching utilities.
 
 @author: Andy Georges (Ghent University)
 """
+
 import gzip
 import os
 import time
@@ -36,6 +37,7 @@ import jsonpickle
 
 
 from vsc.utils import fancylogger
+
 
 class FileCache:
     """File cache with a timestamp safety.
@@ -78,11 +80,11 @@ class FileCache:
             return
 
         try:
-            with open(self.filename, 'rb') as f:
+            with open(self.filename, "rb") as f:
                 try:
-                    g = gzip.GzipFile(mode='rb', fileobj=f)  # no context manager available in python 26 yet
+                    g = gzip.GzipFile(mode="rb", fileobj=f)  # no context manager available in python 26 yet
                     s = g.read()
-                except (OSError) as _:
+                except OSError as _:
                     self.log.error("Cannot load data from cache file %s as gzipped json", self.filename)
                     try:
                         f.seek(0)
@@ -164,9 +166,9 @@ class FileCache:
         dirname = os.path.dirname(self.filename)
         if not os.path.exists(dirname):
             os.makedirs(dirname)
-        with open(self.filename, 'wb') as fih:
+        with open(self.filename, "wb") as fih:
             if not fih:
-                self.log.error('cannot open the file cache at %s for writing', self.filename)
+                self.log.error("cannot open the file cache at %s for writing", self.filename)
             else:
                 if self.retain_old:
                     if self.shelf is None:
@@ -174,9 +176,9 @@ class FileCache:
                     self.shelf.update(self.new_shelf)
                     self.new_shelf = self.shelf
 
-                with gzip.GzipFile(mode='wb', fileobj=fih) as zipf:
+                with gzip.GzipFile(mode="wb", fileobj=fih) as zipf:
                     pickled = jsonpickle.encode(self.new_shelf)
                     # .encode() is required in Python 3, since we need to pass a bytestring
                     zipf.write(pickled.encode())
 
-                self.log.info('closing the file cache at %s', self.filename)
+                self.log.info("closing the file cache at %s", self.filename)
