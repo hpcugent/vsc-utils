@@ -39,6 +39,7 @@ interpreted by nagios/icinga.
 @author: Luis Fernando Muñoz Mejías (Ghent University)
 """
 
+import logging
 import operator
 import os
 import pwd
@@ -47,12 +48,16 @@ import stat
 import sys
 import time
 
+from pathlib import Path
+
+from vsc.utils import _script_name
 from vsc.utils.cache import FileCache
 from vsc.utils.fancylogger import getLogger
 
-log = getLogger(__name__)
+#log = getLogger(__name__)
 
 NAGIOS_CACHE_DIR = '/var/cache'
+NAGIOS_CACHE_FILENAME = 'cache.nagios.json.gz'
 NAGIOS_CACHE_FILENAME_TEMPLATE = '%s.nagios.json.gz'
 
 NAGIOS_OK = 'OK'
@@ -85,7 +90,7 @@ def _real_exit(message, code, metrics=''):
         metrics = f'|{message[1]}'
     if len(msg) > NAGIOS_MAX_MESSAGE_LENGTH:
         # log long message but print truncated message
-        log.info("Nagios report %s: %s%s", exit_text, msg, metrics)
+        logging.info("Nagios report %s: %s%s", exit_text, msg, metrics)
         msg = msg[:NAGIOS_MAX_MESSAGE_LENGTH-3] + '...'
 
     print(f"{exit_text} {msg}{metrics}")
@@ -203,7 +208,7 @@ class NagiosRange:
             self.log.debug("parse: start %s end %s neg %s", start, end, neg)
         else:
             msg = f"parse: invalid nrange {nrange}."
-            self.log.Error(msg)
+            self.log.error(msg)
             raise ValueError(nrange)
 
         def range_fn(test):
@@ -240,6 +245,69 @@ class NagiosRange:
             Returns True if an alert should be raised, i.e. if test is outside nrange.
         """
         return not self.range_fn(test)
+
+class NagiosStatusMixin:
+    """
+    A mixin class providing methods for Nagios status codes.
+
+    Note that these methods do not return, they exit the script.
+
+    Options come from NAGIOS_MIXIN_OPTIONS.
+    """
+
+    NAGIOS_MIXIN_OPTIONS = {
+        'nagios-report': ('print out nagios information', None, 'store_true', False, 'n'),
+        'nagios-check-filename':
+            ('filename of where the nagios check data is stored', 'str', 'store',
+                Path(NAGIOS_CACHE_DIR) / (NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))
+            ),
+        'nagios-check-interval-threshold': ('threshold of nagios checks timing out', 'int', 'store', 0),
+        'nagios-user': ('user nagios runs as', 'str', 'store', 'nrpe'),
+        'nagios-world-readable-check': ('make the nagios check data file world readable', None, 'store_true', False),
+    }
+
+    def nagios_prologue(self):
+        """
+        This will set up the reporter, but exit immediately of the report is requested
+        """
+        # bail if nagios report is requested
+        self.nagios = SimpleNagios(
+            _cache=self.options.nagios_check_filename,
+            _report_and_exit=self.options.nagios_report,
+            _threshold=self.options.nagios_check_interval_threshold,
+            _cache_user=self.options.nagios_user,
+            _world_readable=self.options.nagios_world_readable_check,
+        )
+
+    def nagios_epilogue(self, nagios_exit, nagios_message):
+        """
+        This will write the result to the cache file
+        """
+        self.nagios._exit(nagios_exit, nagios_message)
+
+    def ok(self, msg):
+        """
+        Convenience method that exits with Nagios OK exit code.
+        """
+        exit_from_errorcode(0, msg)
+
+    def warning(self, msg):
+        """
+        Convenience method that exits with Nagios WARNING exit code.
+        """
+        exit_from_errorcode(1, msg)
+
+    def critical(self, msg):
+        """
+        Convenience method that exits with Nagios CRITICAL exit code.
+        """
+        exit_from_errorcode(2, msg)
+
+    def unknown(self, msg):
+        """
+        Convenience method that exits with Nagios UNKNOWN exit code.
+        """
+        exit_from_errorcode(3, msg)
 
 
 class NagiosReporter:

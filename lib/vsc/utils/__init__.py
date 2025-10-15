@@ -28,3 +28,31 @@ Allow other packages to extend this namespace, zip safe setuptools style
 """
 import pkg_resources
 pkg_resources.declare_namespace(__name__)
+
+import os
+import warnings
+from functools import wraps
+
+def _script_name(full_name):
+    """Return the script name without .py extension if any. This assumes that the script name does not contain a
+    dot in case of lacking an extension.
+    """
+    (name, _) = os.path.splitext(full_name)
+    return os.path.basename(name)
+
+
+def deprecated_class(message=None):
+    def decorator(cls):
+        class Wrapped(cls):
+            def __init__(self, *args, **kwargs):
+                warnings.warn(
+                    f"{cls.__name__} is deprecated. {message or ''}",
+                    category=DeprecationWarning,
+                    stacklevel=2,
+                )
+                super().__init__(*args, **kwargs)
+        Wrapped.__name__ = cls.__name__
+        Wrapped.__doc__ = cls.__doc__
+        Wrapped.__module__ = cls.__module__
+        return Wrapped
+    return decorator
