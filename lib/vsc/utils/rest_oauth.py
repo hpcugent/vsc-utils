@@ -27,39 +27,33 @@
 Utilities to allow interacting with a REST API as an application that
 was registered with the OAuth system of the web application.
 """
+
 import jsonpickle
 from urllib.parse import urlencode
 from urllib.request import Request
+
 
 def request_access_token(opener, path, client_id, client_secret):
     """
     Make a call to the oauth api to obtain an access token.
     """
-    payload = urlencode({"grant_type": "client_credentials",
-                                "client_id": client_id,
-                                "client_secret": client_secret})
+    payload = urlencode({"grant_type": "client_credentials", "client_id": client_id, "client_secret": client_secret})
     request = Request(path, payload)
-    request.add_header('Content-Type', 'application/json')
-    request.get_method = lambda: 'POST'
+    request.add_header("Content-Type", "application/json")
+    request.get_method = lambda: "POST"
     uri = opener.open(request)
     response = uri.read()
     return jsonpickle.decode(response)
 
 
-
-def make_api_request(opener, path, method='GET', payload="", access_token=""):
+def make_api_request(opener, path, method="GET", payload="", access_token=""):
     """
     Make a call to the REST API, given an access token.
     """
     request = Request(path, payload)
-    request.add_header('Content-Type', 'application/json')
-    request.add_header('Authorization', f"Bearer {access_token}")
+    request.add_header("Content-Type", "application/json")
+    request.add_header("Authorization", f"Bearer {access_token}")
     request.get_method = lambda: method
     uri = opener.open(request)
     response = uri.read()
     return jsonpickle.decode(response)
-
-
-
-
-

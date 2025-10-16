@@ -30,26 +30,27 @@ vsc-utils base distribution setup.py
 @author: Stijn De Weirdt (Ghent University)
 @author: Andy Georges (Ghent University)
 """
-import vsc.install.shared_setup as shared_setup
+
+from vsc.install import shared_setup
 from vsc.install.shared_setup import ag, sdw
 
 install_requires = [
-    'vsc-base >= 3.2.4',
-    'lockfile >= 0.9.1',
-    'netifaces',
-    'jsonpickle',
+    "vsc-base >= 3.2.4",
+    "lockfile >= 0.9.1",
+    "netifaces",
+    "jsonpickle",
 ]
 
 PACKAGE = {
-    'version': '2.3.0',
-    'author': [ag, sdw],
-    'maintainer': [ag, sdw],
-    'excluded_pkgs_rpm': ['vsc', 'vsc.utils'],  # vsc is default, vsc.utils is provided by vsc-base
-    'tests_require': ['mock'],
-    'install_requires': install_requires,
-    'setup_requires': ['vsc-install >= 0.15.1'],
-    'zip_safe': False,
+    "version": "2.3.1",
+    "author": [ag, sdw],
+    "maintainer": [ag, sdw],
+    "excluded_pkgs_rpm": ["vsc", "vsc.utils"],  # vsc is default, vsc.utils is provided by vsc-base
+    "tests_require": ["mock"],
+    "install_requires": install_requires,
+    "setup_requires": ["vsc-install >= 0.15.1"],
+    "zip_safe": False,
 }
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     shared_setup.action_target(PACKAGE)

@@ -31,6 +31,7 @@ This module provides functions to run at the beginning and end of commonly used 
 
 @author: Andy Georges
 """
+
 import os
 import sys
 
@@ -42,8 +43,14 @@ from vsc.utils.availability import proceed_on_ha_service
 from vsc.utils.generaloption import SimpleOption
 from vsc.utils.lock import lock_or_bork, release_or_bork, LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE
 from vsc.utils.nagios import (
-    SimpleNagios, NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE, exit_from_errorcode,
-    NAGIOS_EXIT_OK, NAGIOS_EXIT_WARNING, NAGIOS_EXIT_CRITICAL, NAGIOS_EXIT_UNKNOWN,
+    SimpleNagios,
+    NAGIOS_CACHE_DIR,
+    NAGIOS_CACHE_FILENAME_TEMPLATE,
+    exit_from_errorcode,
+    NAGIOS_EXIT_OK,
+    NAGIOS_EXIT_WARNING,
+    NAGIOS_EXIT_CRITICAL,
+    NAGIOS_EXIT_UNKNOWN,
 )
 from vsc.utils.timestamp import convert_timestamp, write_timestamp, retrieve_timestamp_with_default
 from vsc.utils.timestamp_pid_lockfile import TimestampedPidLockfile
@@ -67,19 +74,25 @@ def _script_name(full_name):
 
 
 DEFAULT_OPTIONS = {
-    'disable-locking': ('do NOT protect this script by a file-based lock', None, 'store_true', False),
-    'dry-run': ('do not make any updates whatsoever', None, 'store_true', False),
-    'ha': ('high-availability master IP address', None, 'store', None),
-    'locking-filename': ('file that will serve as a lock', None, 'store',
-                         os.path.join(LOCKFILE_DIR,
-                                      LOCKFILE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
-    'nagios-report': ('print out nagios information', None, 'store_true', False, 'n'),
-    'nagios-check-filename': ('filename of where the nagios check data is stored', 'string', 'store',
-                              os.path.join(NAGIOS_CACHE_DIR,
-                                           NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),))),
-    'nagios-check-interval-threshold': ('threshold of nagios checks timing out', 'int', 'store', 0),
-    'nagios-user': ('user nagios runs as', 'string', 'store', 'nrpe'),
-    'nagios-world-readable-check': ('make the nagios check data file world readable', None, 'store_true', False),
+    "disable-locking": ("do NOT protect this script by a file-based lock", None, "store_true", False),
+    "dry-run": ("do not make any updates whatsoever", None, "store_true", False),
+    "ha": ("high-availability master IP address", None, "store", None),
+    "locking-filename": (
+        "file that will serve as a lock",
+        None,
+        "store",
+        os.path.join(LOCKFILE_DIR, LOCKFILE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),)),
+    ),
+    "nagios-report": ("print out nagios information", None, "store_true", False, "n"),
+    "nagios-check-filename": (
+        "filename of where the nagios check data is stored",
+        "string",
+        "store",
+        os.path.join(NAGIOS_CACHE_DIR, NAGIOS_CACHE_FILENAME_TEMPLATE % (_script_name(sys.argv[0]),)),
+    ),
+    "nagios-check-interval-threshold": ("threshold of nagios checks timing out", "int", "store", 0),
+    "nagios-user": ("user nagios runs as", "string", "store", "nrpe"),
+    "nagios-world-readable-check": ("make the nagios check data file world readable", None, "store_true", False),
 }
 
 
@@ -92,7 +105,7 @@ def _merge_options(options):
     """
 
     opts = deepcopy(options)
-    for (k, v) in DEFAULT_OPTIONS.items():
+    for k, v in DEFAULT_OPTIONS.items():
         if k in opts:
             v_ = v[:3] + (opts[k],) + v[4:]
             opts[k] = v_
