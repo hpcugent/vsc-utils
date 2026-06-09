@@ -38,7 +38,7 @@ install_requires = [
     "vsc-base >= 3.2.4",
     "lockfile >= 0.9.1",
     "netifaces",
-    "jsonpickle",
+    "jsonpickle <= 4.1.2",
 ]
 
 PACKAGE = {
